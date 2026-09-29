@@ -1,6 +1,6 @@
 {
   "name": "EscapeViggo.Runtime",
   "rootNamespace": "EscapeViggo",
-  "references": ["Unity.InputSystem"],
+  "references": ["Unity.InputSystem", "Unity.Netcode.Runtime", "Unity.Networking.Transport", "Unity.RenderPipelines.Universal.Runtime"],
   "autoReferenced": true
 }

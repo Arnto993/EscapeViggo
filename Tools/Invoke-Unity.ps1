@@ -1,7 +1,8 @@
 param(
     [string]$Method = 'EscapeViggo.Editor.WorksiteValidation.Validate',
     [string]$LogName = 'Validation',
-    [string]$TestPlatform
+    [string]$TestPlatform,
+    [switch]$AsyncMethod
 )
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot -Parent
@@ -15,7 +16,8 @@ if ($TestPlatform) {
     $unityArguments += @('-runTests', '-testPlatform', $TestPlatform,
         '-testResults', ('"{0}"' -f (Join-Path $logDirectory "$LogName.xml")))
 } else {
-    $unityArguments += @('-quit', '-executeMethod', $Method)
+    if (!$AsyncMethod) { $unityArguments += '-quit' }
+    $unityArguments += @('-executeMethod', $Method)
 }
 $unityRun = Start-Process -FilePath $editorPath -ArgumentList $unityArguments -WindowStyle Hidden -PassThru
 $null = $unityRun.Handle

@@ -1,118 +1,128 @@
 # Escape Viggo
 
-Unity project for a first-person multiplayer party game on Windows PC.
+Unity 6.3 LTS (**6000.3.25f1**), URP, Windows PC. M1–M3 are implemented;
+M4 and later gameplay have not been started. Read [AGENTS.md](AGENTS.md),
+[GAME_SPEC.md](GAME_SPEC.md), and [MILESTONES.md](MILESTONES.md) before changes.
 
-Read [AGENTS.md](AGENTS.md), [GAME_SPEC.md](GAME_SPEC.md), and
-[MILESTONES.md](MILESTONES.md) before making changes.
+## Open and play
 
-## Open the project
+1. Open this repository in Unity Hub with 6000.3.25f1.
+2. Wait for package import, then open
+   `Assets/EscapeViggo/Scenes/PrototypeWorksite.unity`.
+3. Enter Play mode. In the development panel, leave IP `127.0.0.1` and port
+   `7777`, then click **Start Host**.
+4. WASD moves, mouse looks, Left Shift sprints, Space jumps, and held Left Ctrl
+   or C crouches. Escape releases the mouse. **Resume controls** captures it.
+   Losing window focus releases controls; networking continues in the background.
+5. Check the Console for errors.
 
-1. In Unity Hub, add this repository's root folder.
-2. Open with **Unity 6.3 LTS, 6000.3.25f1**, matching
-   `ProjectSettings/ProjectVersion.txt`.
-3. Let package resolution, asset import, and compilation finish.
-4. Open `Assets/EscapeViggo/Scenes/PrototypeWorksite.unity` and check the Console for errors.
+## Host and client manual test
 
-## M0 foundation
+A ready development build is at `Builds/Windows/EscapeViggo.exe` (ignored by Git).
+To rebuild it, use **Escape Viggo > Build > Windows Development Player**.
 
-The existing rendering and input setup is preserved:
+1. In the Editor, play the worksite and click **Start Host** at `127.0.0.1:7777`.
+2. Launch `Builds/Windows/EscapeViggo.exe`. Leave the same address/port and click
+   **Start Client**. Both windows should display **Players: 2**.
+3. Press Escape to switch windows. Resume controls in the window you want to
+   move. Move each player separately into the main work area. Confirm the other
+   window shows that movement and its own player stays still.
+4. In both windows test sprint, jump, crouch and mouse look. The other capsule
+   should move, rotate, jump and shrink when crouching. Each window should keep
+   its own camera; there should be no multiple AudioListener warnings.
+5. Walk through the three corridor doors and through the electrical/storage/
+   office connecting doors. Run around central machinery and behind cover.
+   Find both spawn markers, the orange battery station table and five yellow
+   task panels. These are placeholders with no interactions.
+6. Crouch through the low duct near the south of the main room. Release crouch
+   while underneath: remain crouched until the ceiling is clear.
+7. Escape in the client, click **Disconnect**, then **Start Client** again.
+   The host should stay usable; the departed capsule disappears and a new one
+   spawns on rejoin. Then disconnect the host, confirm the client returns to an
+   offline state, start a new host, and reconnect the client.
+8. Check the Editor Console and player logs for errors. Review mouse sensitivity
+   using the panel slider, or change the shared tuning asset outside Play mode.
 
-| Dependency | Installed version |
+Alternatively, launch the executable twice and choose Host in one window and
+Client in the other. Extra clients use the same address/port. Eight neutral spawn
+slots exist; they do not assign roles. CLI shortcuts are `-ev-host`, `-ev-client`,
+`-ev-address 127.0.0.1`, and `-ev-port 7777` in development builds.
+
+## Assets and architecture
+
+- Scene: `Assets/EscapeViggo/Scenes/PrototypeWorksite.unity` is the build scene.
+  A continuous foundation, three corridor connections, interconnecting rooms,
+  cover, labels and a low duct provide traversal and hiding tests.
+- Local prefab: `Assets/EscapeViggo/Prefabs/Player.prefab`.
+  `PlayerInputReader`, `PlayerMovement`, and `PlayerLook` separate input,
+  CharacterController physics, and camera responsibility.
+- Network prefab: `Assets/EscapeViggo/Prefabs/NetworkPlayer.prefab`, with
+  NetworkObject, owner-authoritative NetworkTransform, and NetworkPlayer.
+  Local components start disabled and are enabled only for the owner.
+- Tuning: `Assets/EscapeViggo/ScriptableObjects/PlayerMovement.asset`.
+  Bindings: `Assets/EscapeViggo/UI/PlayerControls.inputactions`.
+- Networking: `LocalNetworkSession` owns transport lifecycle, server-approved
+  neutral spawn slots and connection status. The development panel only sends
+  connection intentions and adjusts local mouse sensitivity.
+- Registry: `Assets/DefaultNetworkPrefabs.asset` (NGO's standard generated path).
+  Scene and prefab construction uses Unity Editor APIs, with Unity-generated GUIDs.
+
+Movement is owner-authoritative for this local prototype. Important future
+gameplay outcomes still require server validation. Remote CharacterControllers
+are disabled; players currently pass through each other. Crouch synchronization
+is presentation state. No prediction, role logic, cloud sessions, Relay, or
+gameplay rewards are included. The panel and smoke harness operate only in the
+Editor/development builds; use a development build for this checkpoint.
+
+## Packages
+
+| Dependency | Version |
 | --- | --- |
 | Universal Render Pipeline | 17.3.0 |
 | Input System | 1.20.0 |
 | Unity Test Framework | 1.6.0 |
+| Netcode for GameObjects | 2.13.3 |
+| Unity Transport | 2.7.4 |
 
-The Input System is the active input backend. Graphics and quality settings
-use the existing URP assets under `Assets/Settings`. Asset serialization is
-Force Text, with Visible Meta Files enabled.
+Unity's Package Manager reported NGO 2.13.2/2.13.3 compatible with this editor
+and Transport 2.7.4 recommended. NGO 2.13.3 is the unsuffixed
+[official package release](https://github.com/Unity-Technologies/com.unity.netcode.gameobjects/releases/tag/v2.13.3);
+the chosen version resolves and passes the project build and two-process tests.
+Package Manager generated the lockfile; no experimental
+version suffixes or alternative networking frameworks were added.
 
-Project-owned assets belong under `Assets/EscapeViggo`: `Art`, `Audio`,
-`Materials`, `Prefabs`, `Scenes`, `ScriptableObjects`, `Scripts`, `Tests`, and
-`UI`. Empty folders have `.gitkeep` files so they survive a fresh checkout;
-Unity generates their `.meta` files, which must be versioned.
+## Automated validation
 
-The template welcome/readme assets have been removed after checking that no
-retained asset references them. `SampleScene` remains the only build scene
-and provides a rendering smoke test until M1. Keep its volume profile:
-the scene and URP pipeline assets reference it. The template Input Actions
-asset is also retained because it is registered in Editor Build Settings.
-
-No gameplay or cloud multiplayer is configured by M0. Netcode for GameObjects
-and Unity Transport belong to M3; Multiplayer Services/session/Relay setup
-belongs to M17. Existing template packages are retained to avoid unrelated
-package changes. There are no project automated tests yet.
-
-## Validation
-
-With this project closed in Unity, run from the repository root in PowerShell:
+Close the project in Unity before running batch editor commands from the root:
 
 ```powershell
-$unityEditor = 'C:\Program Files\Unity\Hub\Editor\6000.3.25f1\Editor\Unity.exe'
-New-Item -ItemType Directory -Force -Path Logs | Out-Null
-$unityCheck = Start-Process -FilePath $unityEditor -ArgumentList @(
-    '-batchmode', '-nographics', '-quit',
-    '-projectPath', ('"{0}"' -f $PWD.Path),
-    '-logFile', ('"{0}"' -f (Join-Path $PWD.Path 'Logs/M0-validation.log'))
-) -WindowStyle Hidden -PassThru
-$null = $unityCheck.Handle
-$unityCheck.WaitForExit()
-$unityCheck.ExitCode
+powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -Method EscapeViggo.Editor.NetworkSetup.Validate -LogName M3-validation
+powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -TestPlatform PlayMode -LogName M3-playmode
+powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -Method EscapeViggo.Editor.NetworkSetup.Build -LogName M3-build
+powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Test-LocalMultiplayer.ps1
 ```
 
-Expect exit code `0`; inspect `Logs/M0-validation.log` for compiler, package, and
-import errors. See Unity's [command-line reference](https://docs.unity3d.com/6000.3/Documentation/Manual/EditorCommandLineArguments.html).
-Batch mode checks import/compilation; `-nographics` does not validate rendering.
+The editor validator checks saved scene/prefab references, required locations,
+4,697 floor samples and capsule routes. Seven Play Mode tests use the real
+CharacterController against the worksite, including binding simulation, speed,
+jump/landing, collision, headroom, look and room traversal.
 
-Manual check: open `SampleScene`, confirm the Console has no compile errors,
-enter Play mode, verify the camera renders the skybox without errors, and
-exit Play mode. No player or worksite geometry is expected at M0. Confirm the
-`Assets/EscapeViggo` folders are present and Package Manager has no resolution
-errors.
+The multiplayer script launches two separate player processes on port 17777,
+moves both owners, compares their replicated positions/rotations/crouch states,
+checks local-only components and camera/audio counts, disconnects and reconnects
+the client, then restarts the host. A timeout, exception, nonzero exit or state
+mismatch fails the run. It only terminates processes it launched.
+Add `-Graphics` to exercise rendering and save camera renders (excluding IMGUI).
+Logs, XML test results and screenshots are under ignored `Logs/`; builds are
+under ignored `Builds/`. The PowerShell execution-policy override applies only
+to that command process.
 
-Git should track `Assets` (including `.meta` files), `Packages`,
-`ProjectSettings`, and root documentation. Generated Unity folders, builds,
-user/IDE settings, and generated solution/project files are ignored.
+The **Escape Viggo > Validation** menus provide the same asset checks in Unity.
+The **Setup** menus explicitly reconstruct M1, M2 or M3 assets and replace their
+scene/prefab content. Use these only when intending to reset that checkpoint;
+normal gameplay does not need any setup script. To reconstruct everything, run
+M1, then M2, then M3. Existing tuning/material/input assets are preserved.
 
-Milestone validation status is recorded in `MILESTONES.md`.
-
-## M1 worksite
-
-`PrototypeWorksite` is now the build scene. The template `SampleScene` is
-retained for reference. The main area connects to a corridor at three points;
-the eastern electrical, storage and office rooms also connect to each other.
-Blue/orange pads mark future worker/Viggo spawns. Yellow panels mark five future
-tasks; the orange table is a battery station placeholder. None has gameplay yet.
-
-Run `Escape Viggo > Validation > Validate M1 Worksite` in Unity, or close Unity
-and run `powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1
--LogName M1-validation` from the repository root. Logs stay ignored.
-`Escape Viggo > Setup > Create M1 Worksite (replaces scene)` explicitly rebuilds
-the greybox; it replaces scene edits, so use it only when intending to reset it.
-
-Manual M1 check: open the worksite, inspect the labelled rooms and connecting
-doorways in Scene view, then enter Play mode to inspect the overview camera.
-The M2 controller now replaces the overview camera.
-
-## M2 controller
-
-Enter Play mode in `PrototypeWorksite`: WASD moves, mouse looks, Left Shift
-sprints, Space jumps, and held Left Ctrl or C crouches. Escape releases the
-cursor; click **Resume controls** to capture it again. Losing window focus also
-releases controls. Tuning (including sensitivity) lives in
-`Assets/EscapeViggo/ScriptableObjects/PlayerMovement.asset`; bindings live in
-`Assets/EscapeViggo/UI/PlayerControls.inputactions`.
-
-`Player.prefab` separates input, CharacterController movement and camera look.
-The low duct near the south of the main room tests crouching and headroom.
-Manually walk through all rooms, run both loops, jump, crouch through the duct,
-release crouch under it (you should stay crouched), then exit and stand.
-
-Run all Play Mode tests in Test Runner, or close Unity and run:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -TestPlatform PlayMode -LogName M2-playmode
-```
-
-The tests drive the actual CharacterController against the saved worksite and
-exercise the Input Actions with a synthetic keyboard.
+`Assets/Scenes/SampleScene.unity` and the template Input Actions remain for
+reference; existing URP assignments are preserved. M0 history and each milestone's
+acceptance evidence are recorded in `MILESTONES.md`.

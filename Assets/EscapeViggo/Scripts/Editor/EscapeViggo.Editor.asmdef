@@ -1,6 +1,6 @@
 {
   "name": "EscapeViggo.Editor",
   "rootNamespace": "EscapeViggo.Editor",
-  "references": ["EscapeViggo.Runtime", "Unity.InputSystem"],
+  "references": ["EscapeViggo.Runtime", "Unity.InputSystem", "Unity.Netcode.Runtime", "Unity.Networking.Transport"],
   "includePlatforms": ["Editor"]
 }

@@ -141,11 +141,11 @@ namespace EscapeViggo.Editor
 
         private static void Label(string text, Transform parent, Vector3 position)
         {
-            var label = new GameObject("Label").AddComponent<TextMesh>();
-            label.transform.SetParent(parent, false);
-            // Keep world text independent of the dimensions of the primitive parent.
+            var label = new GameObject(parent.name + " Label").AddComponent<TextMesh>();
+            label.gameObject.AddComponent<EscapeViggo.Core.WorksiteLabel>();
+            // Billboard rotation must not inherit a primitive's nonuniform scale.
+            label.transform.SetParent(parent.parent, false);
             label.transform.position = parent.position + position;
-            label.transform.localScale = new Vector3(1 / parent.lossyScale.x, 1 / parent.lossyScale.y, 1 / parent.lossyScale.z);
             label.text = text;
             label.anchor = TextAnchor.MiddleCenter;
             label.alignment = TextAlignment.Center;

@@ -22,6 +22,9 @@ namespace EscapeViggo.Tests
         [UnitySetUp]
         public IEnumerator SetUp()
         {
+            foreach (var session in Object.FindObjectsByType<EscapeViggo.Networking.LocalNetworkSession>(FindObjectsSortMode.None))
+                Object.Destroy(session.gameObject);
+            yield return null;
             yield return SceneManager.LoadSceneAsync("PrototypeWorksite");
             var previous = GameObject.Find("Local Player");
             if (previous != null) Object.Destroy(previous);
