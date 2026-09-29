@@ -1,0 +1,21 @@
+using Unity.Netcode;
+using UnityEngine;
+
+namespace EscapeViggo.Interaction
+{
+    [RequireComponent(typeof(NetworkObject), typeof(BoxCollider))]
+    public abstract class NetworkInteractable : NetworkBehaviour
+    {
+        private Collider _interactionCollider;
+        public Collider InteractionCollider => _interactionCollider != null ? _interactionCollider : _interactionCollider = GetComponent<Collider>();
+        public abstract string Prompt { get; }
+        public virtual bool CanInteract(PlayerInteraction player) => IsSpawned;
+
+        internal void InteractOnServer(PlayerInteraction player)
+        {
+            if (IsServer && IsSpawned && CanInteract(player)) OnServerInteract(player);
+        }
+
+        protected abstract void OnServerInteract(PlayerInteraction player);
+    }
+}

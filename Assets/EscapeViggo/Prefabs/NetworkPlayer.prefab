@@ -106,6 +106,7 @@ GameObject:
   - component: {fileID: 2994425213638559085}
   - component: {fileID: 5171738535260400936}
   - component: {fileID: 2494624091084737399}
+  - component: {fileID: 8737383189539647924}
   m_Layer: 0
   m_Name: NetworkPlayer
   m_TagString: Untagged
@@ -287,6 +288,21 @@ MonoBehaviour:
   _viggoMaterial: {fileID: 2100000, guid: 615e3a8606c0f7e40a48f175236537a5, type: 2}
   _electricianMaterial: {fileID: 2100000, guid: 083b27b8dde5e1045bec369ed8d58d0c, type: 2}
   _viggoBodyScale: {x: 1.6, y: 1.15, z: 1.6}
+--- !u!114 &8737383189539647924
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5300135973281005513}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 05f86ba61d153d440887f9392583e5b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: EscapeViggo.Runtime::EscapeViggo.Interaction.PlayerInteraction
+  ShowTopMostFoldoutHeaderGroup: 1
+  _camera: {fileID: 1498985334319546418}
+  _range: 3
 --- !u!1 &8215181289536905387
 GameObject:
   m_ObjectHideFlags: 0

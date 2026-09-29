@@ -1,7 +1,7 @@
 # Escape Viggo
 
-Unity 6.3 LTS (**6000.3.25f1**), URP, Windows PC. M1–M5 are implemented.
-M6 is the next checkpoint. Read [AGENTS.md](AGENTS.md),
+Unity 6.3 LTS (**6000.3.25f1**), URP, Windows PC. M1–M6 are implemented.
+M7 is the next checkpoint. Read [AGENTS.md](AGENTS.md),
 [GAME_SPEC.md](GAME_SPEC.md), and [MILESTONES.md](MILESTONES.md) before changes.
 
 ## Open and play
@@ -52,6 +52,12 @@ CLI shortcuts are `-ev-host`, `-ev-client`,
 `-ev-address 127.0.0.1`, and `-ev-port 7777` in development builds.
 
 ## Assets and architecture
+
+Near the electrician spawn, look at the yellow **TEST INTERACTION** cube within
+three metres and press **E**. Its confirmation count must increase in both
+windows. Look away, step outside range, or release the cursor: the prompt should
+disappear. Range is serialized on `NetworkPlayer.prefab`'s `PlayerInteraction`.
+The common interaction path checks range and line of sight on the server.
 
 The development panel shows synchronized phase and time. A new host begins at
 07:00 in Preparing, enters Workday after five seconds and reaches EndOfDay at

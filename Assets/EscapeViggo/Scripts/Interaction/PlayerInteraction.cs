@@ -1,0 +1,79 @@
+using EscapeViggo.Networking;
+using EscapeViggo.Player;
+using Unity.Netcode;
+using UnityEngine;
+
+namespace EscapeViggo.Interaction
+{
+    public sealed class PlayerInteraction : NetworkBehaviour
+    {
+        [SerializeField] private Camera _camera;
+        [SerializeField, Min(0.1f)] private float _range = 3;
+        private PlayerInputReader _input;
+        private PlayerMovement _movement;
+        public NetworkPlayer Player { get; private set; }
+        public NetworkInteractable Target { get; private set; }
+        public string Prompt => Target == null ? string.Empty : "E - " + Target.Prompt;
+        public float Range => _range;
+        public Vector3 ServerEyePosition => transform.position + Vector3.up *
+            ((Player.IsCrouching ? _movement.Settings.CrouchingHeight : _movement.Settings.StandingHeight) - _movement.Settings.EyeInset);
+
+        private void Awake()
+        {
+            _input = GetComponent<PlayerInputReader>();
+            _movement = GetComponent<PlayerMovement>();
+            Player = GetComponent<NetworkPlayer>();
+        }
+
+        private void Update()
+        {
+            RefreshTarget();
+            if (Target != null && _input.InteractPressed) Interact();
+        }
+
+        public void RefreshTarget()
+        {
+            Target = null;
+            if (!IsSpawned || !IsOwner || !_input.IsCaptured || !_input.enabled) return;
+            var target = InteractionQuery.Raycast(_camera.transform.position, _camera.transform.forward, _range);
+            if (target != null && target.CanInteract(this)) Target = target;
+        }
+
+        public void Interact()
+        {
+            if (IsSpawned && IsOwner && Target != null)
+                RequestInteractionRpc(new NetworkObjectReference(Target.NetworkObject), _camera.transform.forward);
+        }
+
+        [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
+        public void RequestInteractionRpc(NetworkObjectReference reference, Vector3 aimDirection, RpcParams rpcParams = default)
+        {
+            if (rpcParams.Receive.SenderClientId != OwnerClientId || !reference.TryGet(out var targetObject, NetworkManager)) return;
+            var target = targetObject.GetComponent<NetworkInteractable>();
+            if (target == null || !ServerCanReach(target) || !InteractionQuery.IsFinite(aimDirection)) return;
+            // Origin and range come from server state. Only aim direction is supplied by the owner.
+            if (InteractionQuery.Raycast(ServerEyePosition, aimDirection, _range) != target) return;
+            target.InteractOnServer(this);
+        }
+
+        public bool ServerCanReach(NetworkInteractable target)
+        {
+            if (!IsServer || !IsSpawned || target == null || !target.IsSpawned) return false;
+            var origin = ServerEyePosition;
+            var point = target.InteractionCollider.ClosestPoint(origin);
+            if ((point - origin).sqrMagnitude > _range * _range) return false;
+            return InteractionQuery.Raycast(origin, target.InteractionCollider.bounds.center - origin,
+                Vector3.Distance(origin, target.InteractionCollider.bounds.center) + 0.01f) == target;
+        }
+
+        private void OnGUI()
+        {
+            if (!IsSpawned || !IsOwner || !_input.IsCaptured) return;
+            GUI.Label(new Rect(Screen.width / 2f - 5, Screen.height / 2f - 12, 20, 25), "+");
+            if (Target != null)
+                GUI.Box(new Rect(Screen.width / 2f - 175, Screen.height / 2f + 30, 350, 30), Prompt);
+        }
+
+        public override void OnNetworkDespawn() => Target = null;
+    }
+}

@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using EscapeViggo.Player;
 using EscapeViggo.Core;
+using EscapeViggo.Interaction;
 using Unity.Netcode;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -56,6 +57,7 @@ namespace EscapeViggo.Networking
                 yield return Until(() => _session.PlayerCount == 2, "reconnected players");
             }
             yield return Round(2);
+            yield return CheckInteraction();
             yield return Until(() => _session.Workday != null && _session.Workday.State.Phase == MatchPhase.EndOfDay, "authoritative end of day");
             Check(_session.Workday.State.ClockText == "15:00", "End of day must display 15:00.");
             Debug.Log("EV_WORKDAY END PASSED: EndOfDay 15:00");
@@ -178,6 +180,50 @@ namespace EscapeViggo.Networking
             }
             Check(viggos == 1, "Expected exactly one Viggo.");
             Debug.Log($"EV_ROLES round={round} PASSED: assignment, authority, spawns and silhouettes.");
+        }
+
+        private IEnumerator CheckInteraction()
+        {
+            var target = FindFirstObjectByType<DevelopmentTestInteractable>();
+            Check(target != null, "Test interactable was not spawned.");
+            var local = _session.Manager.LocalClient.PlayerObject;
+            var interaction = local.GetComponent<PlayerInteraction>();
+            var input = local.GetComponent<PlayerInputReader>();
+            var movement = local.GetComponent<PlayerMovement>();
+            var look = local.GetComponent<PlayerLook>();
+            movement.enabled = look.enabled = false;
+            var controller = local.GetComponent<CharacterController>();
+            if (!_host)
+            {
+                // Submit a forged distant request directly, bypassing local selection.
+                controller.enabled = false;
+                local.transform.position = new Vector3(-18, 0.03f, -12);
+                controller.enabled = true;
+                yield return new WaitForSecondsRealtime(1);
+                interaction.RequestInteractionRpc(new NetworkObjectReference(target.NetworkObject), target.transform.position - interaction.ServerEyePosition);
+                yield return new WaitForSecondsRealtime(1);
+                Check(target.Count == 0, "Distant client interaction was accepted.");
+                controller.enabled = false;
+                local.transform.SetPositionAndRotation(new Vector3(-12, 0.03f, -12), Quaternion.identity);
+                controller.enabled = true;
+                movement.Simulate(default, 1f / 60);
+                var camera = local.GetComponentInChildren<Camera>();
+                camera.transform.localPosition = Vector3.up * (movement.Height - movement.Settings.EyeInset);
+                camera.transform.LookAt(target.transform.position);
+                input.CaptureCursor();
+                yield return new WaitForSecondsRealtime(1);
+                interaction.RefreshTarget();
+                Check(interaction.Target == target && interaction.Prompt.Length > 0, "Aimed interaction prompt is missing.");
+                interaction.Interact();
+                yield return Until(() => target.Count == 1, "server interaction confirmation");
+                camera.transform.rotation = Quaternion.LookRotation(Vector3.right);
+                interaction.RefreshTarget();
+                Check(interaction.Target == null && interaction.Prompt.Length == 0, "Prompt persists when aiming away.");
+                input.ReleaseCursor();
+            }
+            yield return Until(() => target.Count == 1, "replicated test interaction");
+            Debug.Log("EV_INTERACTION PASSED: distance rejection, aimed prompt, server confirmation, synchronization.");
+            movement.enabled = look.enabled = true;
         }
 
         private void CaptureCamera(Camera camera, string path)

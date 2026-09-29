@@ -145,9 +145,10 @@ namespace EscapeViggo.Tests
                 Assert.That(actions.FindAction("Sprint").IsPressed(), Is.True);
                 Assert.That(actions.FindAction("Jump").WasPressedThisFrame(), Is.True);
                 Assert.That(actions.FindAction("Crouch").IsPressed(), Is.True);
-                InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.C));
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.C, Key.E));
                 InputSystem.Update();
                 Assert.That(actions.FindAction("Crouch").IsPressed(), Is.True);
+                Assert.That(actions.FindAction("Interact").WasPressedThisFrame(), Is.True);
             }
             finally
             {

@@ -9,6 +9,8 @@ namespace EscapeViggo.Player
         [SerializeField] private InputActionAsset _actions;
         private InputActionAsset _instance;
         private InputAction _move, _look, _sprint, _jump, _crouch, _release;
+        private InputAction _interact;
+        public bool InteractPressed => enabled && IsCaptured && _interact != null && _interact.WasPressedThisFrame();
         public bool IsCaptured { get; private set; }
         public Vector2 Look => enabled && IsCaptured ? _look.ReadValue<Vector2>() : Vector2.zero;
 
@@ -29,6 +31,7 @@ namespace EscapeViggo.Player
                 _jump = _instance.FindAction("Player/Jump", true);
                 _crouch = _instance.FindAction("Player/Crouch", true);
                 _release = _instance.FindAction("Player/ReleaseCursor", true);
+                _interact = _instance.FindAction("Player/Interact", true);
             }
             _instance.Enable();
             CaptureCursor();

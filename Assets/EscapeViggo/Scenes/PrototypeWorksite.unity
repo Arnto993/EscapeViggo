@@ -1760,6 +1760,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 849234632bc12cc42bed551aac5fa284, type: 3}
   m_Name: 
   m_EditorClassIdentifier: EscapeViggo.Runtime::EscapeViggo.Core.WorksiteLabel
+--- !u!1 &592542183
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 592542184}
+  m_Layer: 0
+  m_Name: Test Interaction Spawn
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &592542184
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 592542183}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -12, y: 1, z: -10}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1936951477}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &600301942
 GameObject:
   m_ObjectHideFlags: 0
@@ -5884,6 +5915,7 @@ GameObject:
   - component: {fileID: 1936951475}
   - component: {fileID: 1936951474}
   - component: {fileID: 1936951473}
+  - component: {fileID: 1936951478}
   m_Layer: 0
   m_Name: Local Network
   m_TagString: Untagged
@@ -6024,8 +6056,26 @@ Transform:
   - {fileID: 47761811}
   - {fileID: 1775695730}
   - {fileID: 1382042465}
+  - {fileID: 592542184}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1936951478
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1936951472}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa4c6d3dfe018364a8a2e9dcb9a5f32e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: EscapeViggo.Runtime::EscapeViggo.Networking.NetworkWorldSpawner
+  _manager: {fileID: 1936951475}
+  _entries:
+  - Prefab: {fileID: 6104007994968919751, guid: 0c5674e72b091d1448cbed9501285a4c, type: 3}
+    Location: {fileID: 592542184}
+    DevelopmentOnly: 1
 --- !u!1 &1973085734
 GameObject:
   m_ObjectHideFlags: 0

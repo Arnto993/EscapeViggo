@@ -557,6 +557,23 @@ Interacting produces visible/logged confirmation.
 
 ---
 
+## M6 Status — 2026-09-29
+
+Acceptance criteria satisfied. `PlayerInteraction` selects from the owner's
+camera, shows/hides the E prompt, and sends an owner-only RPC. Server validation
+uses the server-observed player position, configured range, line of sight and
+aimed target. `NetworkInteractable` is the common extension point. A development
+cube near the electrician spawn displays a replicated confirmation count.
+
+Unity compilation, asset validation and Windows build passed. All 14 Edit Mode
+and 10 Play Mode tests passed, including E input, aim/range/wall rejection.
+The two-process run rejected a forged distant client request, exercised the
+local prompt and valid interaction, confirmed the count on both instances, and
+passed M3–M5 regressions (`Logs/M6-*`, `Logs/Multiplayer-20260929-202612`).
+Movement remains owner-authoritative as in M3; this is not an anti-teleport system.
+
+---
+
 # M7 — FIRST ELECTRICAL TASK
 
 ## Goal
@@ -1314,5 +1331,5 @@ Wait for the next user instruction.
 M0 was confirmed complete by the user. M1, M2 and M3 were implemented in order
 under the explicit multi-milestone request, with separate validation checkpoints.
 
-M4–M5 are complete. The explicitly authorized M4–M8 sequence is in progress;
-M6 is the next checkpoint. Do not begin M9.
+M4–M6 are complete. The explicitly authorized M4–M8 sequence is in progress;
+M7 is the next checkpoint. Do not begin M9.
