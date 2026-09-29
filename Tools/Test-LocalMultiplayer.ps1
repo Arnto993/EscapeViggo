@@ -47,7 +47,7 @@ try {
             $server = $snapshots["$($client.round):$($client.owner)"]
             if (!$server) { throw 'Missing matching host snapshot.' }
             $distance = [Math]::Sqrt([Math]::Pow($server.x - $client.x, 2) + [Math]::Pow($server.y - $client.y, 2) + [Math]::Pow($server.z - $client.z, 2))
-            if ($distance -gt 0.15 -or [Math]::Abs($server.yaw - $client.yaw) -gt 1 -or !$client.crouching -or !$server.crouching) {
+            if ($distance -gt 0.15 -or [Math]::Abs($server.yaw - $client.yaw) -gt 1 -or !$client.crouching -or !$server.crouching -or $server.role -ne $client.role) {
                 throw "Host/client state mismatch: round $($client.round), player $($client.owner), distance $distance"
             }
             $comparisons++

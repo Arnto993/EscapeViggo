@@ -421,6 +421,23 @@ Role must be visually recognizable during development.
 
 ---
 
+## M4 Status — 2026-09-29
+
+Acceptance criteria satisfied. The listen-server host is Viggo; all joining and
+rejoining clients are electricians. Roles are server-written NetworkVariables.
+Role spawn slots use the existing worksite areas, and orange/wide versus blue
+capsules distinguish roles without changing the M2 movement collider or tuning.
+The local development panel displays the player's role.
+
+Unity asset validation/compilation and Windows build passed. Four Edit Mode role
+tests and all seven M2 Play Mode tests passed. The graphics-enabled two-process
+test checked role replication, server-only write permissions, spawn positions,
+silhouettes, movement, camera/input ownership, client reconnect and host restart
+(`Logs/M4-*.log`, `Logs/Multiplayer-20260929-201556`). Interactive UI/mouse feel
+remains a manual review. No critical networking errors were reported.
+
+---
+
 # M5 — WORKDAY CLOCK AND MATCH STATE
 
 ## Goal
@@ -1281,6 +1298,5 @@ Wait for the next user instruction.
 M0 was confirmed complete by the user. M1, M2 and M3 were implemented in order
 under the explicit multi-milestone request, with separate validation checkpoints.
 
-**Stopped after M3 — Local Multiplayer Foundation.**
-
-M4 is the next incomplete milestone and has not been started.
+M4 is complete. The explicitly authorized M4–M8 sequence is in progress;
+M5 is the next checkpoint. Do not begin M9.

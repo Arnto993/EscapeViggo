@@ -1,7 +1,7 @@
 # Escape Viggo
 
-Unity 6.3 LTS (**6000.3.25f1**), URP, Windows PC. M1–M3 are implemented;
-M4 and later gameplay have not been started. Read [AGENTS.md](AGENTS.md),
+Unity 6.3 LTS (**6000.3.25f1**), URP, Windows PC. M1–M4 are implemented.
+M5 is the next checkpoint. Read [AGENTS.md](AGENTS.md),
 [GAME_SPEC.md](GAME_SPEC.md), and [MILESTONES.md](MILESTONES.md) before changes.
 
 ## Open and play
@@ -44,8 +44,11 @@ To rebuild it, use **Escape Viggo > Build > Windows Development Player**.
    using the panel slider, or change the shared tuning asset outside Play mode.
 
 Alternatively, launch the executable twice and choose Host in one window and
-Client in the other. Extra clients use the same address/port. Eight neutral spawn
-slots exist; they do not assign roles. CLI shortcuts are `-ev-host`, `-ev-client`,
+Client in the other. Extra clients use the same address/port. The host is always
+Viggo (wide orange body, Viggo spawn); up to seven clients are electricians
+(blue body, electrician spawn area). Check the local role in both panels and
+observe the other player's silhouette. Disconnect/rejoin retains this policy.
+CLI shortcuts are `-ev-host`, `-ev-client`,
 `-ev-address 127.0.0.1`, and `-ev-port 7777` in development builds.
 
 ## Assets and architecture
@@ -62,7 +65,7 @@ slots exist; they do not assign roles. CLI shortcuts are `-ev-host`, `-ev-client
 - Tuning: `Assets/EscapeViggo/ScriptableObjects/PlayerMovement.asset`.
   Bindings: `Assets/EscapeViggo/UI/PlayerControls.inputactions`.
 - Networking: `LocalNetworkSession` owns transport lifecycle, server-approved
-  neutral spawn slots and connection status. The development panel only sends
+  role spawn slots and connection status. The development panel only sends
   connection intentions and adjusts local mouse sensitivity.
 - Registry: `Assets/DefaultNetworkPrefabs.asset` (NGO's standard generated path).
   Scene and prefab construction uses Unity Editor APIs, with Unity-generated GUIDs.
@@ -70,7 +73,7 @@ slots exist; they do not assign roles. CLI shortcuts are `-ev-host`, `-ev-client
 Movement is owner-authoritative for this local prototype. Important future
 gameplay outcomes still require server validation. Remote CharacterControllers
 are disabled; players currently pass through each other. Crouch synchronization
-is presentation state. No prediction, role logic, cloud sessions, Relay, or
+is presentation state. Role assignment is server-owned. No prediction, cloud sessions, Relay, or
 gameplay rewards are included. The panel and smoke harness operate only in the
 Editor/development builds; use a development build for this checkpoint.
 

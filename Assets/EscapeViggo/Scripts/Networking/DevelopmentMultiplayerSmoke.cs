@@ -78,6 +78,18 @@ namespace EscapeViggo.Networking
             yield return null;
             yield return null;
             CheckOwnership();
+            CheckRoles(round);
+            yield return new WaitForSecondsRealtime(2);
+            // Keep the established M3 movement route independent of role spawn locations.
+            var ownedPlayer = _session.Manager.LocalClient.PlayerObject;
+            if (round == 1)
+            {
+                var controller = ownedPlayer.GetComponent<CharacterController>();
+                controller.enabled = false;
+                ownedPlayer.transform.SetPositionAndRotation(new Vector3(_host ? -15 : -13, 0.1f, -12), Quaternion.identity);
+                controller.enabled = true;
+                yield return new WaitForSecondsRealtime(2);
+            }
             var initial = new Dictionary<ulong, Vector3>();
             foreach (var player in FindObjectsByType<NetworkPlayer>(FindObjectsSortMode.None))
                 initial.Add(player.OwnerClientId, player.transform.position);
@@ -105,7 +117,8 @@ namespace EscapeViggo.Networking
                 Check(player.IsCrouching, "Remote crouch state did not synchronize.");
                 var point = player.transform.position;
                 Debug.Log("EV_SNAPSHOT " + JsonUtility.ToJson(new Snapshot { round = round, owner = player.OwnerClientId,
-                    x = point.x, y = point.y, z = point.z, yaw = player.transform.eulerAngles.y, crouching = player.IsCrouching }));
+                    x = point.x, y = point.y, z = point.z, yaw = player.transform.eulerAngles.y, crouching = player.IsCrouching,
+                    role = player.Role.ToString() }));
             }
             Debug.Log($"EV_SMOKE ROUND {round} PASSED");
             var captureDirectory = DevelopmentNetworkPanel.Argument("-ev-capture-dir");
@@ -136,6 +149,28 @@ namespace EscapeViggo.Networking
             var listeners = 0;
             foreach (var listener in FindObjectsByType<AudioListener>(FindObjectsSortMode.None)) if (listener.enabled) listeners++;
             Check(cameras == 1 && listeners == 1, "Expected exactly one active camera and listener.");
+        }
+
+        private void CheckRoles(int round)
+        {
+            var viggos = 0;
+            foreach (var player in FindObjectsByType<NetworkPlayer>(FindObjectsSortMode.None))
+            {
+                Check(player.Role == RoleAssignment.ForClient(player.OwnerClientId), "Role synchronization mismatch.");
+                if (player.Role == PlayerRole.Viggo) viggos++;
+                var body = player.transform.Find("Body");
+                Check((body.localScale.x > 1) == (player.Role == PlayerRole.Viggo), "Role silhouette mismatch.");
+                var roleState = (NetworkVariable<PlayerRole>)typeof(NetworkPlayer)
+                    .GetField("_role", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(player);
+                Check(!roleState.CanClientWrite(1), "Client must not have role write permission.");
+                if (round == 1 || player.Role == PlayerRole.Electrician)
+                {
+                    var marker = GameObject.Find(player.Role == PlayerRole.Viggo ? "Viggo Spawn" : "Electrician Spawn");
+                    Check(Vector3.Distance(player.transform.position, marker.transform.position) < 1, "Wrong role spawn.");
+                }
+            }
+            Check(viggos == 1, "Expected exactly one Viggo.");
+            Debug.Log($"EV_ROLES round={round} PASSED: assignment, authority, spawns and silhouettes.");
         }
 
         private void CaptureCamera(Camera camera, string path)
@@ -193,6 +228,7 @@ namespace EscapeViggo.Networking
             public ulong owner;
             public float x, y, z, yaw;
             public bool crouching;
+            public string role;
         }
 #endif
     }

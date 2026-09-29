@@ -246,7 +246,7 @@ GameObject:
   m_Component:
   - component: {fileID: 47761811}
   m_Layer: 0
-  m_Name: Development Spawn 6
+  m_Name: Electrician Network Spawn 5
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -261,7 +261,7 @@ Transform:
   m_GameObject: {fileID: 47761810}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -13, y: 0.1, z: -10}
+  m_LocalPosition: {x: -15, y: 0.1, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1999,7 +1999,7 @@ GameObject:
   m_Component:
   - component: {fileID: 654921466}
   m_Layer: 0
-  m_Name: Development Spawn 2
+  m_Name: Electrician Network Spawn 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2014,7 +2014,7 @@ Transform:
   m_GameObject: {fileID: 654921465}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -13, y: 0.1, z: -12}
+  m_LocalPosition: {x: -15, y: 0.1, z: -12}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3285,7 +3285,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1030392555}
   m_Layer: 0
-  m_Name: Development Spawn 4
+  m_Name: Electrician Network Spawn 3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3300,7 +3300,7 @@ Transform:
   m_GameObject: {fileID: 1030392554}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -9, y: 0.1, z: -12}
+  m_LocalPosition: {x: -11, y: 0.1, z: -12}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3472,7 +3472,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1162972935}
   m_Layer: 0
-  m_Name: Development Spawn 1
+  m_Name: Viggo Network Spawn
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3486,8 +3486,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1162972934}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -15, y: 0.1, z: -12}
+  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: -0.7071068}
+  m_LocalPosition: {x: 16, y: 0.1, z: 11}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4265,7 +4265,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1382042465}
   m_Layer: 0
-  m_Name: Development Spawn 8
+  m_Name: Electrician Network Spawn 7
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4280,7 +4280,7 @@ Transform:
   m_GameObject: {fileID: 1382042464}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -9, y: 0.1, z: -10}
+  m_LocalPosition: {x: -11, y: 0.1, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5335,7 +5335,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1675206474}
   m_Layer: 0
-  m_Name: Development Spawn 3
+  m_Name: Electrician Network Spawn 2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5350,7 +5350,7 @@ Transform:
   m_GameObject: {fileID: 1675206473}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -11, y: 0.1, z: -12}
+  m_LocalPosition: {x: -13, y: 0.1, z: -12}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5595,7 +5595,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1775695730}
   m_Layer: 0
-  m_Name: Development Spawn 7
+  m_Name: Electrician Network Spawn 6
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5610,7 +5610,7 @@ Transform:
   m_GameObject: {fileID: 1775695729}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -11, y: 0.1, z: -10}
+  m_LocalPosition: {x: -13, y: 0.1, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5626,7 +5626,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1837229938}
   m_Layer: 0
-  m_Name: Development Spawn 5
+  m_Name: Electrician Network Spawn 4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5641,7 +5641,7 @@ Transform:
   m_GameObject: {fileID: 1837229937}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -15, y: 0.1, z: -10}
+  m_LocalPosition: {x: -9, y: 0.1, z: -12}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

@@ -284,6 +284,9 @@ MonoBehaviour:
   _body: {fileID: 4762032952581487238}
   _camera: {fileID: 1498985334319546418}
   _listener: {fileID: 2405867913107349470}
+  _viggoMaterial: {fileID: 2100000, guid: 615e3a8606c0f7e40a48f175236537a5, type: 2}
+  _electricianMaterial: {fileID: 2100000, guid: 083b27b8dde5e1045bec369ed8d58d0c, type: 2}
+  _viggoBodyScale: {x: 1.6, y: 1.15, z: 1.6}
 --- !u!1 &8215181289536905387
 GameObject:
   m_ObjectHideFlags: 0

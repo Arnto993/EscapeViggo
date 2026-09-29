@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace EscapeViggo.Networking
 {
-    /// <summary>Local listen-server lifecycle, neutral spawn slots, and connection feedback.</summary>
+    /// <summary>Local listen-server lifecycle, role spawn slots, and connection feedback.</summary>
     public sealed class LocalNetworkSession : MonoBehaviour
     {
         [SerializeField] private NetworkManager _manager;
@@ -60,7 +60,9 @@ namespace EscapeViggo.Networking
         private void Approve(NetworkManager.ConnectionApprovalRequest request, NetworkManager.ConnectionApprovalResponse response)
         {
             var slot = -1;
-            for (var i = 0; i < _spawnPoints.Length; i++)
+            // Slot zero is reserved for the listen-server Viggo; other slots are electricians.
+            var firstSlot = request.ClientNetworkId == NetworkManager.ServerClientId ? 0 : 1;
+            for (var i = firstSlot; i < _spawnPoints.Length; i++)
                 if (!_slots.ContainsValue(i)) { slot = i; break; }
             response.Approved = slot >= 0;
             response.CreatePlayerObject = response.Approved;

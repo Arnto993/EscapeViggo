@@ -11,6 +11,12 @@ namespace EscapeViggo.Networking
         [SerializeField] private Renderer _body;
         [SerializeField] private Camera _camera;
         [SerializeField] private AudioListener _listener;
+        [SerializeField] private Material _viggoMaterial;
+        [SerializeField] private Material _electricianMaterial;
+        [SerializeField] private Vector3 _viggoBodyScale = new(1.6f, 1.15f, 1.6f);
+        private readonly NetworkVariable<PlayerRole> _role = new(PlayerRole.Electrician,
+            NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+        public PlayerRole Role => _role.Value;
         private PlayerInputReader _input;
         private PlayerMovement _movement;
         private PlayerLook _look;
@@ -32,10 +38,10 @@ namespace EscapeViggo.Networking
         public override void OnNetworkSpawn()
         {
             name = $"Player {OwnerClientId}";
+            if (IsServer) _role.Value = RoleAssignment.ForClient(OwnerClientId);
             SetLocalControl(IsOwner);
-            var tint = new MaterialPropertyBlock();
-            tint.SetColor("_BaseColor", Color.HSVToRGB((OwnerClientId * 0.21f + 0.52f) % 1, 0.65f, 0.95f));
-            _body.SetPropertyBlock(tint);
+            _role.OnValueChanged += OnRoleChanged;
+            OnRoleChanged(_role.Value, _role.Value);
             _crouching.OnValueChanged += OnCrouchChanged;
             OnCrouchChanged(false, _crouching.Value);
             Debug.Log($"Player spawned: owner={OwnerClientId}, local={IsOwner}", this);
@@ -45,14 +51,24 @@ namespace EscapeViggo.Networking
         {
             if (IsSpawned && IsOwner && _crouching.Value != _movement.IsCrouching)
                 _crouching.Value = _movement.IsCrouching;
+            if (IsSpawned) ApplyBody();
         }
 
-        private void OnCrouchChanged(bool previous, bool current)
+        private void OnRoleChanged(PlayerRole previous, PlayerRole current)
         {
-            if (IsOwner) return;
-            var height = current ? _movement.Settings.CrouchingHeight : _movement.Settings.StandingHeight;
+            _body.sharedMaterial = current == PlayerRole.Viggo ? _viggoMaterial : _electricianMaterial;
+            ApplyBody();
+        }
+
+        private void OnCrouchChanged(bool previous, bool current) => ApplyBody();
+
+        private void ApplyBody()
+        {
+            var height = IsCrouching ? _movement.Settings.CrouchingHeight : _movement.Settings.StandingHeight;
+            var scale = Role == PlayerRole.Viggo ? _viggoBodyScale : Vector3.one;
+            height *= scale.y;
             _body.transform.localPosition = Vector3.up * (height / 2);
-            _body.transform.localScale = new Vector3(_controller.radius * 2, height / 2, _controller.radius * 2);
+            _body.transform.localScale = new Vector3(_controller.radius * 2 * scale.x, height / 2, _controller.radius * 2 * scale.z);
         }
 
         private void SetLocalControl(bool local)
@@ -72,6 +88,7 @@ namespace EscapeViggo.Networking
         public override void OnNetworkDespawn()
         {
             _crouching.OnValueChanged -= OnCrouchChanged;
+            _role.OnValueChanged -= OnRoleChanged;
             SetLocalControl(false);
         }
     }

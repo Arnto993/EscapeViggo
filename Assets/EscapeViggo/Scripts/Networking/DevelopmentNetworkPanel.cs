@@ -52,6 +52,7 @@ namespace EscapeViggo.Networking
                 var player = _session.Manager.LocalClient?.PlayerObject;
                 if (player != null)
                 {
+                    GUILayout.Label($"Role: {player.GetComponent<NetworkPlayer>().Role}");
                     var look = player.GetComponent<PlayerLook>();
                     GUILayout.Label($"Mouse sensitivity: {look.SensitivityMultiplier:F1}x");
                     look.SensitivityMultiplier = GUILayout.HorizontalSlider(look.SensitivityMultiplier, 0.2f, 3f);
