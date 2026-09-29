@@ -115,6 +115,36 @@ Open the project in Unity.
 
 Confirm Console contains no compile errors.
 
+## M0 Status — 2026-09-29
+
+Implemented; automated validation passed. Final interactive Unity verification
+is pending, so M0 is not yet marked fully accepted. M1 has not been started.
+
+- Renamed `GAME_SPECS.md` to the required `GAME_SPEC.md` without changing its content.
+- Created `Assets/EscapeViggo` folders with Git placeholders and Unity-generated metadata.
+- Added `.slnx` to `.gitignore` and untracked the generated solution, retaining the local file.
+- Removed unreferenced template welcome/readme assets. Retained `SampleScene`,
+  referenced URP settings/profiles, and registered Input Actions.
+- Added `README.md` with setup, package inventory, and validation instructions.
+- Confirmed Unity `6000.3.25f1`, URP `17.3.0`, Input System `1.20.0`, and Test
+  Framework `1.6.0`; package manifest and lock versions agree. No packages were changed.
+- Unity completed batch import and script compilation with no C# compiler errors
+  and logged successful exit code `0` in `Logs/M0-validation.log` (ignored by Git).
+  The initial sandbox attempt could not connect to licensing; the successful
+  retry ran outside the sandbox. Licensing/token diagnostics and a shutdown
+  `Curl error 42` remain in the log; this is not a claim of a completely clean Console.
+- Unity serialized `overrideShaderVariantLimit: 0` in `ShaderGraphSettings.asset`.
+  This editor-written field was retained; editor version, pipeline assignments,
+  rendering assets, input configuration, and all other project settings are unchanged.
+- Repository checks cover generated-file exclusions, required folders/documents,
+  asset metadata, and preserved source references. No project automated tests exist yet.
+
+Remaining manual check: open with Unity `6000.3.25f1`, let import finish, open
+`Assets/Scenes/SampleScene.unity`, and confirm the Console has no compile errors.
+Enter Play mode, confirm the camera renders the skybox without runtime errors,
+then exit Play mode. Check the new folders and Package Manager for resolution
+errors. Headless validation did not verify rendering or interactive Play mode.
+
 ---
 
 # M1 — PROTOTYPE WORKSITE

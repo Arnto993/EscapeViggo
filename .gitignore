@@ -18,6 +18,7 @@
 # Visual Studio / Rider generated
 *.csproj
 *.sln
+*.slnx
 *.suo
 *.user
 *.userprefs
