@@ -15,7 +15,13 @@ movement and owns stamina; electricians keep the original controller tuning.
 To manually verify M9, follow the host/client steps below, move Viggo for two
 seconds and stop: its value should fall and then return to 100. Shift changes
 chase speed. Observe the same movement from the client, whose movement and HUD
-remain unchanged. M9 alone does not force rest at zero; that is the M10 checkpoint.
+remain unchanged. Continue moving for approximately five seconds to exhaust
+Viggo: **Resting** and **Javell.** appear. Movement/sprint/jump input must not
+bypass the default four-second rest, and the client sees Viggo stop. Stamina
+recovers to 100, then movement resumes. Repeat: one Javell event per rest appears
+in each instance's log. `RestSeconds`, `RestRecoveryPerSecond`, `RefillAtRestEnd`
+and `RestMovementMultiplier` configure this behavior. Capture eligibility is
+disabled during rest; the actual capture mechanic belongs to M13.
 
 1. Open this repository in Unity Hub with 6000.3.25f1.
 2. Wait for package import, then open
@@ -27,7 +33,7 @@ remain unchanged. M9 alone does not force rest at zero; that is the M10 checkpoi
    Losing window focus releases controls; networking continues in the background.
 5. Check the Console for errors.
 
-## M4–M8 host and client manual test
+## M4–M10 host and client manual test
 
 A ready development build is at `Builds/Windows/EscapeViggo.exe` (ignored by Git).
 To rebuild it, use **Escape Viggo > Build > Windows Development Player**.
@@ -135,7 +141,7 @@ Movement is owner-authoritative for this local prototype. Interaction validates
 server-observed position, range and line of sight; this is not anti-teleport
 protection. Role, phase, task outcomes and scores are server-owned. Remote CharacterControllers
 are disabled; players currently pass through each other. Crouch synchronization
-is presentation state. No prediction, cloud sessions, Relay or M9+ gameplay
+is presentation state. No prediction, cloud sessions, Relay or M11+ gameplay
 is included. The connection panel, scoreboard, test cube and smoke harness operate only in the
 Editor/development builds; use a development build for this checkpoint.
 
@@ -161,15 +167,15 @@ version suffixes or alternative networking frameworks were added.
 Close the project in Unity before running batch editor commands from the root:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -Method EscapeViggo.Editor.ScoreSetup.Validate -LogName M8-validation
-powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -TestPlatform EditMode -LogName M8-editmode
-powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -TestPlatform PlayMode -LogName M8-playmode
-powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -Method EscapeViggo.Editor.NetworkSetup.Build -LogName M8-build
+powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -Method EscapeViggo.Editor.ViggoSetup.Validate -LogName M10-validation
+powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -TestPlatform EditMode -LogName M10-editmode
+powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -TestPlatform PlayMode -LogName M10-playmode
+powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -Method EscapeViggo.Editor.NetworkSetup.Build -LogName M10-build
 powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Test-LocalMultiplayer.ps1 -Graphics -Observer
 ```
 
 The editor validator checks saved scene/prefab references, required locations,
-4,697 floor samples and capsule routes. The 26 Edit Mode cases cover role policy,
+4,697 floor samples and capsule routes. The 34 Edit Mode cases cover role policy,
 clock boundaries, task sequencing/replays and score deduplication/overflow.
 Eleven Play Mode tests cover the original seven controller checks plus aiming,
 range, walls, invalid directions and ignoring the player's own collider.
@@ -179,7 +185,7 @@ moves both owners, compares their replicated positions/rotations/crouch states,
 checks local-only components and camera/audio counts, disconnects and reconnects
 the client, completes the circuit with deliberate invalid/duplicate requests,
 checks scores and EndOfDay, then restarts the host. The smoke-only day lasts
-55 seconds after preparation. `-Observer` launches a third client after task
+85 seconds after preparation. `-Observer` launches a third client after task
 completion and verifies late-join roles, task state, scores and clock.
 A timeout, exception, nonzero exit or state
 mismatch fails the run. It only terminates processes it launched.
@@ -192,7 +198,7 @@ The **Escape Viggo > Validation** menus provide the same asset checks in Unity.
 The **Setup** menus reconstruct or apply milestone assets and can replace
 scene/prefab content. Use these only when intending to reset that checkpoint;
 normal gameplay does not need any setup script. To reconstruct everything, run
-M1, M2, M3, then Apply M4, M5, M6, M7 and M8 in order. Earlier setup menus do not
+M1, M2, M3, then Apply M4, M5, M6, M7, M8 and M10 in order. Earlier setup menus do not
 restore later integrations. Existing tuning/material/input assets are preserved.
 
 `Assets/Scenes/SampleScene.unity` and the template Input Actions remain for

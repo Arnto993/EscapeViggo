@@ -69,6 +69,7 @@ namespace EscapeViggo.Networking
             yield return CheckTask();
             yield return CheckScores();
             yield return CheckStamina();
+            yield return CheckRest();
             yield return Until(() => _session.Workday != null && _session.Workday.State.Phase == MatchPhase.EndOfDay, "authoritative end of day", 120);
             Check(_session.Workday.State.ClockText == "15:00", "End of day must display 15:00.");
             Debug.Log("EV_WORKDAY END PASSED: EndOfDay 15:00");
@@ -344,7 +345,7 @@ namespace EscapeViggo.Networking
             {
                 var stamina = player.GetComponent<ViggoStamina>();
                 Check(stamina != null, "Missing stamina component.");
-                var state = (NetworkVariable<float>)typeof(ViggoStamina)
+                var state = (NetworkVariable<ViggoMobilityState>)typeof(ViggoStamina)
                     .GetField("_stamina", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(stamina);
                 Check(!state.CanClientWrite(1), "Client can write authoritative stamina.");
                 if (player.Role == PlayerRole.Viggo) viggo = stamina;
@@ -377,6 +378,48 @@ namespace EscapeViggo.Networking
             else yield return Until(() => viggo.Value < 70, "replicated stamina drain");
             yield return Until(() => viggo.Value >= viggo.Settings.MaximumStamina - 0.1f, "stationary stamina recovery");
             Debug.Log("EV_STAMINA PASSED: server authority, Viggo movement/drain/recovery, electrician exclusion, replication.");
+        }
+
+        private IEnumerator CheckRest()
+        {
+            ViggoStamina viggo = null;
+            foreach (var stamina in FindObjectsByType<ViggoStamina>(FindObjectsSortMode.None))
+                if (stamina.Applies) viggo = stamina;
+            var feedback = viggo.GetComponent<ViggoRestFeedback>();
+            var before = feedback.JavellEvents;
+            if (_host)
+            {
+                var movement = viggo.GetComponent<PlayerMovement>();
+                movement.enabled = false;
+                var controller = viggo.GetComponent<CharacterController>();
+                controller.enabled = false;
+                viggo.transform.SetPositionAndRotation(new Vector3(-15, 0.03f, -12), Quaternion.identity);
+                controller.enabled = true;
+                var started = Time.realtimeSinceStartup;
+                while (!viggo.IsResting)
+                {
+                    Check(Time.realtimeSinceStartup - started < 10, "Movement failed to exhaust Viggo.");
+                    var forward = Mathf.FloorToInt((Time.realtimeSinceStartup - started) / 1.5f) % 2 == 0;
+                    movement.Simulate(new MovementCommand { Move = forward ? Vector2.up : Vector2.down, Sprint = true }, Time.deltaTime);
+                    yield return null;
+                }
+                var restPosition = viggo.transform.position;
+                var elapsed = 0f;
+                while (elapsed < 1)
+                {
+                    movement.Simulate(new MovementCommand { Move = Vector2.one, Sprint = true, Jump = true }, Time.deltaTime);
+                    elapsed += Time.deltaTime;
+                    yield return null;
+                }
+                Check(Vector3.Distance(restPosition, viggo.transform.position) < 0.1f, "Input bypassed forced rest.");
+                movement.enabled = true;
+            }
+            else yield return Until(() => viggo.IsResting, "replicated forced rest");
+            Check(!viggo.CanCapture, "Viggo can capture while resting.");
+            yield return Until(() => !viggo.IsResting, "rest recovery");
+            Check(viggo.Value >= viggo.Settings.MaximumStamina - 0.1f && viggo.CanCapture, "Rest failed to restore stamina/capture eligibility.");
+            Check(feedback.JavellEvents == before + 1, "Javell did not fire exactly once per rest.");
+            Debug.Log("EV_REST PASSED: exhaustion, forced input restriction, recovery, capture gate, one Javell event, replication.");
         }
 
         private IEnumerator CheckLateJoin()

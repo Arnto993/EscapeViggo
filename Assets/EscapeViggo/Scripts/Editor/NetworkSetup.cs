@@ -150,7 +150,7 @@ namespace EscapeViggo.Editor
             if (result.summary.result != BuildResult.Succeeded)
                 throw new InvalidOperationException("Windows development build failed: " + result.summary.result);
             CleanupBuildTestData();
-            Debug.Log("M9 WINDOWS BUILD PASSED.");
+            Debug.Log("M10 WINDOWS BUILD PASSED.");
         }
 
         public static void CleanupBuildTestData()

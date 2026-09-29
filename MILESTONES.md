@@ -821,6 +821,25 @@ Placeholder feedback may be:
 
 ---
 
+## M10 Status — 2026-09-29
+
+Acceptance criteria satisfied. Server-owned atomic stamina/rest state enters
+Resting on exhaustion. Default rest disables horizontal movement and jumping,
+gates capture eligibility, restores stamina over four seconds and then releases
+control. Duration, recovery, final refill and restricted speed are configurable.
+A monotonically increasing rest counter drives a separate presentation event:
+exactly one Javell message per rest, with no replay on late join.
+
+Compilation, M1–M10 asset validation and Windows build passed. All 34 Edit Mode
+and 11 Play Mode cases passed (`Logs/M10-*`). Graphics-enabled host/client plus
+late observer passed exhaustion, continued movement/sprint/jump rejection,
+recovery, capture gating, one Javell event per instance and state replication,
+plus all M3–M9 regression scenarios (`Logs/Multiplayer-20260929-223814`).
+No compiler warnings/errors or critical gameplay/network errors occurred.
+Human input feel and IMGUI rendering remain manual README checks. No final audio,
+capture mechanic, Rage or battery feature was added at this checkpoint.
+
+---
 # M11 — BATTERY THEFT
 
 ## Goal
@@ -1405,5 +1424,5 @@ Wait for the next user instruction.
 
 # CURRENT TARGET
 
-M0–M9 are complete. The user authorized M9–M14 sequentially with a healthy local
-commit per checkpoint. M10 — Viggo Rest is next. Stop after M14; do not begin M15.
+M0–M10 are complete. The user authorized M9–M14 sequentially with a healthy local
+commit per checkpoint. M11 — Battery Theft is next. Stop after M14; do not begin M15.

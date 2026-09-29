@@ -33,5 +33,33 @@ namespace EscapeViggo.Tests
         [TestCase(0)] [TestCase(-1)] [TestCase(float.NaN)] [TestCase(float.PositiveInfinity)]
         public void InvalidTimeCannotChangeStamina(float seconds) =>
             Assert.That(StaminaRules.Advance(50, 5, seconds, _settings), Is.EqualTo(50));
+
+        [Test] public void ExhaustionEntersRestOnceAndMovementCannotDrainDuringRest()
+        {
+            var state = new ViggoMobilityState { Stamina = 1 };
+            state = ViggoMobilityState.Advance(state, 5, 0.1f, _settings);
+            Assert.That(state.Phase, Is.EqualTo(ViggoMobility.Resting));
+            Assert.That(state.RestCount, Is.EqualTo(1));
+            for (var i = 0; i < 10; i++) state = ViggoMobilityState.Advance(state, 100, 0.1f, _settings);
+            Assert.That(state.Stamina, Is.EqualTo(25).Within(0.01f));
+            Assert.That(state.RestCount, Is.EqualTo(1));
+            Assert.That(state.Phase, Is.EqualTo(ViggoMobility.Resting));
+            state = ViggoMobilityState.Advance(state, 100, 4, _settings);
+            Assert.That(state.Phase, Is.EqualTo(ViggoMobility.Normal));
+            Assert.That(state.Stamina, Is.EqualTo(100));
+        }
+
+        [Test] public void RestDurationAndRecoveryAreConfigurable()
+        {
+            _settings.RestSeconds = 2;
+            _settings.RestRecoveryPerSecond = 10;
+            _settings.RefillAtRestEnd = false;
+            var state = ViggoMobilityState.Advance(new ViggoMobilityState { Stamina = 1 }, 5, 1, _settings);
+            state = ViggoMobilityState.Advance(state, 5, 2, _settings);
+            Assert.That(state.Phase, Is.EqualTo(ViggoMobility.Normal));
+            Assert.That(state.Stamina, Is.EqualTo(20));
+            state = ViggoMobilityState.Advance(state, 5, 2, _settings);
+            Assert.That(state.RestCount, Is.EqualTo(2));
+        }
     }
 }

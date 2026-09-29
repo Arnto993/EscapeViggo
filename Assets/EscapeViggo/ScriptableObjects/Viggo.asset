@@ -21,3 +21,7 @@ MonoBehaviour:
   WalkSpeed: 3.5
   ChaseSpeed: 5.5
   CrouchSpeed: 1.8
+  RestSeconds: 4
+  RestRecoveryPerSecond: 25
+  RefillAtRestEnd: 1
+  RestMovementMultiplier: 0

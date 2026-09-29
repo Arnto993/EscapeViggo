@@ -7,7 +7,7 @@ namespace EscapeViggo.Editor
     public static class ViggoSetup
     {
         public const string SettingsPath = "Assets/EscapeViggo/ScriptableObjects/Viggo.asset";
-        [MenuItem("Escape Viggo/Setup/Apply M9 Viggo Stamina")]
+        [MenuItem("Escape Viggo/Setup/Apply M10 Viggo Rest")]
         public static void Apply()
         {
             if (!Application.isBatchMode && !UnityEditor.SceneManagement.EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
@@ -22,14 +22,16 @@ namespace EscapeViggo.Editor
             {
                 var stamina = player.GetComponent<ViggoStamina>() ?? player.AddComponent<ViggoStamina>();
                 PlayerBuilder.SetReference(stamina, "_settings", settings);
+                if (player.GetComponent<ViggoRestFeedback>() == null) player.AddComponent<ViggoRestFeedback>();
                 PrefabUtility.SaveAsPrefabAsset(player, NetworkSetup.PrefabPath);
             }
             finally { PrefabUtility.UnloadPrefabContents(player); }
+            EditorUtility.SetDirty(settings);
             AssetDatabase.SaveAssets();
             Validate();
         }
 
-        [MenuItem("Escape Viggo/Validation/Validate M9 Viggo Stamina")]
+        [MenuItem("Escape Viggo/Validation/Validate M10 Viggo Rest")]
         public static void Validate()
         {
             ScoreSetup.Validate();
@@ -40,6 +42,10 @@ namespace EscapeViggo.Editor
                 settings.RecoveryPerSecond > 0 && settings.MovementThreshold > 0 && settings.WalkSpeed > 0 &&
                 settings.ChaseSpeed >= settings.WalkSpeed, "Invalid Viggo tuning.");
             Debug.Log("M9 ASSET VALIDATION PASSED.");
+            WorksiteValidation.Require(settings.RestSeconds > 0 && settings.RestRecoveryPerSecond > 0 &&
+                settings.RestMovementMultiplier >= 0 && settings.RestMovementMultiplier <= 0.25f &&
+                stamina.GetComponent<ViggoRestFeedback>() != null, "Missing or invalid rest setup.");
+            Debug.Log("M10 ASSET VALIDATION PASSED.");
         }
     }
 }

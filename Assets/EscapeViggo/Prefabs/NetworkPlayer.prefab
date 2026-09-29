@@ -109,6 +109,7 @@ GameObject:
   - component: {fileID: 8737383189539647924}
   - component: {fileID: 2937091281653054256}
   - component: {fileID: 6090048639113799772}
+  - component: {fileID: 6323220610234482820}
   m_Layer: 0
   m_Name: NetworkPlayer
   m_TagString: Untagged
@@ -332,6 +333,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: EscapeViggo.Runtime::EscapeViggo.Viggo.ViggoStamina
   ShowTopMostFoldoutHeaderGroup: 1
   _settings: {fileID: 11400000, guid: 7710765fa24aa6e468e68e980edb2077, type: 2}
+--- !u!114 &6323220610234482820
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5300135973281005513}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 10278a6034c0ea74f9354139d5201d83, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: EscapeViggo.Runtime::EscapeViggo.Viggo.ViggoRestFeedback
+  ShowTopMostFoldoutHeaderGroup: 1
 --- !u!1 &8215181289536905387
 GameObject:
   m_ObjectHideFlags: 0

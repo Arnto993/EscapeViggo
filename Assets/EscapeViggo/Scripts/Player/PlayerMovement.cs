@@ -48,7 +48,7 @@ namespace EscapeViggo.Player
             var speed = IsCrouching ? _settings.CrouchSpeed : command.Sprint ? _settings.SprintSpeed : _settings.WalkSpeed;
             if (_stamina != null && _stamina.Applies) speed = _stamina.MovementSpeed(IsCrouching, command.Sprint);
             if (IsGrounded && _verticalSpeed < 0) _verticalSpeed = -_settings.GroundStickSpeed;
-            if (command.Jump && IsGrounded && !IsCrouching)
+            if (command.Jump && IsGrounded && !IsCrouching && (_stamina == null || !_stamina.IsResting))
                 _verticalSpeed = Mathf.Sqrt(2 * _settings.Gravity * _settings.JumpHeight);
             _verticalSpeed -= _settings.Gravity * deltaTime;
             var velocity = (transform.right * move.x + transform.forward * move.y) * speed;

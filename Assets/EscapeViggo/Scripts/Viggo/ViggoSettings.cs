@@ -15,5 +15,9 @@ namespace EscapeViggo.Viggo
         [Min(0.1f)] public float WalkSpeed = 3.5f;
         [Min(0.1f)] public float ChaseSpeed = 5.5f;
         [Min(0.1f)] public float CrouchSpeed = 1.8f;
+        [Min(0.1f)] public float RestSeconds = 4;
+        [Min(0)] public float RestRecoveryPerSecond = 25;
+        public bool RefillAtRestEnd = true;
+        [Range(0, 0.25f)] public float RestMovementMultiplier = 0;
     }
 }
