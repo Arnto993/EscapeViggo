@@ -11,7 +11,7 @@ Read [AGENTS.md](AGENTS.md), [GAME_SPEC.md](GAME_SPEC.md), and
 2. Open with **Unity 6.3 LTS, 6000.3.25f1**, matching
    `ProjectSettings/ProjectVersion.txt`.
 3. Let package resolution, asset import, and compilation finish.
-4. Open `Assets/Scenes/SampleScene.unity` and check the Console for errors.
+4. Open `Assets/EscapeViggo/Scenes/PrototypeWorksite.unity` and check the Console for errors.
 
 ## M0 foundation
 
@@ -74,5 +74,22 @@ Git should track `Assets` (including `.meta` files), `Packages`,
 `ProjectSettings`, and root documentation. Generated Unity folders, builds,
 user/IDE settings, and generated solution/project files are ignored.
 
-M0 validation status is recorded in `MILESTONES.md`. Stop at M0; M1 requires
-a separate request.
+Milestone validation status is recorded in `MILESTONES.md`.
+
+## M1 worksite
+
+`PrototypeWorksite` is now the build scene. The template `SampleScene` is
+retained for reference. The main area connects to a corridor at three points;
+the eastern electrical, storage and office rooms also connect to each other.
+Blue/orange pads mark future worker/Viggo spawns. Yellow panels mark five future
+tasks; the orange table is a battery station placeholder. None has gameplay yet.
+
+Run `Escape Viggo > Validation > Validate M1 Worksite` in Unity, or close Unity
+and run `powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1
+-LogName M1-validation` from the repository root. Logs stay ignored.
+`Escape Viggo > Setup > Create M1 Worksite (replaces scene)` explicitly rebuilds
+the greybox; it replaces scene edits, so use it only when intending to reset it.
+
+Manual M1 check: open the worksite, inspect the labelled rooms and connecting
+doorways in Scene view, then enter Play mode to inspect the overview camera.
+The controller arrives in M2.

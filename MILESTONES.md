@@ -205,6 +205,19 @@ A playable greybox scene.
 
 ---
 
+## M1 Status — 2026-09-29
+
+Acceptance criteria satisfied by Unity editor validation. Created the saved
+primitive worksite with labelled rooms, two connected loops, cover, spawn
+markers, battery station marker and five future task locations. A 1.8 m tall,
+0.7 m wide capsule sweep traverses both loops and all rooms; 4,697 foundation
+samples found no holes. Required objects and missing scripts were checked.
+Unity batch compilation/validation exited 0 (`Logs/M1-validation.log`).
+Interactive rendering and movement feel still need the manual walkthrough.
+M0 is treated as complete following the user's confirmation for this task.
+
+---
+
 # M2 — FIRST-PERSON CONTROLLER
 
 ## Goal
