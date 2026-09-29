@@ -28,10 +28,12 @@ namespace EscapeViggo.Networking
 
         private void OnGUI()
         {
-            GUILayout.BeginArea(new Rect(12, 12, 325, 270), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(12, 12, 325, 310), GUI.skin.box);
             GUILayout.Label("ESCAPE VIGGO - LOCAL DEVELOPMENT");
             GUILayout.Label(_session.Status);
             GUILayout.Label($"Players: {_session.PlayerCount}  |  Local ID: {_session.Manager.LocalClientId}");
+            if (_session.Workday != null)
+                GUILayout.Label($"{_session.Workday.State.Phase} | {_session.Workday.State.ClockText}");
             if (_session.CanStart)
             {
                 GUILayout.Label("IP address / port");

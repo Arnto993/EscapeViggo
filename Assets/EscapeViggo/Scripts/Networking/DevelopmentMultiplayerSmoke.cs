@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using EscapeViggo.Player;
+using EscapeViggo.Core;
 using Unity.Netcode;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -55,6 +56,9 @@ namespace EscapeViggo.Networking
                 yield return Until(() => _session.PlayerCount == 2, "reconnected players");
             }
             yield return Round(2);
+            yield return Until(() => _session.Workday != null && _session.Workday.State.Phase == MatchPhase.EndOfDay, "authoritative end of day");
+            Check(_session.Workday.State.ClockText == "15:00", "End of day must display 15:00.");
+            Debug.Log("EV_WORKDAY END PASSED: EndOfDay 15:00");
             yield return new WaitForSecondsRealtime(2);
             if (_host)
             {
@@ -79,6 +83,9 @@ namespace EscapeViggo.Networking
             yield return null;
             CheckOwnership();
             CheckRoles(round);
+            Check(_session.Workday != null, "Workday did not synchronize.");
+            if (round == 2) Check(_session.Workday.State.MinuteOfDay > WorkdayClock.StartMinute, "Late join reset or lost the clock.");
+            Debug.Log($"EV_WORKDAY round={round} {_session.Workday.State.Phase} {_session.Workday.State.ClockText}");
             yield return new WaitForSecondsRealtime(2);
             // Keep the established M3 movement route independent of role spawn locations.
             var ownedPlayer = _session.Manager.LocalClient.PlayerObject;

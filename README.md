@@ -1,7 +1,7 @@
 # Escape Viggo
 
-Unity 6.3 LTS (**6000.3.25f1**), URP, Windows PC. M1–M4 are implemented.
-M5 is the next checkpoint. Read [AGENTS.md](AGENTS.md),
+Unity 6.3 LTS (**6000.3.25f1**), URP, Windows PC. M1–M5 are implemented.
+M6 is the next checkpoint. Read [AGENTS.md](AGENTS.md),
 [GAME_SPEC.md](GAME_SPEC.md), and [MILESTONES.md](MILESTONES.md) before changes.
 
 ## Open and play
@@ -52,6 +52,13 @@ CLI shortcuts are `-ev-host`, `-ev-client`,
 `-ev-address 127.0.0.1`, and `-ev-port 7777` in development builds.
 
 ## Assets and architecture
+
+The development panel shows synchronized phase and time. A new host begins at
+07:00 in Preparing, enters Workday after five seconds and reaches EndOfDay at
+15:00 after two real minutes. Change `DayDurationMinutes` and `PreparingSeconds`
+in `Assets/EscapeViggo/ScriptableObjects/Workday.asset` outside Play mode.
+Rejoining a running host retains its time; restarting the host starts a new day.
+Movement remains available at EndOfDay; later gameplay must check the phase.
 
 - Scene: `Assets/EscapeViggo/Scenes/PrototypeWorksite.unity` is the build scene.
   A continuous foundation, three corridor connections, interconnecting rooms,

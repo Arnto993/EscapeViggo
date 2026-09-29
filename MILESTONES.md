@@ -488,6 +488,22 @@ All players observe the same workday time.
 
 ---
 
+## M5 Status — 2026-09-29
+
+Acceptance criteria satisfied. A registered network prefab holds an atomic,
+server-written phase/time snapshot. Preparing lasts five seconds, followed by a
+configurable two-minute day from 07:00 to 15:00. Clients only display snapshots;
+they cannot advance the phase. Disconnect/reconnect receives the ongoing clock.
+Restarting the host creates a fresh day. No five-day/results flow was added.
+
+Unity compilation, scene/prefab validation and Windows build passed. All 14
+Edit Mode tests (including timer boundaries and configurable duration) and seven
+controller Play Mode tests passed. Two standalone processes observed Preparing
+07:00, matching ongoing time after reconnect, then EndOfDay 15:00, with the M3/M4
+regression checks passing (`Logs/M5-*`, `Logs/Multiplayer-20260929-202024`).
+
+---
+
 # M6 — INTERACTION FRAMEWORK
 
 ## Goal
@@ -1298,5 +1314,5 @@ Wait for the next user instruction.
 M0 was confirmed complete by the user. M1, M2 and M3 were implemented in order
 under the explicit multi-milestone request, with separate validation checkpoints.
 
-M4 is complete. The explicitly authorized M4–M8 sequence is in progress;
-M5 is the next checkpoint. Do not begin M9.
+M4–M5 are complete. The explicitly authorized M4–M8 sequence is in progress;
+M6 is the next checkpoint. Do not begin M9.

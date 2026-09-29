@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Net;
+using EscapeViggo.Core;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using UnityEngine;
@@ -13,12 +14,25 @@ namespace EscapeViggo.Networking
         [SerializeField] private UnityTransport _transport;
         [SerializeField] private Camera _overview;
         [SerializeField] private Transform[] _spawnPoints;
+        [SerializeField] private NetworkWorkday _workdayPrefab;
         private readonly Dictionary<ulong, int> _slots = new();
         private AudioListener _overviewListener;
         public NetworkManager Manager => _manager;
         public string Status { get; private set; } = "Offline";
         public bool CanStart => !_manager.IsListening && !_manager.ShutdownInProgress;
-        public int PlayerCount => _manager.SpawnManager == null ? 0 : _manager.SpawnManager.SpawnedObjects.Count;
+        public NetworkWorkday Workday { get; private set; }
+        internal void RegisterWorkday(NetworkWorkday workday) => Workday = workday;
+        public int PlayerCount
+        {
+            get
+            {
+                var count = 0;
+                if (_manager.SpawnManager != null)
+                    foreach (var spawned in _manager.SpawnManager.SpawnedObjects.Values)
+                        if (spawned.IsPlayerObject) count++;
+                return count;
+            }
+        }
 
         private void Awake()
         {
@@ -30,6 +44,13 @@ namespace EscapeViggo.Networking
             _manager.OnClientStopped += Stopped;
             _manager.OnServerStopped += Stopped;
             _manager.OnTransportFailure += TransportFailed;
+            _manager.OnServerStarted += SpawnWorkday;
+        }
+
+        private void SpawnWorkday()
+        {
+            var workday = Instantiate(_workdayPrefab);
+            workday.NetworkObject.Spawn();
         }
 
         public bool StartHost(string address = "127.0.0.1", ushort port = 7777) => StartConnection(true, address, port);
@@ -116,6 +137,7 @@ namespace EscapeViggo.Networking
             _manager.OnClientStopped -= Stopped;
             _manager.OnServerStopped -= Stopped;
             _manager.OnTransportFailure -= TransportFailed;
+            _manager.OnServerStarted -= SpawnWorkday;
         }
     }
 }

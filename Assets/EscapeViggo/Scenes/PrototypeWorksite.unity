@@ -5928,6 +5928,7 @@ MonoBehaviour:
   - {fileID: 47761811}
   - {fileID: 1775695730}
   - {fileID: 1382042465}
+  _workdayPrefab: {fileID: 3668786552912107937, guid: 0c8058b67f3a7094fa2462ecd885b791, type: 3}
 --- !u!114 &1936951475
 MonoBehaviour:
   m_ObjectHideFlags: 0
