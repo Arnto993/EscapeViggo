@@ -635,6 +635,30 @@ At least one functioning networked work task.
 
 ---
 
+## M7 Status — 2026-09-29
+
+Acceptance criteria satisfied. Task Location 2 hosts the Simple Circuit Task
+(default 1 > 3 > 2, editable on its prefab). Electricians open its UI through
+the M6 interaction path. The server owns worker, progress, input revision and
+completion. Wrong input resets progress with feedback. Replayed revisions and
+repeated completion are rejected. Cancel, distance loss, disconnect and the end
+of the workday release an unfinished task. Completion persists for the session.
+The task UI releases/restores local controls; shared labels show completion.
+
+Unity compilation, full asset validation and Windows build passed. All 20 Edit
+Mode and 11 Play Mode tests passed (`Logs/M7-fixed-*`). The graphics-enabled
+two-process run verified Viggo rejection, electrician UI opening/closing, wrong
+input, duplicate requests, matching completion/worker, and all M3–M6 checks
+through EndOfDay (`Logs/Multiplayer-20260929-220446`).
+
+Initial task integration testing caught downward rays hitting the local
+CharacterController. The common query now ignores only the requesting player's
+collider, uses a reusable hit buffer and still rejects occlusion; a regression
+test covers this. Earlier failed diagnostic runs are retained in ignored Logs.
+No scoring exists at this checkpoint; M8 adds rewards to the one-shot completion.
+
+---
+
 # M8 — SCORING
 
 ## Goal
@@ -1331,5 +1355,5 @@ Wait for the next user instruction.
 M0 was confirmed complete by the user. M1, M2 and M3 were implemented in order
 under the explicit multi-milestone request, with separate validation checkpoints.
 
-M4–M6 are complete. The explicitly authorized M4–M8 sequence is in progress;
-M7 is the next checkpoint. Do not begin M9.
+M4–M7 are complete. The explicitly authorized M4–M8 sequence is in progress;
+M8 is the final authorized checkpoint. Do not begin M9.

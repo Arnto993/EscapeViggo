@@ -1,7 +1,7 @@
 # Escape Viggo
 
-Unity 6.3 LTS (**6000.3.25f1**), URP, Windows PC. M1–M6 are implemented.
-M7 is the next checkpoint. Read [AGENTS.md](AGENTS.md),
+Unity 6.3 LTS (**6000.3.25f1**), URP, Windows PC. M1–M7 are implemented.
+M8 is the next checkpoint. Read [AGENTS.md](AGENTS.md),
 [GAME_SPEC.md](GAME_SPEC.md), and [MILESTONES.md](MILESTONES.md) before changes.
 
 ## Open and play
@@ -58,6 +58,15 @@ three metres and press **E**. Its confirmation count must increase in both
 windows. Look away, step outside range, or release the cursor: the prompt should
 disappear. Range is serialized on `NetworkPlayer.prefab`'s `PlayerInteraction`.
 The common interaction path checks range and line of sight on the server.
+
+Task Location 2, near the south edge of the main room at (-5, 0.7, -13), is now
+**SIMPLE CIRCUIT**. During Workday, approach as an electrician, aim and press E.
+Click the displayed three-element sequence (default **1 > 3 > 2**). A wrong
+button resets progress. Cancel returns to movement. Completion closes the UI,
+turns the panel green, and shows the same worker ID in both windows. Viggo has
+no task prompt and cannot complete it. A completed task stays completed until
+the host restarts. Configure the sequence on `SimpleCircuitTask.prefab`.
+Scores are added at M8.
 
 The development panel shows synchronized phase and time. A new host begins at
 07:00 in Preparing, enters Workday after five seconds and reaches EndOfDay at

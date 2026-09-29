@@ -12,6 +12,7 @@ namespace EscapeViggo.Player
         private InputAction _interact;
         public bool InteractPressed => enabled && IsCaptured && _interact != null && _interact.WasPressedThisFrame();
         public bool IsCaptured { get; private set; }
+        public bool IsTaskModal { get; private set; }
         public Vector2 Look => enabled && IsCaptured ? _look.ReadValue<Vector2>() : Vector2.zero;
 
         private void OnEnable()
@@ -51,7 +52,7 @@ namespace EscapeViggo.Player
 
         public void CaptureCursor()
         {
-            if (!enabled) return;
+            if (!enabled || IsTaskModal) return;
             IsCaptured = true;
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
@@ -64,6 +65,13 @@ namespace EscapeViggo.Player
             Cursor.visible = true;
         }
 
+        public void SetTaskModal(bool active)
+        {
+            IsTaskModal = active;
+            if (active) ReleaseCursor();
+            else if (Application.isFocused) CaptureCursor();
+        }
+
         private void OnApplicationFocus(bool focused)
         {
             if (!focused && enabled) ReleaseCursor();
@@ -71,7 +79,7 @@ namespace EscapeViggo.Player
 
         private void OnGUI()
         {
-            if (!IsCaptured && GUI.Button(new Rect(Screen.width / 2f - 90, Screen.height - 65, 180, 40), "Resume controls"))
+            if (!IsTaskModal && !IsCaptured && GUI.Button(new Rect(Screen.width / 2f - 90, Screen.height - 65, 180, 40), "Resume controls"))
                 CaptureCursor();
         }
 

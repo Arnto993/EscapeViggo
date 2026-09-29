@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using EscapeViggo.Player;
 using EscapeViggo.Core;
 using EscapeViggo.Interaction;
+using EscapeViggo.Tasks;
 using Unity.Netcode;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -58,6 +59,7 @@ namespace EscapeViggo.Networking
             }
             yield return Round(2);
             yield return CheckInteraction();
+            yield return CheckTask();
             yield return Until(() => _session.Workday != null && _session.Workday.State.Phase == MatchPhase.EndOfDay, "authoritative end of day");
             Check(_session.Workday.State.ClockText == "15:00", "End of day must display 15:00.");
             Debug.Log("EV_WORKDAY END PASSED: EndOfDay 15:00");
@@ -223,6 +225,71 @@ namespace EscapeViggo.Networking
             }
             yield return Until(() => target.Count == 1, "replicated test interaction");
             Debug.Log("EV_INTERACTION PASSED: distance rejection, aimed prompt, server confirmation, synchronization.");
+            movement.enabled = look.enabled = true;
+        }
+
+        private IEnumerator CheckTask()
+        {
+            var task = FindFirstObjectByType<SimpleCircuitTask>();
+            Check(task != null, "Circuit task was not spawned.");
+            var local = _session.Manager.LocalClient.PlayerObject;
+            var movement = local.GetComponent<PlayerMovement>();
+            var look = local.GetComponent<PlayerLook>();
+            var input = local.GetComponent<PlayerInputReader>();
+            var interaction = local.GetComponent<PlayerInteraction>();
+            movement.enabled = look.enabled = false;
+            var controller = local.GetComponent<CharacterController>();
+            controller.enabled = false;
+            local.transform.SetPositionAndRotation(new Vector3(_host ? -6 : -5, 0.03f, -15), Quaternion.identity);
+            controller.enabled = true;
+            movement.Simulate(default, 1f / 60);
+            var camera = local.GetComponentInChildren<Camera>();
+            camera.transform.localPosition = Vector3.up * (movement.Height - movement.Settings.EyeInset);
+            camera.transform.LookAt(task.transform.position);
+            input.CaptureCursor();
+            yield return new WaitForSecondsRealtime(1);
+            if (_host)
+            {
+                Check(!task.CanInteract(interaction), "Viggo has an electrician task prompt.");
+                interaction.RequestInteractionRpc(new NetworkObjectReference(task.NetworkObject), camera.transform.forward);
+                task.SubmitElementRpc(1, task.State.Revision);
+                Check(task.State.Phase == WorkTaskPhase.Available, "Viggo began/completed electrician task.");
+            }
+            else
+            {
+                yield return new WaitForSecondsRealtime(1);
+                interaction.RefreshTarget();
+                Physics.Raycast(camera.transform.position, camera.transform.forward, out var diagnosticHit, interaction.Range);
+                Check(interaction.Target == task, $"Electrician cannot aim at task: captured={input.IsCaptured}, input={input.enabled}, " +
+                    $"role={interaction.Player.Role}, phase={_session.Workday.State.Phase}, task={task.State.Phase}, " +
+                    $"camera={camera.transform.position}, direction={camera.transform.forward}, taskPosition={task.transform.position}, " +
+                    $"rayTarget={InteractionQuery.Raycast(camera.transform.position, camera.transform.forward, interaction.Range)?.name}, " +
+                    $"hit={diagnosticHit.collider?.name}, colliderEnabled={task.InteractionCollider.enabled}, bounds={task.InteractionCollider.bounds}.");
+                interaction.Interact();
+                yield return Until(() => task.State.Phase == WorkTaskPhase.InProgress, "task opened");
+                Check(task.GetComponent<SimpleCircuitTaskPanel>().IsOpen && input.IsTaskModal && !input.IsCaptured, "Task UI/control capture failed.");
+                task.SubmitElementRpc(2, task.State.Revision);
+                yield return Until(() => task.State.WrongInput, "wrong-input feedback");
+                Check(task.State.Progress == 0, "Wrong input did not reset progress.");
+                foreach (var element in new[] { 1, 3, 2 })
+                {
+                    var revision = task.State.Revision;
+                    task.SubmitElementRpc(element, revision);
+                    task.SubmitElementRpc(element, revision); // Deliberate duplicate command.
+                    yield return Until(() => task.State.Revision > revision, "circuit element");
+                }
+                yield return Until(() => task.State.Phase == WorkTaskPhase.Completed, "task completion");
+                Check(!task.GetComponent<SimpleCircuitTaskPanel>().IsOpen && !input.IsTaskModal, "Task UI did not close.");
+                var completedRevision = task.State.Revision;
+                interaction.RequestInteractionRpc(new NetworkObjectReference(task.NetworkObject), camera.transform.forward);
+                task.SubmitElementRpc(2, completedRevision);
+                yield return new WaitForSecondsRealtime(1);
+                Check(task.State.Revision == completedRevision, "Completed task accepted repeated completion.");
+            }
+            yield return Until(() => task.State.Phase == WorkTaskPhase.Completed, "replicated task completion");
+            Check(task.State.WorkerId != NetworkManager.ServerClientId && task.State.Progress == 3, "Wrong task completer or sequence.");
+            Debug.Log($"EV_TASK PASSED: completedBy={task.State.WorkerId}, progress={task.State.Progress}, revision={task.State.Revision}");
+            input.ReleaseCursor();
             movement.enabled = look.enabled = true;
         }
 

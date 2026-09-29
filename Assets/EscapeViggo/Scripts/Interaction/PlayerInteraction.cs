@@ -11,6 +11,8 @@ namespace EscapeViggo.Interaction
         [SerializeField, Min(0.1f)] private float _range = 3;
         private PlayerInputReader _input;
         private PlayerMovement _movement;
+        private CharacterController _controller;
+        private readonly RaycastHit[] _rayHits = new RaycastHit[32];
         public NetworkPlayer Player { get; private set; }
         public NetworkInteractable Target { get; private set; }
         public string Prompt => Target == null ? string.Empty : "E - " + Target.Prompt;
@@ -23,6 +25,7 @@ namespace EscapeViggo.Interaction
             _input = GetComponent<PlayerInputReader>();
             _movement = GetComponent<PlayerMovement>();
             Player = GetComponent<NetworkPlayer>();
+            _controller = GetComponent<CharacterController>();
         }
 
         private void Update()
@@ -35,7 +38,7 @@ namespace EscapeViggo.Interaction
         {
             Target = null;
             if (!IsSpawned || !IsOwner || !_input.IsCaptured || !_input.enabled) return;
-            var target = InteractionQuery.Raycast(_camera.transform.position, _camera.transform.forward, _range);
+            var target = Cast(_camera.transform.position, _camera.transform.forward, _range);
             if (target != null && target.CanInteract(this)) Target = target;
         }
 
@@ -52,7 +55,7 @@ namespace EscapeViggo.Interaction
             var target = targetObject.GetComponent<NetworkInteractable>();
             if (target == null || !ServerCanReach(target) || !InteractionQuery.IsFinite(aimDirection)) return;
             // Origin and range come from server state. Only aim direction is supplied by the owner.
-            if (InteractionQuery.Raycast(ServerEyePosition, aimDirection, _range) != target) return;
+            if (Cast(ServerEyePosition, aimDirection, _range) != target) return;
             target.InteractOnServer(this);
         }
 
@@ -62,9 +65,12 @@ namespace EscapeViggo.Interaction
             var origin = ServerEyePosition;
             var point = target.InteractionCollider.ClosestPoint(origin);
             if ((point - origin).sqrMagnitude > _range * _range) return false;
-            return InteractionQuery.Raycast(origin, target.InteractionCollider.bounds.center - origin,
+            return Cast(origin, target.InteractionCollider.bounds.center - origin,
                 Vector3.Distance(origin, target.InteractionCollider.bounds.center) + 0.01f) == target;
         }
+
+        private NetworkInteractable Cast(Vector3 origin, Vector3 direction, float range) =>
+            InteractionQuery.Raycast(origin, direction, range, _controller, _rayHits);
 
         private void OnGUI()
         {
