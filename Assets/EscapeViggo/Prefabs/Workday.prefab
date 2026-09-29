@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 5372120776757518245}
   - component: {fileID: 5914338424136596100}
   - component: {fileID: 3668786552912107937}
+  - component: {fileID: 433939298445600856}
   m_Layer: 0
   m_Name: Workday
   m_TagString: Untagged
@@ -74,3 +75,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: EscapeViggo.Runtime::EscapeViggo.Core.NetworkWorkday
   ShowTopMostFoldoutHeaderGroup: 1
   _settings: {fileID: 11400000, guid: 86742d20cfb27814b97b001ae50ccb03, type: 2}
+--- !u!114 &433939298445600856
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8818813058344074348}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff0791b262dc12340a6de2aac0bddf4e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: EscapeViggo.Runtime::EscapeViggo.Scoring.ScoreService
+  ShowTopMostFoldoutHeaderGroup: 1
+  _settings: {fileID: 11400000, guid: 56ff9b705cb692645aa432609d569843, type: 2}

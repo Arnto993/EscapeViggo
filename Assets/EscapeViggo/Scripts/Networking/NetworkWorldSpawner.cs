@@ -1,6 +1,8 @@
 using System;
 using Unity.Netcode;
 using UnityEngine;
+using EscapeViggo.Scoring;
+using EscapeViggo.Tasks;
 
 namespace EscapeViggo.Networking
 {
@@ -24,6 +26,8 @@ namespace EscapeViggo.Networking
                 if (entry.DevelopmentOnly && !Application.isEditor && !Debug.isDebugBuild) continue;
                 var instance = Instantiate(entry.Prefab, entry.Location.position, entry.Location.rotation);
                 instance.Spawn();
+                var task = instance.GetComponent<WorkTask>();
+                if (task != null) _manager.GetComponent<LocalNetworkSession>().Workday.GetComponent<ScoreService>().RegisterTask(task);
             }
         }
         private void OnDestroy()

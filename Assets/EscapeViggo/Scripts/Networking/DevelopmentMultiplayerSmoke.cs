@@ -7,6 +7,7 @@ using EscapeViggo.Player;
 using EscapeViggo.Core;
 using EscapeViggo.Interaction;
 using EscapeViggo.Tasks;
+using EscapeViggo.Scoring;
 using Unity.Netcode;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -25,7 +26,7 @@ namespace EscapeViggo.Networking
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Install()
         {
-            if (!DevelopmentNetworkPanel.HasArgument("-ev-smoke")) return;
+            if (!DevelopmentNetworkPanel.HasArgument("-ev-smoke") && !DevelopmentNetworkPanel.HasArgument("-ev-observer")) return;
             var session = FindFirstObjectByType<LocalNetworkSession>();
             if (session != null) session.gameObject.AddComponent<DevelopmentMultiplayerSmoke>();
         }
@@ -39,6 +40,11 @@ namespace EscapeViggo.Networking
 
         private IEnumerator Start()
         {
+            if (DevelopmentNetworkPanel.HasArgument("-ev-observer"))
+            {
+                yield return CheckLateJoin();
+                yield break;
+            }
             yield return Until(() => _session.PlayerCount == 2, "initial two players");
             yield return Round(1);
             // Leave a stable interval for both processes to record the same state.
@@ -60,9 +66,14 @@ namespace EscapeViggo.Networking
             yield return Round(2);
             yield return CheckInteraction();
             yield return CheckTask();
+            yield return CheckScores();
             yield return Until(() => _session.Workday != null && _session.Workday.State.Phase == MatchPhase.EndOfDay, "authoritative end of day");
             Check(_session.Workday.State.ClockText == "15:00", "End of day must display 15:00.");
             Debug.Log("EV_WORKDAY END PASSED: EndOfDay 15:00");
+            var scoring = _session.Workday.GetComponent<ScoreService>();
+            var completedTask = FindFirstObjectByType<SimpleCircuitTask>();
+            if (_host) Check(!scoring.TryAwardOnce(_session.Manager.LocalClient.PlayerObject.GetComponent<PlayerScore>(),
+                completedTask.NetworkObject, 1, scoring.Settings.CircuitTaskPoints), "Scoring continued after EndOfDay.");
             yield return new WaitForSecondsRealtime(2);
             if (_host)
             {
@@ -291,6 +302,61 @@ namespace EscapeViggo.Networking
             Debug.Log($"EV_TASK PASSED: completedBy={task.State.WorkerId}, progress={task.State.Progress}, revision={task.State.Revision}");
             input.ReleaseCursor();
             movement.enabled = look.enabled = true;
+        }
+
+        private IEnumerator CheckScores()
+        {
+            var task = FindFirstObjectByType<SimpleCircuitTask>();
+            var scoring = _session.Workday.GetComponent<ScoreService>();
+            PlayerScore recipient = null;
+            foreach (var player in FindObjectsByType<NetworkPlayer>(FindObjectsSortMode.None))
+                if (player.OwnerClientId == task.State.WorkerId) recipient = player.GetComponent<PlayerScore>();
+            Check(recipient != null, "Task reward recipient is missing.");
+            yield return Until(() => recipient.Value == scoring.Settings.CircuitTaskPoints, "task score replication");
+            if (_host)
+            {
+                var viggoScore = _session.Manager.LocalClient.PlayerObject.GetComponent<PlayerScore>();
+                Check(!scoring.TryAwardOnce(viggoScore, task.NetworkObject, 0, scoring.Settings.CircuitTaskPoints),
+                    "Duplicate task award was redirected to Viggo.");
+            }
+            foreach (var player in FindObjectsByType<NetworkPlayer>(FindObjectsSortMode.None))
+            {
+                var score = player.GetComponent<PlayerScore>();
+                var state = (NetworkVariable<int>)typeof(PlayerScore)
+                    .GetField("_score", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(score);
+                Check(!state.CanClientWrite(1), "Client has authoritative score write permission.");
+                Check(score.Value == (player.OwnerClientId == task.State.WorkerId ? scoring.Settings.CircuitTaskPoints : 0),
+                    "Wrong score recipient or duplicated reward.");
+                Debug.Log($"EV_SCORE owner={player.OwnerClientId} score={score.Value}");
+            }
+            var captureDirectory = DevelopmentNetworkPanel.Argument("-ev-capture-dir");
+            if (!string.IsNullOrEmpty(captureDirectory))
+                CaptureCamera(_session.Manager.LocalClient.PlayerObject.GetComponentInChildren<Camera>(),
+                    System.IO.Path.Combine(captureDirectory, _host ? "host-task.png" : "client-task.png"));
+        }
+
+        private IEnumerator CheckLateJoin()
+        {
+            yield return Until(() => _session.PlayerCount == 3, "late observer and existing players");
+            yield return new WaitForSecondsRealtime(1);
+            CheckOwnership();
+            var task = FindFirstObjectByType<SimpleCircuitTask>();
+            Check(task != null && task.State.Phase == WorkTaskPhase.Completed, "Late join lost completed task state.");
+            Check(_session.Workday.State.MinuteOfDay > WorkdayClock.StartMinute, "Late join lost workday time.");
+            var viggos = 0;
+            foreach (var player in FindObjectsByType<NetworkPlayer>(FindObjectsSortMode.None))
+            {
+                Check(player.Role == RoleAssignment.ForClient(player.OwnerClientId), "Late join role mismatch.");
+                if (player.Role == PlayerRole.Viggo) viggos++;
+                var expected = player.OwnerClientId == task.State.WorkerId ? _session.Workday.GetComponent<ScoreService>().Settings.CircuitTaskPoints : 0;
+                Check(player.GetComponent<PlayerScore>().Value == expected, "Late join score mismatch.");
+            }
+            Check(viggos == 1, "Three players must still have exactly one Viggo.");
+            yield return Until(() => _session.Workday.State.Phase == MatchPhase.EndOfDay, "late observer end of day");
+            _session.Disconnect();
+            yield return Until(() => _session.CanStart && _session.PlayerCount == 0, "observer cleanup");
+            Debug.Log("EV_OBSERVER PASSED: three players, roles, completed task, scores, clock and EndOfDay.");
+            Application.Quit(_failed ? 1 : 0);
         }
 
         private void CaptureCamera(Camera camera, string path)

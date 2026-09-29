@@ -1,4 +1,4 @@
-param([int]$Port = 17777, [switch]$Graphics)
+param([int]$Port = 17777, [switch]$Graphics, [switch]$Observer)
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot -Parent
 $playerPath = Join-Path $projectRoot 'Builds/Windows/EscapeViggo.exe'
@@ -21,8 +21,17 @@ try {
         if ($mode -eq 'host') { Start-Sleep -Seconds 2 }
     }
     $deadline = (Get-Date).AddSeconds(110)
+    $observerStarted = $false
     while (@($processes | Where-Object { !$_.HasExited }).Count -gt 0) {
         if ((Get-Date) -gt $deadline) { throw 'Multiplayer smoke test timed out.' }
+        if ($Observer -and !$observerStarted -and ((Get-Content (Join-Path $runDirectory 'host.log')) -match '^EV_TASK PASSED')) {
+            $observerArguments = @('-batchmode', '-nographics', '-ev-observer', '-ev-client', '-ev-port', $Port,
+                '-logFile', ('"{0}"' -f (Join-Path $runDirectory 'observer.log')))
+            $observerProcess = Start-Process -FilePath $playerPath -ArgumentList $observerArguments -WindowStyle Hidden -PassThru
+            $null = $observerProcess.Handle
+            $processes += $observerProcess
+            $observerStarted = $true
+        }
         Start-Sleep -Milliseconds 500
     }
     foreach ($process in $processes) {
@@ -32,6 +41,15 @@ try {
     $clientLog = Get-Content (Join-Path $runDirectory 'client.log')
     if (!($hostLog -match 'EV_SMOKE PASSED HOST') -or !($clientLog -match 'EV_SMOKE PASSED CLIENT')) {
         throw 'Missing success markers in player logs.'
+    }
+    foreach ($marker in @('EV_INTERACTION PASSED', 'EV_TASK PASSED', 'EV_SCORE owner=0 score=0', 'EV_WORKDAY END PASSED')) {
+        if (!($hostLog -match $marker) -or !($clientLog -match $marker)) { throw "Missing gameplay check: $marker" }
+    }
+    $hostScores = @($hostLog | Where-Object { $_ -match '^EV_SCORE ' } | Sort-Object)
+    $clientScores = @($clientLog | Where-Object { $_ -match '^EV_SCORE ' } | Sort-Object)
+    if ($hostScores.Count -lt 2 -or (Compare-Object $hostScores $clientScores)) { throw 'Host/client scores disagree.' }
+    if ($Observer -and (!$observerStarted -or !((Get-Content (Join-Path $runDirectory 'observer.log')) -match 'EV_OBSERVER PASSED'))) {
+        throw 'Late observer validation did not complete.'
     }
     $snapshots = @{}
     foreach ($line in $hostLog) {
@@ -57,7 +75,7 @@ try {
     if ($Graphics -and (!(Test-Path (Join-Path $runDirectory 'host.png')) -or !(Test-Path (Join-Path $runDirectory 'client.png')))) {
         throw 'Rendered screenshots were not produced.'
     }
-    Write-Output "PASS: two processes, independent movement, ownership, cameras/audio, crouch, four matching poses, reconnect and host restart. Logs: $runDirectory"
+    Write-Output "PASS: movement, ownership, roles, clock, interaction, circuit task, scores, reconnect and host restart. Late observer: $observerStarted. Logs: $runDirectory"
 } finally {
     foreach ($process in $processes) {
         if (!$process.HasExited) { Stop-Process -Id $process.Id -Force }

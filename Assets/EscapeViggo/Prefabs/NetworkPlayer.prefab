@@ -107,6 +107,7 @@ GameObject:
   - component: {fileID: 5171738535260400936}
   - component: {fileID: 2494624091084737399}
   - component: {fileID: 8737383189539647924}
+  - component: {fileID: 2937091281653054256}
   m_Layer: 0
   m_Name: NetworkPlayer
   m_TagString: Untagged
@@ -303,6 +304,19 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   _camera: {fileID: 1498985334319546418}
   _range: 3
+--- !u!114 &2937091281653054256
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5300135973281005513}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0cc865f5b6b63d742996554e1eec948f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: EscapeViggo.Runtime::EscapeViggo.Scoring.PlayerScore
+  ShowTopMostFoldoutHeaderGroup: 1
 --- !u!1 &8215181289536905387
 GameObject:
   m_ObjectHideFlags: 0

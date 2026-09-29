@@ -1,5 +1,6 @@
 using System;
 using EscapeViggo.Player;
+using EscapeViggo.Scoring;
 using UnityEngine;
 
 namespace EscapeViggo.Networking
@@ -28,7 +29,7 @@ namespace EscapeViggo.Networking
 
         private void OnGUI()
         {
-            GUILayout.BeginArea(new Rect(12, 12, 325, 310), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(12, 12, 325, 340 + _session.PlayerCount * 22), GUI.skin.box);
             GUILayout.Label("ESCAPE VIGGO - LOCAL DEVELOPMENT");
             GUILayout.Label(_session.Status);
             GUILayout.Label($"Players: {_session.PlayerCount}  |  Local ID: {_session.Manager.LocalClientId}");
@@ -55,9 +56,19 @@ namespace EscapeViggo.Networking
                 if (player != null)
                 {
                     GUILayout.Label($"Role: {player.GetComponent<NetworkPlayer>().Role}");
+                    GUILayout.Label($"Score: {player.GetComponent<PlayerScore>().Value}");
                     var look = player.GetComponent<PlayerLook>();
                     GUILayout.Label($"Mouse sensitivity: {look.SensitivityMultiplier:F1}x");
                     look.SensitivityMultiplier = GUILayout.HorizontalSlider(look.SensitivityMultiplier, 0.2f, 3f);
+                }
+            }
+            if (_session.Manager.IsConnectedClient)
+            {
+                GUILayout.Label("PLAYERS / ROLE / SCORE");
+                foreach (var spawned in _session.Manager.SpawnManager.SpawnedObjects.Values)
+                {
+                    if (!spawned.IsPlayerObject) continue;
+                    GUILayout.Label($"{spawned.OwnerClientId} | {spawned.GetComponent<NetworkPlayer>().Role} | {spawned.GetComponent<PlayerScore>().Value}");
                 }
             }
             GUILayout.EndArea();

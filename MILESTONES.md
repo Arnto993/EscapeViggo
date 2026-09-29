@@ -692,6 +692,39 @@ Optional temporary scoreboard.
 
 ---
 
+## M8 Status — 2026-09-29
+
+Acceptance criteria satisfied. Each network player has a server-written score.
+`ScoreService` listens to server task completion, validates the actual electrician
+and Workday phase, reads `Scoring.asset` (default 100), and records the source
+event once. Clients have no score-setting RPC. The underlying award path is
+role-independent for later server-validated events; no later mechanics were added.
+The development HUD shows local role/score/time and a small shared scoreboard.
+
+Unity compilation, full M1–M8 scene/prefab validation and the Windows development
+build passed. All 26 Edit Mode and 11 Play Mode tests passed (`Logs/M8-*`),
+including the original seven controller tests and the downward-ray regression.
+The graphics-enabled host/client run passed movement, role/spawn/ownership,
+reconnect, timer, distant-request rejection, task UI, Viggo rejection, wrong
+sequence, duplicate input/completion, exact score recipient, duplicate-award
+rejection, EndOfDay scoring rejection and host restart. A third client joined
+after completion and received the existing roles, completed task, 100/0 scores,
+current time and EndOfDay (`Logs/Multiplayer-20260929-221317`). Host/client task
+camera renders were inspected; both show the green completed panel and worker 2.
+
+No C# compiler warnings/errors or critical runtime/network errors occurred in
+the successful checkpoint runs. Unity licensing/environment diagnostics can
+remain in editor logs. Human mouse feel and IMGUI clicks still merit the exact
+README walkthrough; automated camera captures exclude IMGUI. Scores belong to
+the current network player, so disconnect/rejoin creates a new ID with score 0;
+completed world tasks persist until host restart. No session identity persistence
+or results screen was added. Unrelated Unity build serialization changes were
+discarded; Unity version, packages and render-pipeline assignments are unchanged.
+
+**Stopped after M8. M9 has not been started.**
+
+---
+
 # M9 — VIGGO MOVEMENT AND STAMINA
 
 ## Goal
@@ -1355,5 +1388,8 @@ Wait for the next user instruction.
 M0 was confirmed complete by the user. M1, M2 and M3 were implemented in order
 under the explicit multi-milestone request, with separate validation checkpoints.
 
-M4–M7 are complete. The explicitly authorized M4–M8 sequence is in progress;
-M8 is the final authorized checkpoint. Do not begin M9.
+M4–M8 are complete under the explicitly authorized sequential request, with a
+validated local commit per checkpoint. **Stopped after M8 — Scoring.**
+
+M9 is the next incomplete milestone and has not been started. It requires a new
+user request; the current multi-milestone authorization ends at M8.
