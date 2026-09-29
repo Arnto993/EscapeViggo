@@ -18,10 +18,11 @@ namespace EscapeViggo.Battery
         public BatterySettings Settings => _settings;
         public bool IsWorkday => _session != null && _session.Workday != null && _session.Workday.State.Phase == MatchPhase.Workday;
         public override string Prompt => "Hold to steal battery";
-        public override bool RequiresHold(PlayerInteraction player) => true;
+        public override string GetPrompt(PlayerInteraction player) => player.Player.Role == PlayerRole.Viggo ? "Check battery station" : Prompt;
+        public override bool RequiresHold(PlayerInteraction player) => player.Player.Role == PlayerRole.Electrician;
         public override bool CanInteract(PlayerInteraction player) => IsSpawned && IsWorkday && player != null &&
-            player.Player.Role == PlayerRole.Electrician && (State.Phase == BatteryPhase.AtDrill ||
-                (State.Phase == BatteryPhase.BeingStolen && State.ActorId == player.OwnerClientId));
+            (player.Player.Role == PlayerRole.Viggo || (State.Phase == BatteryPhase.AtDrill ||
+                (State.Phase == BatteryPhase.BeingStolen && State.ActorId == player.OwnerClientId)));
 
         public override void OnNetworkSpawn()
         {
@@ -33,6 +34,15 @@ namespace EscapeViggo.Battery
         protected override void OnServerInteract(PlayerInteraction player)
         {
             var next = State;
+            if (player.Player.Role == PlayerRole.Viggo)
+            {
+                if (BatteryRules.Discover(ref next, player.Player.Role))
+                {
+                    _state.Value = next;
+                    _session.Workday.GetComponent<Viggo.ViggoRage>().BeginOnServer(this);
+                }
+                return;
+            }
             if (BatteryRules.TryBegin(ref next, player.OwnerClientId))
             {
                 _state.Value = next;
@@ -65,6 +75,8 @@ namespace EscapeViggo.Battery
                     next.CarrierId = BatteryState.Nobody;
                     next.Progress = 0;
                     _state.Value = next;
+                    var rage = _session.Workday.GetComponent<Viggo.ViggoRage>();
+                    if (rage.Settings.EndRageOnRecovery) rage.EndOnServer();
                 }
                 return;
             }

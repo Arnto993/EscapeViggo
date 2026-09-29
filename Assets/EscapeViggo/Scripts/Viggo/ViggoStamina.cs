@@ -20,7 +20,8 @@ namespace EscapeViggo.Viggo
         public float Value => _stamina.Value.Stamina;
         public ViggoMobilityState State => _stamina.Value;
         public bool Applies => IsSpawned && _player.Role == PlayerRole.Viggo;
-        public bool IsResting => Applies && State.Phase == ViggoMobility.Resting;
+        public bool IsRaging => Applies && _session.Workday != null && _session.Workday.GetComponent<ViggoRage>().Active;
+        public bool IsResting => Applies && !IsRaging && State.Phase == ViggoMobility.Resting;
         public bool CanCapture => Applies && !IsResting;
         public event System.Action RestStarted;
 
@@ -59,13 +60,13 @@ namespace EscapeViggo.Viggo
             var displacement = transform.position - _lastPosition;
             displacement.y = 0;
             if (_session.Workday != null && _session.Workday.State.Phase == MatchPhase.Workday)
-                _stamina.Value = ViggoMobilityState.Advance(State, displacement.magnitude / seconds, seconds, _settings);
+                _stamina.Value = ViggoMobilityState.Advance(State, displacement.magnitude / seconds, seconds, _settings, IsRaging);
             _lastPosition = transform.position;
             _lastSample = now;
         }
 
         public float MovementSpeed(bool crouching, bool sprinting) =>
-            (crouching ? _settings.CrouchSpeed : sprinting ? _settings.ChaseSpeed : _settings.WalkSpeed) *
+            (IsRaging ? _settings.RageSpeed : crouching ? _settings.CrouchSpeed : sprinting ? _settings.ChaseSpeed : _settings.WalkSpeed) *
             (IsResting ? Mathf.Clamp(_settings.RestMovementMultiplier, 0, 0.25f) : 1);
     }
 }

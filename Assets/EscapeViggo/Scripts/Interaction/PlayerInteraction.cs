@@ -17,7 +17,7 @@ namespace EscapeViggo.Interaction
         private readonly RaycastHit[] _rayHits = new RaycastHit[32];
         public NetworkPlayer Player { get; private set; }
         public NetworkInteractable Target { get; private set; }
-        public string Prompt => Target == null ? string.Empty : "E - " + Target.Prompt;
+        public string Prompt => Target == null ? string.Empty : "E - " + Target.GetPrompt(this);
         public float Range => _range;
         public Vector3 ServerEyePosition => transform.position + Vector3.up *
             ((Player.IsCrouching ? _movement.Settings.CrouchingHeight : _movement.Settings.StandingHeight) - _movement.Settings.EyeInset);

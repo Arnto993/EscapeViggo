@@ -12,6 +12,8 @@ GameObject:
   - component: {fileID: 5914338424136596100}
   - component: {fileID: 3668786552912107937}
   - component: {fileID: 433939298445600856}
+  - component: {fileID: 4267501804438467606}
+  - component: {fileID: 4804021173341457242}
   m_Layer: 0
   m_Name: Workday
   m_TagString: Untagged
@@ -89,3 +91,30 @@ MonoBehaviour:
   m_EditorClassIdentifier: EscapeViggo.Runtime::EscapeViggo.Scoring.ScoreService
   ShowTopMostFoldoutHeaderGroup: 1
   _settings: {fileID: 11400000, guid: 56ff9b705cb692645aa432609d569843, type: 2}
+--- !u!114 &4267501804438467606
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8818813058344074348}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3f7915d10a441cc42bca2ef6de1ab1b8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: EscapeViggo.Runtime::EscapeViggo.Viggo.ViggoRage
+  ShowTopMostFoldoutHeaderGroup: 1
+  _settings: {fileID: 11400000, guid: 7710765fa24aa6e468e68e980edb2077, type: 2}
+--- !u!114 &4804021173341457242
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8818813058344074348}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2781944da33c16c42a354b7fc59eb6a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: EscapeViggo.Runtime::EscapeViggo.Viggo.RagePresentation
+  ShowTopMostFoldoutHeaderGroup: 1

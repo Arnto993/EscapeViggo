@@ -5,6 +5,18 @@ namespace EscapeViggo.Tests
 {
     public sealed class BatteryTests
     {
+        [Test] public void OnlyViggoCanDiscoverAMissingBatteryOnce()
+        {
+            var state = BatteryState.Initial;
+            Assert.That(BatteryRules.Discover(ref state, Player.PlayerRole.Viggo), Is.False);
+            BatteryRules.TryBegin(ref state, 7);
+            state.Progress = 1;
+            BatteryRules.Complete(ref state);
+            Assert.That(BatteryRules.Discover(ref state, Player.PlayerRole.Electrician), Is.False);
+            Assert.That(BatteryRules.Discover(ref state, Player.PlayerRole.Viggo), Is.True);
+            Assert.That(BatteryRules.Discover(ref state, Player.PlayerRole.Viggo), Is.False);
+            Assert.That(state.OriginalThiefId, Is.EqualTo(7));
+        }
         [Test] public void OnlyOneActorCanBeginAndOnlyThatActorCanCancel()
         {
             var state = BatteryState.Initial;

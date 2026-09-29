@@ -31,6 +31,13 @@ namespace EscapeViggo.Battery
 
     public static class BatteryRules
     {
+        public static bool Discover(ref BatteryState state, Player.PlayerRole role)
+        {
+            if (role != Player.PlayerRole.Viggo || state.Phase != BatteryPhase.Carried || state.Discovered) return false;
+            state.Discovered = true;
+            return true;
+        }
+
         public static bool TryBegin(ref BatteryState state, ulong actor)
         {
             if (actor == BatteryState.Nobody || state.Phase != BatteryPhase.AtDrill) return false;

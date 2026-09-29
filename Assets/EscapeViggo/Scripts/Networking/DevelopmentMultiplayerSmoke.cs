@@ -72,8 +72,10 @@ namespace EscapeViggo.Networking
             yield return CheckStamina();
             yield return CheckRest();
             yield return CheckBattery();
+            yield return CheckRage();
             yield return Until(() => _session.Workday != null && _session.Workday.State.Phase == MatchPhase.EndOfDay, "authoritative end of day", 120);
             Check(_session.Workday.State.ClockText == "15:00", "End of day must display 15:00.");
+            yield return Until(() => !_session.Workday.GetComponent<ViggoRage>().Active, "Rage ended with workday");
             Debug.Log("EV_WORKDAY END PASSED: EndOfDay 15:00");
             var scoring = _session.Workday.GetComponent<ScoreService>();
             var completedTask = FindFirstObjectByType<SimpleCircuitTask>();
@@ -464,6 +466,7 @@ namespace EscapeViggo.Networking
             {
                 BatteryPulse();
                 Check(battery.State.Phase == BatteryPhase.AtDrill, "Viggo stole his battery.");
+                Check(!battery.State.Discovered && !_session.Workday.GetComponent<ViggoRage>().Active, "Checking present battery triggered Rage.");
             }
             else
             {
@@ -500,10 +503,68 @@ namespace EscapeViggo.Networking
             yield return Until(() => battery.State.Phase == BatteryPhase.Carried, "replicated battery theft");
             Check(!battery.State.Discovered && battery.State.TheftId == 1 && battery.State.CarrierId == 2 &&
                 battery.State.OriginalThiefId == 2, "Incorrect carrier, original thief, secrecy or duplicate theft.");
+            Check(!_session.Workday.GetComponent<ViggoRage>().Active, "Theft triggered Rage before discovery.");
             Check(!_session.Manager.LocalClient.PlayerObject.GetComponent<ViggoStamina>().IsResting, "Unexpected rest after theft.");
             local.GetComponent<PlayerMovement>().enabled = local.GetComponent<PlayerLook>().enabled = true;
             local.GetComponent<PlayerInputReader>().ReleaseCursor();
             Debug.Log("EV_BATTERY PASSED: prompt, Viggo rejection, hold duration, release/timeout/range cancellation, unique carrier/thief, undiscovered replication.");
+        }
+
+        private IEnumerator CheckRage()
+        {
+            var rage = _session.Workday.GetComponent<ViggoRage>();
+            var battery = _session.Battery;
+            var state = (NetworkVariable<RageState>)typeof(ViggoRage)
+                .GetField("_state", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(rage);
+            Check(!state.CanClientWrite(1), "Client can set Rage.");
+            if (!_host)
+            {
+                BatteryPulse();
+                yield return new WaitForSecondsRealtime(1);
+                Check(!rage.Active && !battery.State.Discovered, "Electrician triggered discovery.");
+            }
+            else
+            {
+                yield return new WaitForSecondsRealtime(2);
+                Check(!rage.Active && !battery.State.Discovered, "Theft auto-discovered.");
+                PlaceForBattery(16);
+                var interaction = _session.Manager.LocalClient.PlayerObject.GetComponent<PlayerInteraction>();
+                _session.Manager.LocalClient.PlayerObject.GetComponent<PlayerInputReader>().CaptureCursor();
+                interaction.RefreshTarget();
+                Check(interaction.Target == battery && interaction.Prompt.Contains("Check"), "Viggo inspection prompt is missing.");
+                interaction.Interact();
+            }
+            yield return Until(() => rage.Active && battery.State.Discovered, "discovery and Rage replication");
+            Check(rage.Sequence == 1, "Discovery repeated.");
+            ViggoStamina viggo = null;
+            foreach (var stamina in FindObjectsByType<ViggoStamina>(FindObjectsSortMode.None)) if (stamina.Applies) viggo = stamina;
+            var restCount = viggo.State.RestCount;
+            if (_host)
+            {
+                BatteryPulse();
+                BatteryPulse();
+                Check(rage.Sequence == 1, "Duplicate discovery produced extra Rage events.");
+                PlaceForBattery(-15, -12);
+                var movement = viggo.GetComponent<PlayerMovement>();
+                var initialStamina = viggo.Value;
+                var travelled = 0f;
+                var started = Time.realtimeSinceStartup;
+                while (Time.realtimeSinceStartup - started < 6)
+                {
+                    var previous = viggo.transform.position;
+                    var forward = Mathf.FloorToInt((Time.realtimeSinceStartup - started) / 0.7f) % 2 == 0;
+                    movement.Simulate(new MovementCommand { Move = forward ? Vector2.up : Vector2.down }, Time.deltaTime);
+                    travelled += Vector3.Distance(previous, viggo.transform.position);
+                    Check(!viggo.IsResting && viggo.MovementSpeed(false, false) == viggo.Settings.RageSpeed, "Rage mobility override failed.");
+                    yield return null;
+                }
+                Check(travelled > 35 && Mathf.Abs(viggo.Value - initialStamina) < 0.01f, "Rage pursuit still consumes stamina or uses normal speed.");
+                movement.enabled = viggo.GetComponent<PlayerLook>().enabled = true;
+                viggo.GetComponent<PlayerInputReader>().ReleaseCursor();
+            }
+            else yield return new WaitForSecondsRealtime(7);
+            Check(viggo.State.RestCount == restCount && !viggo.IsResting && rage.Sequence == 1, "Rage re-entered exhaustion or repeated discovery.");
+            Debug.Log("EV_RAGE PASSED: no automatic/electrician discovery, authoritative inspection, one event, shared Rage, continuous pursuit.");
         }
 
         private IEnumerator CheckTheftContention()

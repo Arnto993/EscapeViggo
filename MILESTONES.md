@@ -961,6 +961,27 @@ Prototype presentation:
 
 ---
 
+## M12 Status — 2026-09-29
+
+Acceptance criteria satisfied. Viggo's station inspection uses the shared
+range/aim-validated interaction. Only a missing, undiscovered battery triggers
+one discovery and one server-owned Rage sequence. Original thief and carrier
+remain separate. ViggoRage lives with the workday; RagePresentation shows role-
+appropriate generic banners without thief identity. Rage speed is configurable,
+normal stamina is suspended and existing/new forced rest is suppressed. EndOfDay
+ends Rage; recovery/capture end conditions are configurable for the prototype.
+
+Compilation, M1–M12 asset validation and Windows build passed. All 38 Edit Mode
+and 11 Play Mode tests passed (`Logs/M12-*`). Host/client plus the competing
+observer passed present-battery inspection, undiscovered theft, electrician
+rejection, repeated inspection, one Rage event, synchronized discovery/Rage,
+six seconds of faster pursuit without stamina loss/rest and Rage shutdown at
+15:00 (`Logs/Multiplayer-20260929-225401`), together with M3–M11 regressions.
+No compiler warnings/errors or critical runtime/network failures occurred.
+Human banner presentation/input feel remains the README walkthrough. No final
+art/audio or capture implementation was added at this checkpoint.
+
+---
 # M13 — CAPTURE SYSTEM
 
 ## Goal
@@ -1447,5 +1468,5 @@ Wait for the next user instruction.
 
 # CURRENT TARGET
 
-M0–M11 are complete. The user authorized M9–M14 sequentially with a healthy local
-commit per checkpoint. M12 — Battery Discovery and Rage is next. Stop after M14; do not begin M15.
+M0–M12 are complete. The user authorized M9–M14 sequentially with a healthy local
+commit per checkpoint. M13 — Capture System is next. Stop after M14; do not begin M15.

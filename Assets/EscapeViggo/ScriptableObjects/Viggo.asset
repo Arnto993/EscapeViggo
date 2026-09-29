@@ -25,3 +25,6 @@ MonoBehaviour:
   RestRecoveryPerSecond: 25
   RefillAtRestEnd: 1
   RestMovementMultiplier: 0
+  RageSpeed: 8
+  EndRageOnRecovery: 1
+  EndRageOnCarrierCapture: 1

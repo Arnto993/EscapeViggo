@@ -22,9 +22,15 @@ namespace EscapeViggo.Viggo
             serializer.SerializeValue(ref RestCount);
         }
 
-        public static ViggoMobilityState Advance(ViggoMobilityState state, float speed, float seconds, ViggoSettings settings)
+        public static ViggoMobilityState Advance(ViggoMobilityState state, float speed, float seconds, ViggoSettings settings, bool raging = false)
         {
             if (seconds <= 0 || float.IsNaN(seconds) || float.IsInfinity(seconds)) return state;
+            if (raging)
+            {
+                state.Phase = ViggoMobility.Normal;
+                state.RestRemaining = 0;
+                return state;
+            }
             if (state.Phase == ViggoMobility.Resting)
             {
                 state.Stamina = Mathf.Min(settings.MaximumStamina,

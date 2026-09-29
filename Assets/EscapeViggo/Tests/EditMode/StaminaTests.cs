@@ -61,5 +61,17 @@ namespace EscapeViggo.Tests
             state = ViggoMobilityState.Advance(state, 5, 2, _settings);
             Assert.That(state.RestCount, Is.EqualTo(2));
         }
+
+        [Test] public void RageCancelsRestAndSuspendsStaminaWithoutAnotherJavell()
+        {
+            var state = ViggoMobilityState.Advance(new ViggoMobilityState { Stamina = 1 }, 5, 1, _settings);
+            state = ViggoMobilityState.Advance(state, 8, 60, _settings, true);
+            Assert.That(state.Phase, Is.EqualTo(ViggoMobility.Normal));
+            Assert.That(state.Stamina, Is.Zero);
+            Assert.That(state.RestRemaining, Is.Zero);
+            Assert.That(state.RestCount, Is.EqualTo(1));
+            state = ViggoMobilityState.Advance(state, 8, 1, _settings);
+            Assert.That(state.Phase, Is.EqualTo(ViggoMobility.Resting));
+        }
     }
 }

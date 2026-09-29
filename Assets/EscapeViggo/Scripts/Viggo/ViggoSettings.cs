@@ -19,5 +19,8 @@ namespace EscapeViggo.Viggo
         [Min(0)] public float RestRecoveryPerSecond = 25;
         public bool RefillAtRestEnd = true;
         [Range(0, 0.25f)] public float RestMovementMultiplier = 0;
+        [Min(0.1f)] public float RageSpeed = 8;
+        public bool EndRageOnRecovery = true;
+        public bool EndRageOnCarrierCapture = true;
     }
 }
