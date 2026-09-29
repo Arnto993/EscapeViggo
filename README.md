@@ -92,4 +92,27 @@ the greybox; it replaces scene edits, so use it only when intending to reset it.
 
 Manual M1 check: open the worksite, inspect the labelled rooms and connecting
 doorways in Scene view, then enter Play mode to inspect the overview camera.
-The controller arrives in M2.
+The M2 controller now replaces the overview camera.
+
+## M2 controller
+
+Enter Play mode in `PrototypeWorksite`: WASD moves, mouse looks, Left Shift
+sprints, Space jumps, and held Left Ctrl or C crouches. Escape releases the
+cursor; click **Resume controls** to capture it again. Losing window focus also
+releases controls. Tuning (including sensitivity) lives in
+`Assets/EscapeViggo/ScriptableObjects/PlayerMovement.asset`; bindings live in
+`Assets/EscapeViggo/UI/PlayerControls.inputactions`.
+
+`Player.prefab` separates input, CharacterController movement and camera look.
+The low duct near the south of the main room tests crouching and headroom.
+Manually walk through all rooms, run both loops, jump, crouch through the duct,
+release crouch under it (you should stay crouched), then exit and stand.
+
+Run all Play Mode tests in Test Runner, or close Unity and run:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -TestPlatform PlayMode -LogName M2-playmode
+```
+
+The tests drive the actual CharacterController against the saved worksite and
+exercise the Input Actions with a synthetic keyboard.

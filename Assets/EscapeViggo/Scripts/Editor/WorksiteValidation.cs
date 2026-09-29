@@ -16,6 +16,23 @@ namespace EscapeViggo.Editor
                 Require(GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(child.gameObject) == 0,
                     "Missing script on " + child.name);
 
+            var controllers = UnityEngine.Object.FindObjectsByType<CharacterController>(FindObjectsSortMode.None);
+            var enabled = new bool[controllers.Length];
+            for (var i = 0; i < controllers.Length; i++)
+            {
+                enabled[i] = controllers[i].enabled;
+                controllers[i].enabled = false;
+            }
+            try { ValidateLayout(); }
+            finally
+            {
+                for (var i = 0; i < controllers.Length; i++) controllers[i].enabled = enabled[i];
+            }
+        }
+
+        private static void ValidateLayout()
+        {
+
             foreach (var name in new[] { "Main Work Area", "Corridor", "Electrical Room", "Storage Room", "Small Office",
                          "Electrician Spawn", "Viggo Spawn", "Battery Station", "Task Location 1", "Task Location 2",
                          "Task Location 3", "Task Location 4", "Task Location 5" })

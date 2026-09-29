@@ -1,0 +1,6 @@
+{
+  "name": "EscapeViggo.Editor",
+  "rootNamespace": "EscapeViggo.Editor",
+  "references": ["EscapeViggo.Runtime", "Unity.InputSystem"],
+  "includePlatforms": ["Editor"]
+}

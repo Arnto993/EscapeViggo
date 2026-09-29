@@ -266,6 +266,19 @@ Input values are not scattered as hard-coded keys throughout gameplay scripts.
 
 ---
 
+## M2 Status — 2026-09-29
+
+Acceptance criteria satisfied by asset validation and seven passing Play Mode
+tests (`Logs/M2-playmode.xml`). Player prefab and scene are wired; Input System
+bindings, walk/sprint/diagonal speed, jump/landing/no air jump, collision, crouch
+headroom, mouse sensitivity/pitch clamp and actual room-loop traversal passed.
+Unity compilation and asset validation exited 0 (`Logs/M2-setup.log`). No
+gameplay exceptions were reported by the tests. Interactive mouse feel/rendering
+remain a manual review; the headless input test explicitly ignores editor focus
+and restores the settings afterwards. No networking was added at this checkpoint.
+
+---
+
 # M3 — LOCAL MULTIPLAYER FOUNDATION
 
 ## Goal

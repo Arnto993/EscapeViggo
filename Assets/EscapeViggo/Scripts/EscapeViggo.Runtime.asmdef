@@ -1,0 +1,6 @@
+{
+  "name": "EscapeViggo.Runtime",
+  "rootNamespace": "EscapeViggo",
+  "references": ["Unity.InputSystem"],
+  "autoReferenced": true
+}

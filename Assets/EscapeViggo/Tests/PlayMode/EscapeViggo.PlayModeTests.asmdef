@@ -1,0 +1,5 @@
+{
+  "name": "EscapeViggo.PlayModeTests",
+  "references": ["EscapeViggo.Runtime", "Unity.InputSystem"],
+  "optionalUnityReferences": ["TestAssemblies"]
+}
