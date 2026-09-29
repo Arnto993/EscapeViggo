@@ -1,7 +1,7 @@
 # Escape Viggo
 
-Unity 6.3 LTS (**6000.3.25f1**), URP, Windows PC. The current sequential request
-covers M9–M14, with validation and a local commit at each checkpoint. Read [AGENTS.md](AGENTS.md),
+Unity 6.3 LTS (**6000.3.25f1**), URP, Windows PC. M0–M14 provide one local multiplayer
+workday, with validation and a local commit at each checkpoint. Read [AGENTS.md](AGENTS.md),
 [GAME_SPEC.md](GAME_SPEC.md), and [MILESTONES.md](MILESTONES.md) before changes.
 
 ## Open and play
@@ -21,7 +21,7 @@ bypass the default four-second rest, and the client sees Viggo stop. Stamina
 recovers to 100, then movement resumes. Repeat: one Javell event per rest appears
 in each instance's log. `RestSeconds`, `RestRecoveryPerSecond`, `RefillAtRestEnd`
 and `RestMovementMultiplier` configure this behavior. Capture eligibility is
-disabled during rest; the actual capture mechanic belongs to M13.
+disabled during rest.
 
 M11 adds the single battery to **Battery Station** at (17, 0.5, 7.5), in the
 electrical room. As an electrician, aim at the station within three metres and
@@ -64,12 +64,14 @@ one carrier capture), and that the electrician can move/work again afterward.
    Losing window focus releases controls; networking continues in the background.
 5. Check the Console for errors.
 
-## M4–M13 host and client manual test
+## Full workday manual test (M1–M14)
 
 A ready development build is at `Builds/Windows/EscapeViggo.exe` (ignored by Git).
 To rebuild it, use **Escape Viggo > Build > Windows Development Player**.
 
-1. In the Editor, play the worksite and click **Start Host** at `127.0.0.1:7777`.
+1. Before Play mode, set `Workday.asset`'s `DayDurationMinutes` to **5** for this
+   walkthrough (default 2). In the Editor, play the worksite and click
+   **Start Host** at `127.0.0.1:7777`. The host supplies the day duration.
 2. Launch `Builds/Windows/EscapeViggo.exe`. Leave the same address/port and click
    **Start Client**. Both windows should display **Players: 2**.
 3. Confirm the host panel says **Viggo**, at the orange Viggo marker in the
@@ -95,15 +97,51 @@ To rebuild it, use **Escape Viggo > Build > Windows Development Player**.
    at **0**. Both scoreboards must agree. Repeated E presses must not add points.
 10. Optionally launch a third client now. It should receive an electrician
     role, the completed panel, the existing player's 100 points and current time.
-11. At **15:00**, both instances enter **EndOfDay** and scoring stays unchanged.
-    This checkpoint leaves movement available and has no results screen.
-12. Disconnect/rejoin the client, then stop/restart the host and reconnect.
-    A rejoining player gets a new client ID and fresh score; completed world
-    tasks persist until host restart. A new host session resets tasks and scores.
-    Check the Editor Console and player logs for errors.
+11. Move Viggo continuously for about five seconds, using Shift to chase.
+    Stamina falls from 100 to 0, then **Resting / Javell.** appears once. Hold
+    movement/sprint/jump: Viggo stays stopped for four seconds, recovers to 100
+    and can move again. Electricians remain mobile. Repeat to check one new
+    Javell event per rest. Brief movement followed by standing still also
+    recovers stamina without exhaustion.
+12. Take the electrician to **Battery Station** in the electrical room
+    (17, 0.5, 7.5). Before theft, have Viggo check it with E: no Rage. As the
+    electrician, start holding E within three metres, then release, look away,
+    or leave range before three seconds: theft cancels. Hold for the full three
+    seconds. The yellow battery disappears and only its carrier gets the
+    carrier indicator. With two electricians, competing holds must yield one
+    carrier. Viggo cannot steal the battery.
+13. Verify theft alone produces **no Rage warning** and identifies no thief to
+    Viggo. As Viggo, return, aim at the station and press E to check it. All
+    windows now show Rage; repeated checks must not restart it. Electricians
+    cannot initiate discovery. Chase for more than five seconds: Viggo moves
+    faster and never enters normal rest during Rage.
+14. As Viggo, aim at the carrier outside two metres and press E: no capture.
+    Move clearly inside two metres (about 1.5 m) and press E. The electrician
+    is disabled for three seconds, loses 25 points, then returns to their spawn
+    with two seconds of protection. Viggo receives 100 points (50 capture +
+    50 carrier bonus); both scoreboards show **Viggo 100 / electrician 75**.
+    Repeated E while captured must not duplicate points. The battery becomes
+    **Secured** at its station and Rage ends. The worker can move/interact
+    again. Electricians cannot capture either role.
+15. Wait for **15:00**. Every window enters **EndOfDay**, releases the cursor,
+    blocks movement and interactions, ends Rage and opens results. Compare
+    player identifiers, roles, scores, tasks completed (**1** for the worker),
+    captures (**1** for Viggo), and battery outcome (**Secured**). Repeated
+    interaction or task input must not change these results.
+16. Disconnect/rejoin one client after results appear: the same frozen table
+    reappears, including its old identifier. A new join does not add a results
+    row. Stop/restart the host and reconnect to begin a fresh day.
+17. In a fresh session, leave a circuit task unfinished when 15:00 arrives:
+    its UI closes, the task releases its worker, and no points are awarded.
+    In another fresh session, steal/discover the battery and avoid capture
+    until 15:00: Rage must stop. Restore the default two-minute tuning afterward.
 
-For a longer walkthrough, change `Workday.asset`'s `DayDurationMinutes` to 5
-before starting the host. To check cancellation, restart the host, begin a task,
+During Workday, disconnect/rejoin also remains supported:
+a rejoining player gets a new client ID and fresh score; completed world
+tasks persist until host restart. A new host session resets tasks and scores.
+Check the Editor Console and player logs for errors.
+
+To check task cancellation, restart the host, begin a task,
 click Cancel or disconnect mid-task, and confirm another electrician can begin.
 The four other task locations remain placeholders; the battery station is interactive.
 The low service duct near (-5, -6) still supports the M2 crouch/headroom test.
@@ -139,8 +177,10 @@ The development panel shows synchronized phase and time. A new host begins at
 15:00 after two real minutes. Change `DayDurationMinutes` and `PreparingSeconds`
 in `Assets/EscapeViggo/ScriptableObjects/Workday.asset` outside Play mode.
 Rejoining a running host retains its time; restarting the host starts a new day.
-Movement remains available at EndOfDay; task activity and score awards require
-Workday. Score and time configuration are read by the host.
+At EndOfDay movement, tasks, theft and capture stop, and Rage ends. Score and
+time configuration are read by the host. Results contain players connected at
+the cutoff and remain unchanged by later disconnects/joins; there is no persistent
+account identity or five-day week.
 
 - Scene: `Assets/EscapeViggo/Scenes/PrototypeWorksite.unity` is the build scene.
   A continuous foundation, three corridor connections, interconnecting rooms,
@@ -158,9 +198,17 @@ Workday. Score and time configuration are read by the host.
 - Networking: `LocalNetworkSession` owns transport lifecycle, server-approved
   role spawn slots and connection status. `NetworkWorldSpawner` creates
   registered interactive prefabs at saved markers on the server.
-- `Workday.prefab` holds `NetworkWorkday` and `ScoreService`. The clock publishes
+- `Workday.prefab` holds `NetworkWorkday`, `ScoreService`, `ViggoRage`, and
+  `DailyResults` with separate Rage/results presentation. The clock publishes
   an atomic phase/time snapshot. Scoring listens to server task completion and
-  deduplicates by authoritative source object and event occurrence.
+  captures and deduplicates by authoritative source object and event occurrence.
+  The server finalizes results once at EndOfDay; server-written result rows and
+  a summary synchronize to existing and late-joining clients.
+- `ViggoStamina`, `PlayerCapture`, and `BatteryStation` own server-written
+  mobility, capture and battery state. `ViggoRestFeedback`, `RagePresentation`,
+  and `BatteryPresentation` read that state. `Viggo.asset`, `Capture.asset`,
+  `Battery.asset`, and `Scoring.asset` centralize tuning. Carrier capture secures
+  the same battery for the day; passing and dropped pickups are deferred.
 - `WorkTask` owns worker/progress/completion; `SimpleCircuitTask` validates the
   configured sequence and input revision. `SimpleCircuitTaskPanel` handles UI.
   New task prefabs can reuse the interaction, task and scoring path; additional
@@ -170,9 +218,10 @@ Workday. Score and time configuration are read by the host.
 
 Movement is owner-authoritative for this local prototype. Interaction validates
 server-observed position, range and line of sight; this is not anti-teleport
-protection. Role, phase, task outcomes and scores are server-owned. Remote CharacterControllers
+protection. Role, phase, task outcomes, stamina/rest, battery, Rage, captures,
+scores and results are server-owned. Remote CharacterControllers
 are disabled; players currently pass through each other. Crouch synchronization
-is presentation state. No prediction, cloud sessions, Relay or M14+ gameplay
+is presentation state. No prediction, cloud sessions, Relay or M15+ gameplay
 is included. The connection panel, scoreboard, test cube and smoke harness operate only in the
 Editor/development builds; use a development build for this checkpoint.
 
@@ -198,26 +247,35 @@ version suffixes or alternative networking frameworks were added.
 Close the project in Unity before running batch editor commands from the root:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -Method EscapeViggo.Editor.CaptureSetup.Validate -LogName M13-validation
-powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -TestPlatform EditMode -LogName M13-editmode
-powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -TestPlatform PlayMode -LogName M13-playmode
-powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -Method EscapeViggo.Editor.NetworkSetup.Build -LogName M13-build
+powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -Method EscapeViggo.Editor.ResultsSetup.Validate -LogName M14-validation
+powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -TestPlatform EditMode -LogName M14-editmode
+powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -TestPlatform PlayMode -LogName M14-playmode
+powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -Method EscapeViggo.Editor.NetworkSetup.Build -LogName M14-build
 powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Test-LocalMultiplayer.ps1 -Graphics -Observer
+powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Test-LocalMultiplayer.ps1 -Graphics -Observer -EndDayStress
 ```
 
 The editor validator checks saved scene/prefab references, required locations,
 4,697 floor samples and capsule routes. The 46 Edit Mode cases cover role policy,
-clock boundaries, task sequencing/replays and score deduplication/overflow.
+clock boundaries, task sequencing/replays, score deduplication/overflow, stamina,
+rest, battery/discovery transitions and capture eligibility/battery consequences.
 Twelve Play Mode tests cover the original seven controller checks plus aiming,
-range, walls, invalid directions and ignoring the player's own collider.
+range, walls, invalid directions, ignoring the player's own colliders and capture
+trigger selection.
 
 The multiplayer script launches two separate player processes on port 17777,
 moves both owners, compares their replicated positions/rotations/crouch states,
 checks local-only components and camera/audio counts, disconnects and reconnects
 the client, completes the circuit with deliberate invalid/duplicate requests,
-checks scores and EndOfDay, then restarts the host. The smoke-only day lasts
+checks stamina/rest/Javell, theft/cancellation/contention, discovery/Rage,
+capture/reward/penalty/respawn, EndOfDay blocking and matching frozen results,
+then restarts the host. The smoke-only day lasts
 120 seconds after preparation. `-Observer` launches a third client after task
-completion and verifies late-join roles, task state, scores and clock.
+completion and verifies late-join roles, task state, scores and clock, then
+disconnects/rejoins after EndOfDay to verify the frozen results. `-EndDayStress`
+uses runtime-only test tuning and resets the test task to leave an unfinished
+interaction and Rage active at 15:00; both must stop. These fixtures run only
+with explicit development smoke arguments and never save asset tuning.
 A timeout, exception, nonzero exit or state
 mismatch fails the run. It only terminates processes it launched.
 Add `-Graphics` to exercise rendering and save camera renders (excluding IMGUI).
@@ -229,16 +287,28 @@ The **Escape Viggo > Validation** menus provide the same asset checks in Unity.
 The **Setup** menus reconstruct or apply milestone assets and can replace
 scene/prefab content. Use these only when intending to reset that checkpoint;
 normal gameplay does not need any setup script. To reconstruct everything, run
-M1, M2, M3, then Apply M4, M5, M6, M7, M8, M10, M11, M12 and M13 in order. Earlier setup menus do not
+M1, M2, M3, then Apply M4, M5, M6, M7, M8, M10, M11, M12, M13 and M14 in order. Earlier setup menus do not
 restore later integrations. Existing tuning/material/input assets are preserved.
 
 `Assets/Scenes/SampleScene.unity` and the template Input Actions remain for
 reference; existing URP assignments are preserved. M0 history and each milestone's
 acceptance evidence are recorded in `MILESTONES.md`.
 
-Latest passing checkpoint: `Logs/M8-editmode.xml` (26/26),
-`Logs/M8-playmode.xml` (11/11), `Logs/M8-build.log`, and the graphics-enabled
-three-process run in `Logs/Multiplayer-20260929-221317`. The green completed task
-and matching worker ID were visually checked in both camera captures. Human
-mouse feel and IMGUI clicks remain a manual review; the harness exercises the
-same interaction/RPC and task UI state paths but does not automate screen clicks.
+M14 validation: `Logs/M14-editmode.xml` (46/46), `Logs/M14-playmode.xml` (12/12),
+`Logs/M14-build.log`, and the graphics-enabled three-process full-loop run in
+`Logs/Multiplayer-20260929-232125`. Host/client/observer received identical
+results: Viggo 100 points / 1 capture, worker 75 points / 1 task, second worker
+0 points; battery Secured. Post-cutoff requests and reconnect did not change
+the table. Human mouse feel and IMGUI clicks remain a manual review; the harness
+exercises the same interaction/RPC and UI state paths but does not automate
+screen clicks. Camera captures exclude IMGUI. Unity licensing and engine shutdown
+allocation diagnostics remain in logs, including baseline runs; successful runs
+have no C# warnings/errors or gameplay/network exceptions.
+
+The additional `-EndDayStress` run in `Logs/Multiplayer-20260929-232358` passed
+with an unfinished task and Rage active at the cutoff, plus the same full-loop,
+negative-request and late-results-join checks. Across M9–M14 checkpoints, the
+Edit/Play suites executed 300 passing cases (58 cases in the final suite), and
+seven successful three-process multiplayer runs covered the growing loop.
+
+Development stops after M14 for this request. M15 has not been started.

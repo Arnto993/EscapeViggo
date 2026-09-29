@@ -73,7 +73,7 @@ namespace EscapeViggo.Battery
 
         private void Update()
         {
-            if (!IsSpawned || !IsServer || _settings == null) return;
+            if (!IsSpawned || !IsServer || _settings == null || !IsWorkday) return;
             var now = NetworkManager.ServerTime.Time;
             if (now < _nextUpdate) return;
             _nextUpdate = now + 0.05;
@@ -107,6 +107,13 @@ namespace EscapeViggo.Battery
                 BatteryRules.Complete(ref next);
             }
             _state.Value = next;
+        }
+
+        internal void StopTheftOnServer()
+        {
+            if (!IsServer || !IsSpawned) return;
+            var next = State;
+            if (BatteryRules.Cancel(ref next, next.ActorId)) _state.Value = next;
         }
 
         public override void OnNetworkDespawn()

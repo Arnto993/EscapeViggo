@@ -15,10 +15,12 @@ namespace EscapeViggo.Core
         private double _durationMinutes;
         public WorkdaySettings Settings => _settings;
         public WorkdayState State => _state.Value;
+        public event System.Action<WorkdayState> StateChanged;
 
         public override void OnNetworkSpawn()
         {
             NetworkManager.GetComponent<LocalNetworkSession>().RegisterWorkday(this);
+            _state.OnValueChanged += Changed;
             if (!IsServer) return;
             _durationMinutes = _settings.DayDurationMinutes;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -41,8 +43,11 @@ namespace EscapeViggo.Core
 
         public override void OnNetworkDespawn()
         {
+            _state.OnValueChanged -= Changed;
             var session = NetworkManager.GetComponent<LocalNetworkSession>();
             if (session.Workday == this) session.RegisterWorkday(null);
         }
+
+        private void Changed(WorkdayState previous, WorkdayState current) => StateChanged?.Invoke(current);
     }
 }

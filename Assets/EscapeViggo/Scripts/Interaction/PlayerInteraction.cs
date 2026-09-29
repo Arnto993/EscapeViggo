@@ -20,7 +20,7 @@ namespace EscapeViggo.Interaction
         public NetworkInteractable Target { get; private set; }
         public string Prompt => Target == null ? string.Empty : "E - " + Target.GetPrompt(this);
         public float Range => _range;
-        public bool CanAct => _capture == null || !_capture.IsCaptured;
+        public bool CanAct => !Player.GameplayStopped && (_capture == null || !_capture.IsCaptured);
         public Vector3 ServerEyePosition => transform.position + Vector3.up *
             ((Player.IsCrouching ? _movement.Settings.CrouchingHeight : _movement.Settings.StandingHeight) - _movement.Settings.EyeInset);
 

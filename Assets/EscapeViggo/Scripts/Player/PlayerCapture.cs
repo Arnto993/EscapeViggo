@@ -53,6 +53,14 @@ namespace EscapeViggo.Player
             _state.Value = next;
         }
 
+        internal void StopOnServer()
+        {
+            if (!IsServer || !IsCaptured) return;
+            var next = State;
+            next.Phase = CapturePhase.Active;
+            _state.Value = next;
+        }
+
         [Rpc(SendTo.Owner, InvokePermission = RpcInvokePermission.Server)]
         private void RespawnRpc(Vector3 position, Quaternion rotation, RpcParams rpcParams = default)
         {

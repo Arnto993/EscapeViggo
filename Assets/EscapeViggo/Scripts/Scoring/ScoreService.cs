@@ -32,10 +32,10 @@ namespace EscapeViggo.Scoring
                 !NetworkManager.ConnectedClients.TryGetValue(workerId, out var client) || client.PlayerObject == null) return;
             var player = client.PlayerObject.GetComponent<NetworkPlayer>();
             if (player.Role != PlayerRole.Electrician) return;
-            TryAwardOnce(player.GetComponent<PlayerScore>(), task.NetworkObject, 0, Mathf.Max(0, _settings.CircuitTaskPoints));
+            var score = player.GetComponent<PlayerScore>();
+            if (TryAwardOnce(score, task.NetworkObject, 0, Mathf.Max(0, _settings.CircuitTaskPoints))) score.RecordTaskOnServer();
         }
 
-        // Future server-validated gameplay events can use this role-independent path.
         internal void AwardCapture(PlayerCapture target, NetworkPlayer captor, bool wasCarrier)
         {
             if (!IsServer || !IsSpawned || _workday.State.Phase != MatchPhase.Workday || target == null || !target.IsCaptured ||
@@ -62,6 +62,12 @@ namespace EscapeViggo.Scoring
         {
             foreach (var task in _tasks) if (task != null) task.CompletedOnServer -= TaskCompleted;
             _tasks.Clear();
+        }
+
+        internal void StopTasksOnServer()
+        {
+            if (!IsServer) return;
+            foreach (var task in _tasks) if (task != null) task.StopOnServer();
         }
     }
 }

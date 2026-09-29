@@ -10,6 +10,9 @@ namespace EscapeViggo.Player
         private InputActionAsset _instance;
         private InputAction _move, _look, _sprint, _jump, _crouch, _release;
         private InputAction _interact;
+        private Networking.NetworkPlayer _networkPlayer;
+        private bool GameplayStopped => _networkPlayer != null && _networkPlayer.GameplayStopped;
+        private void Awake() => _networkPlayer = GetComponent<Networking.NetworkPlayer>();
         public bool InteractPressed => enabled && IsCaptured && _interact != null && _interact.WasPressedThisFrame();
         public bool InteractHeld => enabled && IsCaptured && _interact != null && _interact.IsPressed();
         public bool IsCaptured { get; private set; }
@@ -41,19 +44,20 @@ namespace EscapeViggo.Player
 
         private void Update()
         {
+            if (GameplayStopped) { if (IsCaptured) ReleaseCursor(); return; }
             if (_release.WasPressedThisFrame()) ReleaseCursor();
         }
 
         public MovementCommand ReadMovement()
         {
-            if (!enabled || !IsCaptured) return default;
+            if (!enabled || !IsCaptured || GameplayStopped) return default;
             return new MovementCommand { Move = _move.ReadValue<Vector2>(), Sprint = _sprint.IsPressed(),
                 Jump = _jump.WasPressedThisFrame(), Crouch = _crouch.IsPressed() };
         }
 
         public void CaptureCursor()
         {
-            if (!enabled || IsTaskModal) return;
+            if (!enabled || IsTaskModal || GameplayStopped) return;
             IsCaptured = true;
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
@@ -80,7 +84,7 @@ namespace EscapeViggo.Player
 
         private void OnGUI()
         {
-            if (!IsTaskModal && !IsCaptured && GUI.Button(new Rect(Screen.width / 2f - 90, Screen.height - 65, 180, 40), "Resume controls"))
+            if (!GameplayStopped && !IsTaskModal && !IsCaptured && GUI.Button(new Rect(Screen.width / 2f - 90, Screen.height - 65, 180, 40), "Resume controls"))
                 CaptureCursor();
         }
 

@@ -64,6 +64,11 @@ namespace EscapeViggo.Tasks
         private void CancelOnServer() => TaskState.Value = new WorkTaskState
             { WorkerId = ulong.MaxValue, Revision = State.Revision + 1 };
 
+        internal void StopOnServer()
+        {
+            if (IsServer && IsSpawned && State.Phase == WorkTaskPhase.InProgress) CancelOnServer();
+        }
+
         protected void PublishProgress(WorkTaskState next)
         {
             if (!IsServer || State.Phase != WorkTaskPhase.InProgress) return;

@@ -138,7 +138,7 @@ namespace EscapeViggo.Editor
         [MenuItem("Escape Viggo/Build/Windows Development Player")]
         public static void Build()
         {
-            CaptureSetup.Validate();
+            ResultsSetup.Validate();
             Directory.CreateDirectory("Builds/Windows");
             var result = BuildPipeline.BuildPlayer(new BuildPlayerOptions
             {
@@ -150,7 +150,7 @@ namespace EscapeViggo.Editor
             if (result.summary.result != BuildResult.Succeeded)
                 throw new InvalidOperationException("Windows development build failed: " + result.summary.result);
             CleanupBuildTestData();
-            Debug.Log("M13 WINDOWS BUILD PASSED.");
+            Debug.Log("M14 WINDOWS BUILD PASSED.");
         }
 
         public static void CleanupBuildTestData()

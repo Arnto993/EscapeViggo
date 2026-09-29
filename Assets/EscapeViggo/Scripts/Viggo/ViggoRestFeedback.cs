@@ -27,7 +27,7 @@ namespace EscapeViggo.Viggo
 
         private void OnGUI()
         {
-            if (!IsSpawned || !IsOwner || !_stamina.Applies) return;
+            if (!IsSpawned || !IsOwner || !_stamina.Applies || GetComponent<Networking.NetworkPlayer>().GameplayStopped) return;
             if (_stamina.IsResting)
                 GUI.Box(new Rect(Screen.width / 2f - 150, 70, 300, 30), $"Resting: {_stamina.State.RestRemaining:F1}s");
             if (Time.unscaledTime < _messageUntil)

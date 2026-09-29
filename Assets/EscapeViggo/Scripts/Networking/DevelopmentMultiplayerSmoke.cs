@@ -24,6 +24,7 @@ namespace EscapeViggo.Networking
         private LocalNetworkSession _session;
         private bool _failed;
         private bool _host;
+        private bool EndDayStress => DevelopmentNetworkPanel.HasArgument("-ev-endday-stress");
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Install()
@@ -48,6 +49,12 @@ namespace EscapeViggo.Networking
                 yield break;
             }
             yield return Until(() => _session.PlayerCount == 2, "initial two players");
+            if (_host && EndDayStress)
+            {
+                // Runtime-only test tuning: leave Rage active through carrier recovery to test the clock cutoff.
+                var tuning = _session.Workday.GetComponent<ViggoRage>().Settings;
+                tuning.EndRageOnRecovery = tuning.EndRageOnCarrierCapture = false;
+            }
             yield return Round(1);
             // Leave a stable interval for both processes to record the same state.
             yield return new WaitForSecondsRealtime(2);
@@ -74,15 +81,17 @@ namespace EscapeViggo.Networking
             yield return CheckBattery();
             yield return CheckRage();
             yield return CheckCapture();
+            if (EndDayStress) yield return PrepareActiveEndOfDay();
             yield return Until(() => _session.Workday != null && _session.Workday.State.Phase == MatchPhase.EndOfDay, "authoritative end of day", 120);
             Check(_session.Workday.State.ClockText == "15:00", "End of day must display 15:00.");
             yield return Until(() => !_session.Workday.GetComponent<ViggoRage>().Active, "Rage ended with workday");
             Debug.Log("EV_WORKDAY END PASSED: EndOfDay 15:00");
+            yield return CheckResults();
             var scoring = _session.Workday.GetComponent<ScoreService>();
             var completedTask = FindFirstObjectByType<SimpleCircuitTask>();
             if (_host) Check(!scoring.TryAwardOnce(_session.Manager.LocalClient.PlayerObject.GetComponent<PlayerScore>(),
                 completedTask.NetworkObject, 1, scoring.Settings.CircuitTaskPoints), "Scoring continued after EndOfDay.");
-            yield return new WaitForSecondsRealtime(2);
+            yield return new WaitForSecondsRealtime(8); // Allow observer to reconnect to finalized results.
             if (_host)
             {
                 yield return Until(() => _session.PlayerCount == 1, "final client disconnect");
@@ -620,7 +629,7 @@ namespace EscapeViggo.Networking
             var expectedWorker = scoring.Settings.CircuitTaskPoints - scoring.Settings.CapturedPenalty;
             yield return Until(() => viggo.GetComponent<PlayerScore>().Value == expectedViggo &&
                 target.GetComponent<PlayerScore>().Value == expectedWorker && _session.Battery.State.Phase == BatteryPhase.Secured &&
-                !_session.Workday.GetComponent<ViggoRage>().Active, "capture score and battery replication");
+                (EndDayStress || !_session.Workday.GetComponent<ViggoRage>().Active), "capture score and battery replication");
             Check(_session.Battery.State.CarrierId == BatteryState.Nobody && _session.Battery.State.OriginalThiefId == 2,
                 "Captured carrier did not lose battery or original thief history was lost.");
             if (_host)
@@ -660,6 +669,93 @@ namespace EscapeViggo.Networking
             local.GetComponent<PlayerMovement>().enabled = local.GetComponent<PlayerLook>().enabled = true;
             local.GetComponent<PlayerInputReader>().ReleaseCursor();
             Debug.Log($"EV_CAPTURE PASSED: range/role/duplicate rejection, penalty/reward, battery secured, timeout/respawn, synchronized scores {expectedViggo}/{expectedWorker}.");
+        }
+
+        private IEnumerator PrepareActiveEndOfDay()
+        {
+            var task = FindFirstObjectByType<SimpleCircuitTask>();
+            var local = _session.Manager.LocalClient.PlayerObject;
+            PlaceForBattery(_host ? -6 : -5, -15);
+            if (_host)
+            {
+                // Test fixture reset only: reuse the registered task to exercise a live interaction at the cutoff.
+                var state = (NetworkVariable<WorkTaskState>)typeof(WorkTask)
+                    .GetField("TaskState", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(task);
+                state.Value = new WorkTaskState { WorkerId = ulong.MaxValue, Revision = task.State.Revision + 1 };
+            }
+            else
+            {
+                yield return Until(() => task.State.Phase == WorkTaskPhase.Available, "active end-of-day task fixture");
+                var camera = local.GetComponentInChildren<Camera>();
+                camera.transform.LookAt(task.transform.position);
+                local.GetComponent<PlayerInputReader>().CaptureCursor();
+                yield return new WaitForSecondsRealtime(1);
+                var interaction = local.GetComponent<PlayerInteraction>();
+                interaction.RefreshTarget();
+                Check(interaction.Target == task, "Cannot open cutoff task.");
+                interaction.Interact();
+                yield return Until(() => task.State.Phase == WorkTaskPhase.InProgress, "task before cutoff");
+                task.SubmitElementRpc(1, task.State.Revision);
+            }
+            yield return Until(() => task.State.Progress == 1 && task.State.Phase == WorkTaskPhase.InProgress, "unfinished task before cutoff");
+            Check(_session.Workday.GetComponent<ViggoRage>().Active, "Stress test needs Rage active until EndOfDay.");
+            Debug.Log("EV_ENDDAY_ACTIVE_SETUP PASSED: unfinished task and Rage await authoritative cutoff.");
+        }
+
+        private string ResultsText(DailyResults results)
+        {
+            var text = $"{results.Summary.BatteryOutcome}|{results.Summary.OriginalThiefId}|{results.Summary.CarrierId}|{results.Summary.Discovered}";
+            for (var i = 0; i < results.Count; i++) text += ";" + results.RowAt(i);
+            return text;
+        }
+
+        private IEnumerator CheckResults()
+        {
+            var results = _session.Workday.GetComponent<DailyResults>();
+            yield return Until(() => results.Ready, "finalized results replication");
+            yield return null;
+            Check(results.GetComponent<DailyResultsPanel>().IsOpen, "End-of-day screen did not open.");
+            var summary = (NetworkVariable<DailySummary>)typeof(DailyResults)
+                .GetField("_summary", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(results);
+            var rows = (NetworkList<DailyResult>)typeof(DailyResults)
+                .GetField("_rows", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(results);
+            Check(!summary.CanClientWrite(2) && !rows.CanClientWrite(2), "Client owns final results.");
+            var scoring = _session.Workday.GetComponent<ScoreService>();
+            Check(results.Count >= 2 && results.Summary.BatteryOutcome == BatteryPhase.Secured, "Wrong final player count/battery outcome.");
+            for (var i = 0; i < results.Count; i++)
+            {
+                var row = results.RowAt(i);
+                var expected = row.PlayerId == 0 ? scoring.Settings.CapturePoints + scoring.Settings.CarrierCaptureBonus :
+                    row.PlayerId == 2 ? scoring.Settings.CircuitTaskPoints - scoring.Settings.CapturedPenalty : 0;
+                Check(row.Score == expected && row.Role == RoleAssignment.ForClient(row.PlayerId) &&
+                    row.TasksCompleted == (row.PlayerId == 2 ? 1 : 0) && row.Captures == (row.PlayerId == 0 ? 1 : 0), "Incorrect final statistics.");
+            }
+            var frozen = ResultsText(results);
+            var local = _session.Manager.LocalClient.PlayerObject;
+            var interaction = local.GetComponent<PlayerInteraction>();
+            var task = FindFirstObjectByType<SimpleCircuitTask>();
+            Check(!interaction.CanAct && !task.GetComponent<SimpleCircuitTaskPanel>().IsOpen &&
+                !local.GetComponent<PlayerInputReader>().IsTaskModal && !_session.Workday.GetComponent<ViggoRage>().Active,
+                "Gameplay/task UI/Rage survived EndOfDay.");
+            Check(task.State.Phase != WorkTaskPhase.InProgress, "Server left a task active after EndOfDay.");
+            var position = local.transform.position;
+            local.GetComponent<PlayerMovement>().Simulate(new MovementCommand { Move = Vector2.one, Sprint = true, Jump = true }, 0.1f);
+            Check(Vector2.Distance(new Vector2(position.x, position.z), new Vector2(local.transform.position.x, local.transform.position.z)) < 0.01f,
+                "Movement continued after EndOfDay.");
+            interaction.RequestInteractionRpc(new NetworkObjectReference(task.NetworkObject), task.transform.position - interaction.ServerEyePosition);
+            task.SubmitElementRpc(3, task.State.Revision);
+            BatteryPulse();
+            foreach (var player in FindObjectsByType<PlayerCapture>(FindObjectsSortMode.None))
+            {
+                Check(!player.CanInteract(interaction), "Capture remained available after EndOfDay.");
+                interaction.RequestInteractionRpc(new NetworkObjectReference(player.NetworkObject), player.transform.position - interaction.ServerEyePosition);
+            }
+            Check(!scoring.TryAwardOnce(local.GetComponent<PlayerScore>(), task.NetworkObject, 999, 123), "New score event accepted after cutoff.");
+            if (_host) results.FinalizeOnServer();
+            yield return new WaitForSecondsRealtime(0.5f);
+            Check(ResultsText(results) == frozen && !_session.Workday.GetComponent<ViggoRage>().Active, "Results changed or Rage restarted after cutoff.");
+            Debug.Log("EV_RESULTS_SNAPSHOT " + frozen);
+            Debug.Log("EV_RESULTS PASSED: authority, player/role/score/tasks/captures/battery, frozen results, UI, gameplay cutoff.");
         }
 
         private IEnumerator CheckTheftContention()
@@ -706,6 +802,16 @@ namespace EscapeViggo.Networking
             yield return CheckTheftContention();
             yield return Until(() => _session.Workday == null || _session.Workday.State.Phase == MatchPhase.EndOfDay, "late observer end of day", 120);
             Check(_session.Workday != null, "Host disconnected before observer saw EndOfDay.");
+            yield return CheckResults();
+            var frozenResults = ResultsText(_session.Workday.GetComponent<DailyResults>());
+            _session.Disconnect();
+            yield return Until(() => _session.CanStart && _session.PlayerCount == 0, "results observer disconnect");
+            Check(_session.StartClient("127.0.0.1", Port()), "Results observer reconnect failed.");
+            yield return Until(() => _session.Workday != null && _session.Workday.GetComponent<DailyResults>().Ready &&
+                _session.Manager.LocalClient.PlayerObject != null, "late finalized results");
+            Check(ResultsText(_session.Workday.GetComponent<DailyResults>()) == frozenResults &&
+                _session.Workday.GetComponent<DailyResultsPanel>().IsOpen, "Late join changed final results.");
+            Debug.Log("EV_RESULTS_LATEJOIN PASSED: frozen results and screen survive disconnect/rejoin.");
             _session.Disconnect();
             yield return Until(() => _session.CanStart && _session.PlayerCount == 0, "observer cleanup");
             Debug.Log("EV_OBSERVER PASSED: three players, roles, completed task, scores, clock and EndOfDay.");

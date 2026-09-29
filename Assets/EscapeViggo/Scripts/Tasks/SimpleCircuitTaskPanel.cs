@@ -14,6 +14,7 @@ namespace EscapeViggo.Tasks
         public bool IsOpen => _open;
 
         private void Awake() => _task = GetComponent<SimpleCircuitTask>();
+        private void Update() { if (_open && (!_task.IsSpawned || !_task.IsWorkday)) Close(); }
         private void OnEnable() => _task.StateChanged += Present;
         private void OnDisable()
         {

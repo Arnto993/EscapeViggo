@@ -1095,6 +1095,45 @@ Display at minimum:
 
 ---
 
+## M14 Status — 2026-09-29
+
+Acceptance criteria satisfied. The authoritative EndOfDay transition now cancels
+unfinished tasks/theft, ends Rage, clears captures, blocks gameplay input and
+rejects further scoring. `DailyResults` finalizes once and publishes server-owned
+rows (player ID, role, score, completed tasks, captures) plus battery outcome.
+The results panel opens on every client. Rows describe players connected at the
+cutoff and remain frozen across later disconnects/joins; there is no persistent
+identity or five-day week. Restarting the host starts a fresh day.
+
+Compilation, M1–M14 scene/prefab/configuration validation and Windows development
+build passed. All 46 Edit Mode and 12 Play Mode cases passed (`Logs/M14-*`).
+The graphics-enabled host/client plus second electrician run passed the entire
+loop: ownership/roles/movement, work and score, stamina/rest/Javell, theft and
+contention, delayed discovery/Rage/continuous pursuit, capture/reward/penalty,
+battery recovery/respawn, authoritative 15:00, matching results and host restart
+(`Logs/Multiplayer-20260929-232125`). Negative role/range/replay requests and
+post-cutoff interaction/scoring requests were rejected. The observer rejoined
+after EndOfDay and received the same frozen results.
+
+A second complete run left a real task unfinished and Rage active until 15:00;
+both stopped and all clients still agreed on results
+(`Logs/Multiplayer-20260929-232358`, `-EndDayStress`). Its runtime-only fixture
+tuning is isolated behind explicit development smoke arguments. Final results
+were Viggo 100 points / 1 capture, worker 75 points / 1 completed task, second
+worker 0 points; battery Secured. Repeated finalization did not add rows.
+
+No C# compiler warnings/errors or gameplay/network exceptions occurred in the
+successful runs. Baseline Unity licensing/shutdown allocation diagnostics remain
+in logs. Human mouse feel and IMGUI clicks/rendering remain manual README checks;
+automated checks exercise UI state and camera captures exclude IMGUI. Movement
+retains the M3 owner-authoritative model with server-observed interaction checks.
+Unrelated Unity build serialization changes were discarded; editor version,
+packages and render-pipeline assignments are unchanged.
+
+M9–M14 are complete. M15 was not started.
+
+---
+
 # M15 — PROTOTYPE UI AND FEEDBACK
 
 ## Goal
@@ -1501,5 +1540,6 @@ Wait for the next user instruction.
 
 # CURRENT TARGET
 
-M0–M13 are complete. The user authorized M9–M14 sequentially with a healthy local
-commit per checkpoint. M14 — End-of-Day Flow is next. Stop after M14; do not begin M15.
+M0–M14 are complete. The authorized M9–M14 sequence is finished, with validation
+and a local commit per checkpoint. Stopped after M14. Do not begin M15 without
+a new explicit request.

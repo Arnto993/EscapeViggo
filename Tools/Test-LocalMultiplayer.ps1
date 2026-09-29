@@ -1,4 +1,4 @@
-param([int]$Port = 17777, [switch]$Graphics, [switch]$Observer)
+param([int]$Port = 17777, [switch]$Graphics, [switch]$Observer, [switch]$EndDayStress)
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot -Parent
 $playerPath = Join-Path $projectRoot 'Builds/Windows/EscapeViggo.exe'
@@ -11,6 +11,7 @@ try {
         $logPath = Join-Path $runDirectory "$mode.log"
         $arguments = @('-ev-smoke', "-ev-$mode", '-ev-port', $Port,
             '-logFile', ('"{0}"' -f $logPath))
+        if ($EndDayStress) { $arguments += '-ev-endday-stress' }
         if ($Graphics) {
             $arguments += @('-screen-width', '960', '-screen-height', '540',
                 '-ev-capture-dir', ('"{0}"' -f $runDirectory))
@@ -27,6 +28,7 @@ try {
         if ($Observer -and !$observerStarted -and ((Get-Content (Join-Path $runDirectory 'host.log')) -match '^EV_TASK PASSED')) {
             $observerArguments = @('-batchmode', '-nographics', '-ev-observer', '-ev-client', '-ev-port', $Port,
                 '-logFile', ('"{0}"' -f (Join-Path $runDirectory 'observer.log')))
+            if ($EndDayStress) { $observerArguments += '-ev-endday-stress' }
             $observerProcess = Start-Process -FilePath $playerPath -ArgumentList $observerArguments -WindowStyle Hidden -PassThru
             $null = $observerProcess.Handle
             $processes += $observerProcess
@@ -42,7 +44,7 @@ try {
     if (!($hostLog -match 'EV_SMOKE PASSED HOST') -or !($clientLog -match 'EV_SMOKE PASSED CLIENT')) {
         throw 'Missing success markers in player logs.'
     }
-    foreach ($marker in @('EV_INTERACTION PASSED', 'EV_TASK PASSED', 'EV_SCORE owner=0 score=0', 'EV_STAMINA PASSED', 'EV_REST PASSED', 'EV_BATTERY PASSED', 'EV_RAGE PASSED', 'EV_CAPTURE PASSED', 'EV_WORKDAY END PASSED')) {
+    foreach ($marker in @('EV_INTERACTION PASSED', 'EV_TASK PASSED', 'EV_SCORE owner=0 score=0', 'EV_STAMINA PASSED', 'EV_REST PASSED', 'EV_BATTERY PASSED', 'EV_RAGE PASSED', 'EV_CAPTURE PASSED', 'EV_RESULTS PASSED', 'EV_WORKDAY END PASSED')) {
         if (!($hostLog -match $marker) -or !($clientLog -match $marker)) { throw "Missing gameplay check: $marker" }
     }
     $hostScores = @($hostLog | Where-Object { $_ -match '^EV_SCORE ' } | Sort-Object)
@@ -50,6 +52,16 @@ try {
     if ($hostScores.Count -lt 2 -or (Compare-Object $hostScores $clientScores)) { throw 'Host/client scores disagree.' }
     if ($Observer -and (!$observerStarted -or !((Get-Content (Join-Path $runDirectory 'observer.log')) -match 'EV_OBSERVER PASSED'))) {
         throw 'Late observer validation did not complete.'
+    }
+    $finalHost = @($hostLog | Where-Object { $_ -match '^EV_RESULTS_SNAPSHOT ' })
+    $finalClient = @($clientLog | Where-Object { $_ -match '^EV_RESULTS_SNAPSHOT ' })
+    if ($finalHost.Count -ne 1 -or $finalClient.Count -ne 1 -or $finalHost[0] -ne $finalClient[0]) { throw 'Final results disagree.' }
+    if ($Observer) {
+        $observerLog = Get-Content (Join-Path $runDirectory 'observer.log')
+        if (!($observerLog -match 'EV_RESULTS_LATEJOIN PASSED') -or !($observerLog -contains $finalHost[0])) { throw 'Observer final results disagree.' }
+    }
+    if ($EndDayStress -and (!($hostLog -match 'EV_ENDDAY_ACTIVE_SETUP PASSED') -or !($clientLog -match 'EV_ENDDAY_ACTIVE_SETUP PASSED'))) {
+        throw 'Active-task/Rage end-of-day setup was not exercised.'
     }
     $snapshots = @{}
     foreach ($line in $hostLog) {
@@ -75,7 +87,7 @@ try {
     if ($Graphics -and (!(Test-Path (Join-Path $runDirectory 'host.png')) -or !(Test-Path (Join-Path $runDirectory 'client.png')))) {
         throw 'Rendered screenshots were not produced.'
     }
-    Write-Output "PASS: movement, ownership, roles, clock, interaction, circuit task, scores, reconnect and host restart. Late observer: $observerStarted. Logs: $runDirectory"
+    Write-Output "PASS: movement, ownership, roles, clock, task/scoring, stamina/rest, theft/Rage, capture/respawn, frozen results, reconnect and host restart. Late observer: $observerStarted. Active cutoff: $EndDayStress. Logs: $runDirectory"
 } finally {
     foreach ($process in $processes) {
         if (!$process.HasExited) { Stop-Process -Id $process.Id -Force }

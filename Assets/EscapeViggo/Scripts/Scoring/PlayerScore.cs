@@ -11,6 +11,10 @@ namespace EscapeViggo.Scoring
             NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
         public int Captures => _captures.Value;
         internal void RecordCaptureOnServer() { if (IsServer && IsSpawned) _captures.Value++; }
+        private readonly NetworkVariable<int> _tasksCompleted = new(0,
+            NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+        public int TasksCompleted => _tasksCompleted.Value;
+        internal void RecordTaskOnServer() { if (IsServer && IsSpawned) _tasksCompleted.Value++; }
 
         // No client RPC or public score setter. ScoreService supplies validated server outcomes.
         internal void SetOnServer(int value)

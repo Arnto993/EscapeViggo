@@ -21,6 +21,9 @@ namespace EscapeViggo.Networking
         private PlayerMovement _movement;
         private PlayerLook _look;
         private CharacterController _controller;
+        private LocalNetworkSession _session;
+        public bool GameplayStopped => IsSpawned && _session != null && _session.Workday != null &&
+            _session.Workday.State.Phase == Core.MatchPhase.EndOfDay;
         // Presentation only. Future captures and other outcomes remain server-owned.
         private readonly NetworkVariable<bool> _crouching = new(false,
             NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
@@ -38,6 +41,7 @@ namespace EscapeViggo.Networking
         public override void OnNetworkSpawn()
         {
             name = $"Player {OwnerClientId}";
+            _session = NetworkManager.GetComponent<LocalNetworkSession>();
             if (IsServer) _role.Value = RoleAssignment.ForClient(OwnerClientId);
             SetLocalControl(IsOwner);
             _role.OnValueChanged += OnRoleChanged;
