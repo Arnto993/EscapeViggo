@@ -21,6 +21,8 @@ namespace EscapeViggo.Networking
         public string Status { get; private set; } = "Offline";
         public bool CanStart => !_manager.IsListening && !_manager.ShutdownInProgress;
         public NetworkWorkday Workday { get; private set; }
+        public Battery.BatteryStation Battery { get; private set; }
+        internal void RegisterBattery(Battery.BatteryStation battery) => Battery = battery;
         internal void RegisterWorkday(NetworkWorkday workday) => Workday = workday;
         public int PlayerCount
         {

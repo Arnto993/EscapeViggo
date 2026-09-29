@@ -20,7 +20,7 @@ try {
         $processes += $process
         if ($mode -eq 'host') { Start-Sleep -Seconds 2 }
     }
-    $deadline = (Get-Date).AddSeconds(140)
+    $deadline = (Get-Date).AddSeconds(180)
     $observerStarted = $false
     while (@($processes | Where-Object { !$_.HasExited }).Count -gt 0) {
         if ((Get-Date) -gt $deadline) { throw 'Multiplayer smoke test timed out.' }
@@ -42,7 +42,7 @@ try {
     if (!($hostLog -match 'EV_SMOKE PASSED HOST') -or !($clientLog -match 'EV_SMOKE PASSED CLIENT')) {
         throw 'Missing success markers in player logs.'
     }
-    foreach ($marker in @('EV_INTERACTION PASSED', 'EV_TASK PASSED', 'EV_SCORE owner=0 score=0', 'EV_STAMINA PASSED', 'EV_REST PASSED', 'EV_WORKDAY END PASSED')) {
+    foreach ($marker in @('EV_INTERACTION PASSED', 'EV_TASK PASSED', 'EV_SCORE owner=0 score=0', 'EV_STAMINA PASSED', 'EV_REST PASSED', 'EV_BATTERY PASSED', 'EV_WORKDAY END PASSED')) {
         if (!($hostLog -match $marker) -or !($clientLog -match $marker)) { throw "Missing gameplay check: $marker" }
     }
     $hostScores = @($hostLog | Where-Object { $_ -match '^EV_SCORE ' } | Sort-Object)

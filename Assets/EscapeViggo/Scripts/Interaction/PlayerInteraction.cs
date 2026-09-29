@@ -12,6 +12,8 @@ namespace EscapeViggo.Interaction
         private PlayerInputReader _input;
         private PlayerMovement _movement;
         private CharacterController _controller;
+        private NetworkInteractable _heldTarget;
+        private float _nextHoldPulse;
         private readonly RaycastHit[] _rayHits = new RaycastHit[32];
         public NetworkPlayer Player { get; private set; }
         public NetworkInteractable Target { get; private set; }
@@ -31,7 +33,13 @@ namespace EscapeViggo.Interaction
         private void Update()
         {
             RefreshTarget();
+            if (_heldTarget != null && (Target != _heldTarget || !_input.InteractHeld))
+            {
+                EndInteractionRpc(new NetworkObjectReference(_heldTarget.NetworkObject));
+                _heldTarget = null;
+            }
             if (Target != null && _input.InteractPressed) Interact();
+            else if (_heldTarget != null && Time.unscaledTime >= _nextHoldPulse) SendHoldPulse();
         }
 
         public void RefreshTarget()
@@ -45,7 +53,27 @@ namespace EscapeViggo.Interaction
         public void Interact()
         {
             if (IsSpawned && IsOwner && Target != null)
+            {
                 RequestInteractionRpc(new NetworkObjectReference(Target.NetworkObject), _camera.transform.forward);
+                if (Target.RequiresHold(this))
+                {
+                    _heldTarget = Target;
+                    _nextHoldPulse = Time.unscaledTime + 0.1f;
+                }
+            }
+        }
+
+        private void SendHoldPulse()
+        {
+            _nextHoldPulse = Time.unscaledTime + 0.1f;
+            RequestInteractionRpc(new NetworkObjectReference(_heldTarget.NetworkObject), _camera.transform.forward);
+        }
+
+        [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
+        public void EndInteractionRpc(NetworkObjectReference reference, RpcParams rpcParams = default)
+        {
+            if (rpcParams.Receive.SenderClientId == OwnerClientId && reference.TryGet(out var target, NetworkManager))
+                target.GetComponent<NetworkInteractable>()?.EndOnServer(this);
         }
 
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
@@ -80,6 +108,6 @@ namespace EscapeViggo.Interaction
                 GUI.Box(new Rect(Screen.width / 2f - 175, Screen.height / 2f + 30, 350, 30), Prompt);
         }
 
-        public override void OnNetworkDespawn() => Target = null;
+        public override void OnNetworkDespawn() { Target = null; _heldTarget = null; }
     }
 }

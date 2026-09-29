@@ -11,6 +11,7 @@ namespace EscapeViggo.Player
         private InputAction _move, _look, _sprint, _jump, _crouch, _release;
         private InputAction _interact;
         public bool InteractPressed => enabled && IsCaptured && _interact != null && _interact.WasPressedThisFrame();
+        public bool InteractHeld => enabled && IsCaptured && _interact != null && _interact.IsPressed();
         public bool IsCaptured { get; private set; }
         public bool IsTaskModal { get; private set; }
         public Vector2 Look => enabled && IsCaptured ? _look.ReadValue<Vector2>() : Vector2.zero;

@@ -3565,7 +3565,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1180743686}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -3624,7 +3624,7 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
@@ -6078,6 +6078,9 @@ MonoBehaviour:
     DevelopmentOnly: 1
   - Prefab: {fileID: 5909309127117536511, guid: 2f92e615867e3fd4f9bfcf7864464177, type: 3}
     Location: {fileID: 492340776}
+    DevelopmentOnly: 0
+  - Prefab: {fileID: 8989033337199137456, guid: 339a01cd11fdf89469d1fb395890fba8, type: 3}
+    Location: {fileID: 1180743687}
     DevelopmentOnly: 0
 --- !u!1 &1973085734
 GameObject:

@@ -892,6 +892,29 @@ Track:
 
 ---
 
+## M11 Status — 2026-09-29
+
+Acceptance criteria satisfied. One registered BatteryStation prefab replaces the
+existing station marker at runtime. Shared interaction now supports hold pulses
+and cancellation. Server-owned state records progress, actor, carrier, original
+thief and discovery separately. Default theft is three seconds. Release, lost
+valid targeting/range, heartbeat timeout, EndOfDay and disconnect cancel attempts.
+Only electricians can steal; successful theft stays undiscovered, with no Viggo
+identity alert or Rage. Carrier feedback is local to its electrician. A disconnected
+carrier returns the same battery to the station; no new battery is instantiated.
+
+Compilation, saved asset/reference validation and Windows build passed. All 36
+Edit Mode and 11 Play Mode tests passed (`Logs/M11-*`). Graphics-enabled host and
+two electricians passed theft prompt, duration, release/timeout/range cancellation,
+Viggo rejection, competing requests, unique carrier/original thief, undiscovered
+replication and all M3–M10 regressions (`Logs/Multiplayer-20260929-224644`).
+The first asset check exposed a validator error: a runtime NetworkObject accessor
+was used on an unspawned prefab. Replacing it with GetComponent fixed validation;
+the saved scene and registry each already contained exactly one battery.
+No compiler errors/warnings or critical runtime/network errors occurred. Human
+hold-input/IMGUI feel remains the README manual check. No discovery/Rage yet.
+
+---
 # M12 — BATTERY DISCOVERY AND RAGE
 
 ## Goal
@@ -1424,5 +1447,5 @@ Wait for the next user instruction.
 
 # CURRENT TARGET
 
-M0–M10 are complete. The user authorized M9–M14 sequentially with a healthy local
-commit per checkpoint. M11 — Battery Theft is next. Stop after M14; do not begin M15.
+M0–M11 are complete. The user authorized M9–M14 sequentially with a healthy local
+commit per checkpoint. M12 — Battery Discovery and Rage is next. Stop after M14; do not begin M15.

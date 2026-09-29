@@ -9,6 +9,7 @@ using EscapeViggo.Interaction;
 using EscapeViggo.Tasks;
 using EscapeViggo.Scoring;
 using EscapeViggo.Viggo;
+using EscapeViggo.Battery;
 using Unity.Netcode;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -70,6 +71,7 @@ namespace EscapeViggo.Networking
             yield return CheckScores();
             yield return CheckStamina();
             yield return CheckRest();
+            yield return CheckBattery();
             yield return Until(() => _session.Workday != null && _session.Workday.State.Phase == MatchPhase.EndOfDay, "authoritative end of day", 120);
             Check(_session.Workday.State.ClockText == "15:00", "End of day must display 15:00.");
             Debug.Log("EV_WORKDAY END PASSED: EndOfDay 15:00");
@@ -422,6 +424,112 @@ namespace EscapeViggo.Networking
             Debug.Log("EV_REST PASSED: exhaustion, forced input restriction, recovery, capture gate, one Javell event, replication.");
         }
 
+        private void PlaceForBattery(float x = 17, float z = 5.5f)
+        {
+            var local = _session.Manager.LocalClient.PlayerObject;
+            local.GetComponent<PlayerMovement>().enabled = false;
+            local.GetComponent<PlayerLook>().enabled = false;
+            var controller = local.GetComponent<CharacterController>();
+            controller.enabled = false;
+            local.transform.SetPositionAndRotation(new Vector3(x, 0.03f, z), Quaternion.identity);
+            controller.enabled = true;
+            var movement = local.GetComponent<PlayerMovement>();
+            movement.Simulate(default, 1f / 60);
+            var camera = local.GetComponentInChildren<Camera>();
+            camera.transform.localPosition = Vector3.up * (movement.Height - movement.Settings.EyeInset);
+            camera.transform.LookAt(_session.Battery.InteractionCollider.bounds.center);
+            Physics.SyncTransforms();
+        }
+
+        private void BatteryPulse()
+        {
+            var local = _session.Manager.LocalClient.PlayerObject;
+            var interaction = local.GetComponent<PlayerInteraction>();
+            interaction.RequestInteractionRpc(new NetworkObjectReference(_session.Battery.NetworkObject),
+                _session.Battery.InteractionCollider.bounds.center - interaction.ServerEyePosition);
+        }
+
+        private IEnumerator CheckBattery()
+        {
+            var battery = _session.Battery;
+            Check(battery != null && FindObjectsByType<BatteryStation>(FindObjectsSortMode.None).Length == 1, "Expected one battery.");
+            var variable = (NetworkVariable<BatteryState>)typeof(BatteryStation)
+                .GetField("_state", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(battery);
+            Check(!variable.CanClientWrite(1), "Client can write battery state.");
+            PlaceForBattery(_host ? 16 : 17);
+            yield return new WaitForSecondsRealtime(1);
+            var local = _session.Manager.LocalClient.PlayerObject;
+            var interaction = local.GetComponent<PlayerInteraction>();
+            if (_host)
+            {
+                BatteryPulse();
+                Check(battery.State.Phase == BatteryPhase.AtDrill, "Viggo stole his battery.");
+            }
+            else
+            {
+                yield return new WaitForSecondsRealtime(1);
+                var input = local.GetComponent<PlayerInputReader>();
+                input.CaptureCursor();
+                interaction.RefreshTarget();
+                Check(interaction.Target == battery, "Battery hold prompt is missing.");
+                // A press without continuing to hold must be cancelled by the shared input path.
+                interaction.Interact();
+                yield return new WaitForSecondsRealtime(0.7f);
+                Check(battery.State.Phase == BatteryPhase.AtDrill, "Released hold was not cancelled.");
+                input.ReleaseCursor();
+                BatteryPulse();
+                yield return Until(() => battery.State.Phase == BatteryPhase.BeingStolen, "theft start");
+                yield return new WaitForSecondsRealtime(0.7f);
+                Check(battery.State.Phase == BatteryPhase.AtDrill, "Missing hold pulses did not cancel theft.");
+                BatteryPulse();
+                yield return Until(() => battery.State.Phase == BatteryPhase.BeingStolen, "range cancellation start");
+                PlaceForBattery(17, 2);
+                yield return Until(() => battery.State.Phase == BatteryPhase.AtDrill, "out-of-range theft cancellation");
+                PlaceForBattery();
+                yield return new WaitForSecondsRealtime(1);
+                var started = Time.realtimeSinceStartup;
+                while (battery.State.Phase != BatteryPhase.Carried)
+                {
+                    Check(Time.realtimeSinceStartup - started < 8, "Held theft did not complete.");
+                    BatteryPulse();
+                    yield return new WaitForSecondsRealtime(0.1f);
+                }
+                Check(Time.realtimeSinceStartup - started >= battery.Settings.TheftSeconds - 0.15f, "Theft completed too early.");
+                BatteryPulse(); // Repeated completion cannot create another carrier/theft.
+            }
+            yield return Until(() => battery.State.Phase == BatteryPhase.Carried, "replicated battery theft");
+            Check(!battery.State.Discovered && battery.State.TheftId == 1 && battery.State.CarrierId == 2 &&
+                battery.State.OriginalThiefId == 2, "Incorrect carrier, original thief, secrecy or duplicate theft.");
+            Check(!_session.Manager.LocalClient.PlayerObject.GetComponent<ViggoStamina>().IsResting, "Unexpected rest after theft.");
+            local.GetComponent<PlayerMovement>().enabled = local.GetComponent<PlayerLook>().enabled = true;
+            local.GetComponent<PlayerInputReader>().ReleaseCursor();
+            Debug.Log("EV_BATTERY PASSED: prompt, Viggo rejection, hold duration, release/timeout/range cancellation, unique carrier/thief, undiscovered replication.");
+        }
+
+        private IEnumerator CheckTheftContention()
+        {
+            var battery = _session.Battery;
+            yield return Until(() => battery.State.Phase == BatteryPhase.BeingStolen, "observer theft contention", 90);
+            PlaceForBattery(18);
+            yield return new WaitForSecondsRealtime(0.15f);
+            // Attempt only while another worker owns the live attempt; never acquire an abandoned attempt.
+            var attempts = 0;
+            var deadline = Time.realtimeSinceStartup + 20;
+            while (battery.State.Phase != BatteryPhase.Carried)
+            {
+                Check(Time.realtimeSinceStartup < deadline, "Contention did not finish.");
+                if (battery.State.Phase == BatteryPhase.BeingStolen && battery.State.Progress > 0.1f && battery.State.Progress < 0.8f)
+                {
+                    BatteryPulse();
+                    attempts++;
+                }
+                yield return new WaitForSecondsRealtime(0.1f);
+            }
+            Check(attempts > 0 && battery.State.CarrierId == 2 && battery.State.OriginalThiefId == 2 && battery.State.TheftId == 1,
+                "Competing electrician acquired duplicate battery ownership.");
+            Debug.Log("EV_BATTERY_CONTENTION PASSED: competing electrician requests rejected.");
+        }
+
         private IEnumerator CheckLateJoin()
         {
             yield return Until(() => _session.PlayerCount == 3, "late observer and existing players");
@@ -439,6 +547,7 @@ namespace EscapeViggo.Networking
                 Check(player.GetComponent<PlayerScore>().Value == expected, "Late join score mismatch.");
             }
             Check(viggos == 1, "Three players must still have exactly one Viggo.");
+            yield return CheckTheftContention();
             yield return Until(() => _session.Workday.State.Phase == MatchPhase.EndOfDay, "late observer end of day", 120);
             _session.Disconnect();
             yield return Until(() => _session.CanStart && _session.PlayerCount == 0, "observer cleanup");
