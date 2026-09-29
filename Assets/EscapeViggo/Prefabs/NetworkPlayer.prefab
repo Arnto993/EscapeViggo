@@ -110,6 +110,8 @@ GameObject:
   - component: {fileID: 2937091281653054256}
   - component: {fileID: 6090048639113799772}
   - component: {fileID: 6323220610234482820}
+  - component: {fileID: 4803067508905276782}
+  - component: {fileID: 4780060082646187279}
   m_Layer: 0
   m_Name: NetworkPlayer
   m_TagString: Untagged
@@ -346,6 +348,41 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: EscapeViggo.Runtime::EscapeViggo.Viggo.ViggoRestFeedback
   ShowTopMostFoldoutHeaderGroup: 1
+--- !u!65 &4803067508905276782
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5300135973281005513}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.7, y: 1.8, z: 0.7}
+  m_Center: {x: 0, y: 0.9, z: 0}
+--- !u!114 &4780060082646187279
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5300135973281005513}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 20343801b1fd43a48bdab3c4e912ca09, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: EscapeViggo.Runtime::EscapeViggo.Player.PlayerCapture
+  ShowTopMostFoldoutHeaderGroup: 1
+  _settings: {fileID: 11400000, guid: 15d6b035bcc19b84fb244a30a97d28f1, type: 2}
 --- !u!1 &8215181289536905387
 GameObject:
   m_ObjectHideFlags: 0

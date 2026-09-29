@@ -12,6 +12,7 @@ namespace EscapeViggo.Interaction
         private PlayerInputReader _input;
         private PlayerMovement _movement;
         private CharacterController _controller;
+        private PlayerCapture _capture;
         private NetworkInteractable _heldTarget;
         private float _nextHoldPulse;
         private readonly RaycastHit[] _rayHits = new RaycastHit[32];
@@ -19,6 +20,7 @@ namespace EscapeViggo.Interaction
         public NetworkInteractable Target { get; private set; }
         public string Prompt => Target == null ? string.Empty : "E - " + Target.GetPrompt(this);
         public float Range => _range;
+        public bool CanAct => _capture == null || !_capture.IsCaptured;
         public Vector3 ServerEyePosition => transform.position + Vector3.up *
             ((Player.IsCrouching ? _movement.Settings.CrouchingHeight : _movement.Settings.StandingHeight) - _movement.Settings.EyeInset);
 
@@ -28,6 +30,7 @@ namespace EscapeViggo.Interaction
             _movement = GetComponent<PlayerMovement>();
             Player = GetComponent<NetworkPlayer>();
             _controller = GetComponent<CharacterController>();
+            _capture = GetComponent<PlayerCapture>();
         }
 
         private void Update()
@@ -45,7 +48,7 @@ namespace EscapeViggo.Interaction
         public void RefreshTarget()
         {
             Target = null;
-            if (!IsSpawned || !IsOwner || !_input.IsCaptured || !_input.enabled) return;
+            if (!IsSpawned || !IsOwner || !CanAct || !_input.IsCaptured || !_input.enabled) return;
             var target = Cast(_camera.transform.position, _camera.transform.forward, _range);
             if (target != null && target.CanInteract(this)) Target = target;
         }
@@ -79,7 +82,7 @@ namespace EscapeViggo.Interaction
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
         public void RequestInteractionRpc(NetworkObjectReference reference, Vector3 aimDirection, RpcParams rpcParams = default)
         {
-            if (rpcParams.Receive.SenderClientId != OwnerClientId || !reference.TryGet(out var targetObject, NetworkManager)) return;
+            if (!CanAct || rpcParams.Receive.SenderClientId != OwnerClientId || !reference.TryGet(out var targetObject, NetworkManager)) return;
             var target = targetObject.GetComponent<NetworkInteractable>();
             if (target == null || !ServerCanReach(target) || !InteractionQuery.IsFinite(aimDirection)) return;
             // Origin and range come from server state. Only aim direction is supplied by the owner.
@@ -89,7 +92,7 @@ namespace EscapeViggo.Interaction
 
         public bool ServerCanReach(NetworkInteractable target)
         {
-            if (!IsServer || !IsSpawned || target == null || !target.IsSpawned) return false;
+            if (!IsServer || !IsSpawned || !CanAct || target == null || !target.IsSpawned) return false;
             var origin = ServerEyePosition;
             var point = target.InteractionCollider.ClosestPoint(origin);
             if ((point - origin).sqrMagnitude > _range * _range) return false;

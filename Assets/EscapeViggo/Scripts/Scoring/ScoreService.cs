@@ -36,6 +36,18 @@ namespace EscapeViggo.Scoring
         }
 
         // Future server-validated gameplay events can use this role-independent path.
+        internal void AwardCapture(PlayerCapture target, NetworkPlayer captor, bool wasCarrier)
+        {
+            if (!IsServer || !IsSpawned || _workday.State.Phase != MatchPhase.Workday || target == null || !target.IsCaptured ||
+                captor == null || captor.Role != PlayerRole.Viggo || target.State.CaptorId != captor.OwnerClientId) return;
+            var points = (int)System.Math.Min(int.MaxValue,
+                (long)Mathf.Max(0, _settings.CapturePoints) + (wasCarrier ? Mathf.Max(0, _settings.CarrierCaptureBonus) : 0));
+            var score = captor.GetComponent<PlayerScore>();
+            if (TryAwardOnce(score, target.NetworkObject, target.State.Sequence * 2, points)) score.RecordCaptureOnServer();
+            TryAwardOnce(target.GetComponent<PlayerScore>(), target.NetworkObject, target.State.Sequence * 2 + 1,
+                -Mathf.Max(0, _settings.CapturedPenalty));
+        }
+
         // Source plus server-generated occurrence number identifies the event; no client values enter here.
         internal bool TryAwardOnce(PlayerScore recipient, NetworkObject source, uint occurrence, int points)
         {

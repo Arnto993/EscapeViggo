@@ -20,7 +20,7 @@ namespace EscapeViggo.Battery
         public override string Prompt => "Hold to steal battery";
         public override string GetPrompt(PlayerInteraction player) => player.Player.Role == PlayerRole.Viggo ? "Check battery station" : Prompt;
         public override bool RequiresHold(PlayerInteraction player) => player.Player.Role == PlayerRole.Electrician;
-        public override bool CanInteract(PlayerInteraction player) => IsSpawned && IsWorkday && player != null &&
+        public override bool CanInteract(PlayerInteraction player) => IsSpawned && IsWorkday && player != null && player.CanAct &&
             (player.Player.Role == PlayerRole.Viggo || (State.Phase == BatteryPhase.AtDrill ||
                 (State.Phase == BatteryPhase.BeingStolen && State.ActorId == player.OwnerClientId)));
 
@@ -57,6 +57,18 @@ namespace EscapeViggo.Battery
             if (!IsServer) return;
             var next = State;
             if (BatteryRules.Cancel(ref next, player.OwnerClientId)) _state.Value = next;
+        }
+
+        internal bool RecoverCapturedCarrier(ulong carrier)
+        {
+            if (!IsServer || !IsSpawned || !IsWorkday || State.Phase != BatteryPhase.Carried || State.CarrierId != carrier) return false;
+            var next = State;
+            next.Phase = BatteryPhase.Secured;
+            next.CarrierId = BatteryState.Nobody;
+            _state.Value = next;
+            var rage = _session.Workday.GetComponent<Viggo.ViggoRage>();
+            if (rage.Settings.EndRageOnRecovery || rage.Settings.EndRageOnCarrierCapture) rage.EndOnServer();
+            return true;
         }
 
         private void Update()

@@ -66,6 +66,18 @@ namespace EscapeViggo.Tests
             Physics.SyncTransforms();
             Assert.That(InteractionQuery.Raycast(camera, direction, 3, controller, hits), Is.Null);
         }
+
+        [Test] public void CaptureTriggerIsSelectableButOwnTriggerIsIgnored()
+        {
+            _target.GetComponent<BoxCollider>().isTrigger = true;
+            _self = new GameObject("Player with capture trigger");
+            var own = _self.AddComponent<BoxCollider>();
+            own.isTrigger = true;
+            _self.transform.position = _origin + Vector3.forward * 0.5f;
+            Physics.SyncTransforms();
+            Assert.That(InteractionQuery.Raycast(_origin, Vector3.forward, 3, own, new RaycastHit[32]),
+                Is.EqualTo(_target.GetComponent<NetworkInteractable>()));
+        }
     }
 }
 #endif

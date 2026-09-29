@@ -39,7 +39,20 @@ checks must not restart Rage. During Rage, Viggo moves at `Viggo.asset`'s
 `RageSpeed` (default 8 m/s), stamina is suspended and rest is disabled, including
 an already-running rest. No exact thief identity appears in Viggo's feedback.
 Rage stops at EndOfDay or battery recovery; recovery/capture end conditions are
-configurable. Capture itself belongs to M13.
+configurable.
+
+M13 capture: as Viggo, aim at an electrician within two metres and press E.
+This works during normal Workday or Rage, but never while resting. Capturing
+awards 50 points, with another 50 for the carrier, and deducts 25 from the
+electrician (negative scores are allowed). Values are in `Scoring.asset`.
+The captured player cannot move/jump/interact for three seconds, then returns
+to their electrician spawn with two seconds of protection. Timing/range are in
+`Capture.asset`. Repeated E during capture must not duplicate rewards. A captured
+carrier loses the battery: it is secured at the station for the rest of the day,
+Rage ends by default, and original thief history remains intact. This is the
+prototype's reversible recovery rule; battery passing and dropped pickups are
+not implemented. Check that host/client scores agree (100/75 after one task and
+one carrier capture), and that the electrician can move/work again afterward.
 
 1. Open this repository in Unity Hub with 6000.3.25f1.
 2. Wait for package import, then open
@@ -51,7 +64,7 @@ configurable. Capture itself belongs to M13.
    Losing window focus releases controls; networking continues in the background.
 5. Check the Console for errors.
 
-## M4–M12 host and client manual test
+## M4–M13 host and client manual test
 
 A ready development build is at `Builds/Windows/EscapeViggo.exe` (ignored by Git).
 To rebuild it, use **Escape Viggo > Build > Windows Development Player**.
@@ -159,7 +172,7 @@ Movement is owner-authoritative for this local prototype. Interaction validates
 server-observed position, range and line of sight; this is not anti-teleport
 protection. Role, phase, task outcomes and scores are server-owned. Remote CharacterControllers
 are disabled; players currently pass through each other. Crouch synchronization
-is presentation state. No prediction, cloud sessions, Relay or M13+ gameplay
+is presentation state. No prediction, cloud sessions, Relay or M14+ gameplay
 is included. The connection panel, scoreboard, test cube and smoke harness operate only in the
 Editor/development builds; use a development build for this checkpoint.
 
@@ -185,17 +198,17 @@ version suffixes or alternative networking frameworks were added.
 Close the project in Unity before running batch editor commands from the root:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -Method EscapeViggo.Editor.RageSetup.Validate -LogName M12-validation
-powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -TestPlatform EditMode -LogName M12-editmode
-powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -TestPlatform PlayMode -LogName M12-playmode
-powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -Method EscapeViggo.Editor.NetworkSetup.Build -LogName M12-build
+powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -Method EscapeViggo.Editor.CaptureSetup.Validate -LogName M13-validation
+powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -TestPlatform EditMode -LogName M13-editmode
+powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -TestPlatform PlayMode -LogName M13-playmode
+powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -Method EscapeViggo.Editor.NetworkSetup.Build -LogName M13-build
 powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Test-LocalMultiplayer.ps1 -Graphics -Observer
 ```
 
 The editor validator checks saved scene/prefab references, required locations,
-4,697 floor samples and capsule routes. The 38 Edit Mode cases cover role policy,
+4,697 floor samples and capsule routes. The 46 Edit Mode cases cover role policy,
 clock boundaries, task sequencing/replays and score deduplication/overflow.
-Eleven Play Mode tests cover the original seven controller checks plus aiming,
+Twelve Play Mode tests cover the original seven controller checks plus aiming,
 range, walls, invalid directions and ignoring the player's own collider.
 
 The multiplayer script launches two separate player processes on port 17777,
@@ -216,7 +229,7 @@ The **Escape Viggo > Validation** menus provide the same asset checks in Unity.
 The **Setup** menus reconstruct or apply milestone assets and can replace
 scene/prefab content. Use these only when intending to reset that checkpoint;
 normal gameplay does not need any setup script. To reconstruct everything, run
-M1, M2, M3, then Apply M4, M5, M6, M7, M8, M10, M11 and M12 in order. Earlier setup menus do not
+M1, M2, M3, then Apply M4, M5, M6, M7, M8, M10, M11, M12 and M13 in order. Earlier setup menus do not
 restore later integrations. Existing tuning/material/input assets are preserved.
 
 `Assets/Scenes/SampleScene.unity` and the template Input Actions remain for

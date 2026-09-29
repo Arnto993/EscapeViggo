@@ -21,7 +21,7 @@ namespace EscapeViggo.Tasks
 
         public static bool RoleCanWork(PlayerRole role) => role == PlayerRole.Electrician;
         public override bool CanInteract(PlayerInteraction player) => IsSpawned && IsWorkday &&
-            State.Phase == WorkTaskPhase.Available && player != null && RoleCanWork(player.Player.Role);
+            State.Phase == WorkTaskPhase.Available && player != null && player.CanAct && RoleCanWork(player.Player.Role);
 
         public override void OnNetworkSpawn()
         {

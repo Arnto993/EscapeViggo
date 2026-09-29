@@ -73,6 +73,7 @@ namespace EscapeViggo.Networking
             yield return CheckRest();
             yield return CheckBattery();
             yield return CheckRage();
+            yield return CheckCapture();
             yield return Until(() => _session.Workday != null && _session.Workday.State.Phase == MatchPhase.EndOfDay, "authoritative end of day", 120);
             Check(_session.Workday.State.ClockText == "15:00", "End of day must display 15:00.");
             yield return Until(() => !_session.Workday.GetComponent<ViggoRage>().Active, "Rage ended with workday");
@@ -567,6 +568,100 @@ namespace EscapeViggo.Networking
             Debug.Log("EV_RAGE PASSED: no automatic/electrician discovery, authoritative inspection, one event, shared Rage, continuous pursuit.");
         }
 
+        private IEnumerator CheckCapture()
+        {
+            PlayerCapture target = null;
+            NetworkPlayer viggo = null;
+            foreach (var player in FindObjectsByType<NetworkPlayer>(FindObjectsSortMode.None))
+            {
+                if (player.OwnerClientId == 2) target = player.GetComponent<PlayerCapture>();
+                if (player.Role == PlayerRole.Viggo) viggo = player;
+            }
+            Check(target != null && viggo != null, "Capture players missing.");
+            var state = (NetworkVariable<CaptureState>)typeof(PlayerCapture)
+                .GetField("_state", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(target);
+            Check(!state.CanClientWrite(2), "Client owns capture state.");
+            var local = _session.Manager.LocalClient.PlayerObject;
+            var interaction = local.GetComponent<PlayerInteraction>();
+            PlaceForBattery(_host ? -17 : -13, -12);
+            local.GetComponent<PlayerInputReader>().ReleaseCursor();
+            yield return new WaitForSecondsRealtime(2);
+            if (_host)
+            {
+                interaction.RequestInteractionRpc(new NetworkObjectReference(target.NetworkObject), target.transform.position - interaction.ServerEyePosition);
+                Check(!target.IsCaptured, "Distant capture accepted.");
+                PlaceForBattery(-15.5f, -12);
+                interaction.RequestInteractionRpc(new NetworkObjectReference(target.NetworkObject), target.transform.position - interaction.ServerEyePosition);
+                Check(!target.IsCaptured, "Capture exceeded its configured range within interaction range.");
+                PlaceForBattery(-14.5f, -12);
+                yield return new WaitForSecondsRealtime(2);
+                var camera = local.GetComponentInChildren<Camera>();
+                camera.transform.LookAt(target.InteractionCollider.bounds.center);
+                local.GetComponent<PlayerInputReader>().CaptureCursor();
+                interaction.RefreshTarget();
+                Check(interaction.Target == target, $"Nearby capture prompt missing: distance={Vector3.Distance(local.transform.position, target.transform.position):F4}, " +
+                    $"eligible={target.CanInteract(interaction)}, target={interaction.Target?.name}, self={local.transform.position}, other={target.transform.position}, " +
+                    $"phase={_session.Workday.State.Phase}, rage={_session.Workday.GetComponent<ViggoRage>().Active}, captured={target.IsCaptured}.");
+                interaction.Interact();
+                interaction.RequestInteractionRpc(new NetworkObjectReference(target.NetworkObject), camera.transform.forward);
+                Check(target.IsCaptured && target.State.Sequence == 1, "Capture failed or duplicated.");
+            }
+            else
+            {
+                yield return new WaitForSecondsRealtime(0.5f);
+                interaction.RequestInteractionRpc(new NetworkObjectReference(viggo.NetworkObject), viggo.transform.position - interaction.ServerEyePosition);
+                interaction.RequestInteractionRpc(new NetworkObjectReference(target.NetworkObject), Vector3.down);
+                yield return new WaitForSecondsRealtime(0.3f);
+                Check(!viggo.GetComponent<PlayerCapture>().IsCaptured && !target.IsCaptured, "Electrician captured a player.");
+            }
+            yield return Until(() => target.IsCaptured, "capture replication");
+            var scoring = _session.Workday.GetComponent<ScoreService>();
+            var expectedViggo = scoring.Settings.CapturePoints + scoring.Settings.CarrierCaptureBonus;
+            var expectedWorker = scoring.Settings.CircuitTaskPoints - scoring.Settings.CapturedPenalty;
+            yield return Until(() => viggo.GetComponent<PlayerScore>().Value == expectedViggo &&
+                target.GetComponent<PlayerScore>().Value == expectedWorker && _session.Battery.State.Phase == BatteryPhase.Secured &&
+                !_session.Workday.GetComponent<ViggoRage>().Active, "capture score and battery replication");
+            Check(_session.Battery.State.CarrierId == BatteryState.Nobody && _session.Battery.State.OriginalThiefId == 2,
+                "Captured carrier did not lose battery or original thief history was lost.");
+            if (_host)
+            {
+                scoring.AwardCapture(target, viggo, true);
+                Check(viggo.GetComponent<PlayerScore>().Value == expectedViggo && target.GetComponent<PlayerScore>().Value == expectedWorker,
+                    "Repeated capture event duplicated reward or penalty.");
+            }
+            if (!_host)
+            {
+                var start = local.transform.position;
+                var movement = local.GetComponent<PlayerMovement>();
+                var elapsed = 0f;
+                while (elapsed < 0.8f)
+                {
+                    movement.Simulate(new MovementCommand { Move = Vector2.one, Sprint = true, Jump = true }, Time.deltaTime);
+                    elapsed += Time.deltaTime;
+                    yield return null;
+                }
+                Check(Vector3.Distance(start, local.transform.position) < 0.1f && !interaction.CanAct, "Captured input bypassed timeout.");
+            }
+            yield return Until(() => !target.IsCaptured && Vector3.Distance(target.transform.position,
+                GameObject.Find("Electrician Spawn").transform.position) < 0.2f, "electrician respawn replication");
+            yield return new WaitForSecondsRealtime(1);
+            Check(viggo.GetComponent<PlayerScore>().Captures == 1 && target.State.Sequence == 1, "Duplicate capture reward/count.");
+            if (_host)
+            {
+                scoring.AwardCapture(target, viggo, true);
+                Check(viggo.GetComponent<PlayerScore>().Value == expectedViggo, "Completed capture could be rewarded again.");
+            }
+            else
+            {
+                var start = local.transform.position;
+                local.GetComponent<PlayerMovement>().Simulate(new MovementCommand { Move = Vector2.right }, 0.1f);
+                Check(Vector3.Distance(start, local.transform.position) > 0.3f && interaction.CanAct, "Captured player remained softlocked.");
+            }
+            local.GetComponent<PlayerMovement>().enabled = local.GetComponent<PlayerLook>().enabled = true;
+            local.GetComponent<PlayerInputReader>().ReleaseCursor();
+            Debug.Log($"EV_CAPTURE PASSED: range/role/duplicate rejection, penalty/reward, battery secured, timeout/respawn, synchronized scores {expectedViggo}/{expectedWorker}.");
+        }
+
         private IEnumerator CheckTheftContention()
         {
             var battery = _session.Battery;
@@ -609,7 +704,8 @@ namespace EscapeViggo.Networking
             }
             Check(viggos == 1, "Three players must still have exactly one Viggo.");
             yield return CheckTheftContention();
-            yield return Until(() => _session.Workday.State.Phase == MatchPhase.EndOfDay, "late observer end of day", 120);
+            yield return Until(() => _session.Workday == null || _session.Workday.State.Phase == MatchPhase.EndOfDay, "late observer end of day", 120);
+            Check(_session.Workday != null, "Host disconnected before observer saw EndOfDay.");
             _session.Disconnect();
             yield return Until(() => _session.CanStart && _session.PlayerCount == 0, "observer cleanup");
             Debug.Log("EV_OBSERVER PASSED: three players, roles, completed task, scores, clock and EndOfDay.");

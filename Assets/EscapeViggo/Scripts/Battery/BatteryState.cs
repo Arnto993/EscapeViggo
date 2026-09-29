@@ -3,7 +3,7 @@ using Unity.Netcode;
 
 namespace EscapeViggo.Battery
 {
-    public enum BatteryPhase : byte { AtDrill, BeingStolen, Carried }
+    public enum BatteryPhase : byte { AtDrill, BeingStolen, Carried, Secured }
 
     public struct BatteryState : INetworkSerializable, IEquatable<BatteryState>
     {

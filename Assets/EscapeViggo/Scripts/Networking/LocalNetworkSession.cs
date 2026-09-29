@@ -24,6 +24,7 @@ namespace EscapeViggo.Networking
         public Battery.BatteryStation Battery { get; private set; }
         internal void RegisterBattery(Battery.BatteryStation battery) => Battery = battery;
         internal void RegisterWorkday(NetworkWorkday workday) => Workday = workday;
+        internal Transform SpawnPointFor(ulong clientId) => _slots.TryGetValue(clientId, out var slot) ? _spawnPoints[slot] : _spawnPoints[1];
         public int PlayerCount
         {
             get

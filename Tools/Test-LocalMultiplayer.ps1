@@ -42,7 +42,7 @@ try {
     if (!($hostLog -match 'EV_SMOKE PASSED HOST') -or !($clientLog -match 'EV_SMOKE PASSED CLIENT')) {
         throw 'Missing success markers in player logs.'
     }
-    foreach ($marker in @('EV_INTERACTION PASSED', 'EV_TASK PASSED', 'EV_SCORE owner=0 score=0', 'EV_STAMINA PASSED', 'EV_REST PASSED', 'EV_BATTERY PASSED', 'EV_RAGE PASSED', 'EV_WORKDAY END PASSED')) {
+    foreach ($marker in @('EV_INTERACTION PASSED', 'EV_TASK PASSED', 'EV_SCORE owner=0 score=0', 'EV_STAMINA PASSED', 'EV_REST PASSED', 'EV_BATTERY PASSED', 'EV_RAGE PASSED', 'EV_CAPTURE PASSED', 'EV_WORKDAY END PASSED')) {
         if (!($hostLog -match $marker) -or !($clientLog -match $marker)) { throw "Missing gameplay check: $marker" }
     }
     $hostScores = @($hostLog | Where-Object { $_ -match '^EV_SCORE ' } | Sort-Object)

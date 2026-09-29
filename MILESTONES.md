@@ -1026,6 +1026,39 @@ Additional reward if captured electrician was battery carrier.
 
 ---
 
+## M13 Status — 2026-09-29
+
+Acceptance criteria satisfied. PlayerCapture uses shared aimed interaction with
+a trigger selection collider; physics movement remains unchanged. The server
+validates roles, Workday, rest/capture state, configured distance and line of
+sight. It locks capture before awarding points, blocks movement/jump/interactions,
+then orders the owner to teleport to its assigned spawn after the timeout.
+Respawn protection prevents immediate recapture. ScoreService deduplicates
+capture reward, carrier bonus and penalty; captured players return to gameplay.
+
+Prototype battery decision: capturing its carrier removes ownership and secures
+the same battery at the station until the day ends, preserving original thief
+and discovery history. Rage ends according to its recovery/capture configuration.
+This implements the allowed loses/recovered outcome without dropped pickups or
+passing. Defaults: range 2 m, timeout 3 s, protection 2 s, reward 50, carrier bonus
+50 and penalty 25. Scores may go negative.
+
+Compilation, M1–M13 asset validation and Windows build passed. All 46 Edit Mode
+and 12 Play Mode cases passed (`Logs/M13-*`). Host/client plus observer passed
+range (including 2.5 m inside interaction range), role and duplicate rejection,
+100/75 synchronized scores after task/carrier capture, battery recovery/Rage end,
+forced timeout, owner respawn and resumed movement, plus M3–M12 regressions
+(`Logs/Multiplayer-20260929-230754`). The first test attempted capture at exactly
+2 m and failed its prompt check; the successful case now uses 1.5 m, while exact
+boundary rules remain unit-tested. The harness now reports host loss explicitly
+instead of dereferencing the despawned clock after an aborted test. No gameplay
+range was relaxed. Earlier diagnostic logs remain ignored.
+
+No compiler warnings/errors or critical errors occurred in the passing run.
+Movement remains owner-authoritative with server-observed range checks, as in
+M3; this is not an anti-teleport system. Manual UI/input review remains in README.
+
+---
 # M14 — END-OF-DAY FLOW
 
 ## Goal
@@ -1468,5 +1501,5 @@ Wait for the next user instruction.
 
 # CURRENT TARGET
 
-M0–M12 are complete. The user authorized M9–M14 sequentially with a healthy local
-commit per checkpoint. M13 — Capture System is next. Stop after M14; do not begin M15.
+M0–M13 are complete. The user authorized M9–M14 sequentially with a healthy local
+commit per checkpoint. M14 — End-of-Day Flow is next. Stop after M14; do not begin M15.
