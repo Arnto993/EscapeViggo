@@ -8,6 +8,7 @@ using EscapeViggo.Core;
 using EscapeViggo.Interaction;
 using EscapeViggo.Tasks;
 using EscapeViggo.Scoring;
+using EscapeViggo.Viggo;
 using Unity.Netcode;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -67,7 +68,8 @@ namespace EscapeViggo.Networking
             yield return CheckInteraction();
             yield return CheckTask();
             yield return CheckScores();
-            yield return Until(() => _session.Workday != null && _session.Workday.State.Phase == MatchPhase.EndOfDay, "authoritative end of day");
+            yield return CheckStamina();
+            yield return Until(() => _session.Workday != null && _session.Workday.State.Phase == MatchPhase.EndOfDay, "authoritative end of day", 120);
             Check(_session.Workday.State.ClockText == "15:00", "End of day must display 15:00.");
             Debug.Log("EV_WORKDAY END PASSED: EndOfDay 15:00");
             var scoring = _session.Workday.GetComponent<ScoreService>();
@@ -335,6 +337,48 @@ namespace EscapeViggo.Networking
                     System.IO.Path.Combine(captureDirectory, _host ? "host-task.png" : "client-task.png"));
         }
 
+        private IEnumerator CheckStamina()
+        {
+            ViggoStamina viggo = null;
+            foreach (var player in FindObjectsByType<NetworkPlayer>(FindObjectsSortMode.None))
+            {
+                var stamina = player.GetComponent<ViggoStamina>();
+                Check(stamina != null, "Missing stamina component.");
+                var state = (NetworkVariable<float>)typeof(ViggoStamina)
+                    .GetField("_stamina", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(stamina);
+                Check(!state.CanClientWrite(1), "Client can write authoritative stamina.");
+                if (player.Role == PlayerRole.Viggo) viggo = stamina;
+                else Check(!stamina.Applies && stamina.Value == 0, "Electrician affected by stamina.");
+            }
+            Check(viggo != null, "Missing Viggo stamina.");
+            yield return Until(() => viggo.Value >= viggo.Settings.MaximumStamina - 0.1f, "full stamina before movement");
+            if (_host)
+            {
+                var movement = viggo.GetComponent<PlayerMovement>();
+                movement.enabled = false;
+                var controller = viggo.GetComponent<CharacterController>();
+                controller.enabled = false;
+                viggo.transform.SetPositionAndRotation(new Vector3(-15, 0.03f, -12), Quaternion.identity);
+                controller.enabled = true;
+                yield return new WaitForSecondsRealtime(2);
+                var start = viggo.transform.position;
+                var elapsed = 0f;
+                while (elapsed < 2.5f)
+                {
+                    var step = Mathf.Min(Time.deltaTime, 2.5f - elapsed);
+                    movement.Simulate(new MovementCommand { Move = Vector2.up }, step);
+                    elapsed += step;
+                    yield return null;
+                }
+                Check(Vector3.Distance(start, viggo.transform.position) > 7, "Viggo did not move at configured speed.");
+                Check(viggo.Value < 70, "Viggo movement did not drain stamina.");
+                movement.enabled = true;
+            }
+            else yield return Until(() => viggo.Value < 70, "replicated stamina drain");
+            yield return Until(() => viggo.Value >= viggo.Settings.MaximumStamina - 0.1f, "stationary stamina recovery");
+            Debug.Log("EV_STAMINA PASSED: server authority, Viggo movement/drain/recovery, electrician exclusion, replication.");
+        }
+
         private IEnumerator CheckLateJoin()
         {
             yield return Until(() => _session.PlayerCount == 3, "late observer and existing players");
@@ -352,7 +396,7 @@ namespace EscapeViggo.Networking
                 Check(player.GetComponent<PlayerScore>().Value == expected, "Late join score mismatch.");
             }
             Check(viggos == 1, "Three players must still have exactly one Viggo.");
-            yield return Until(() => _session.Workday.State.Phase == MatchPhase.EndOfDay, "late observer end of day");
+            yield return Until(() => _session.Workday.State.Phase == MatchPhase.EndOfDay, "late observer end of day", 120);
             _session.Disconnect();
             yield return Until(() => _session.CanStart && _session.PlayerCount == 0, "observer cleanup");
             Debug.Log("EV_OBSERVER PASSED: three players, roles, completed task, scores, clock and EndOfDay.");
@@ -382,9 +426,9 @@ namespace EscapeViggo.Networking
             }
         }
 
-        private IEnumerator Until(Func<bool> condition, string description)
+        private IEnumerator Until(Func<bool> condition, string description, float timeout = 30)
         {
-            var deadline = Time.realtimeSinceStartup + 30;
+            var deadline = Time.realtimeSinceStartup + timeout;
             while (!condition())
             {
                 Check(Time.realtimeSinceStartup < deadline, "Timed out waiting for " + description);

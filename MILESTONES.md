@@ -761,6 +761,26 @@ Viggo sees stamina bar/value.
 
 ---
 
+## M9 Status — 2026-09-29
+
+Acceptance criteria satisfied. `ViggoStamina` composes the existing controller;
+`Viggo.asset` centralizes speeds, capacity, drain/recovery rates and movement
+conditions. Server-observed horizontal movement drives a server-written stamina
+value, and only Viggo sees its development HUD. Electrician tuning is unchanged.
+No rest or Rage mechanics were added at this checkpoint.
+
+Unity compilation, M1–M9 asset validation and Windows development build passed.
+All 32 Edit Mode and 11 Play Mode tests passed (`Logs/M9-*`). The graphics-enabled
+host/client run plus late observer passed stamina authority, drain, recovery,
+electrician exclusion, synchronized movement and all existing M3–M8 scenarios,
+including scoring, EndOfDay and restart (`Logs/Multiplayer-20260929-223152`).
+The harness's day and EndOfDay wait were extended to fit the new scenario.
+No compiler errors/warnings or critical runtime errors occurred. Movement remains
+owner-authoritative as in M3; no anti-teleport system was introduced. Human input
+feel/IMGUI review remains the README manual check. Unity-generated unrelated
+build serialization changes were discarded; packages/editor/pipeline unchanged.
+
+---
 # M10 — VIGGO REST
 
 ## Goal
@@ -1385,11 +1405,5 @@ Wait for the next user instruction.
 
 # CURRENT TARGET
 
-M0 was confirmed complete by the user. M1, M2 and M3 were implemented in order
-under the explicit multi-milestone request, with separate validation checkpoints.
-
-M4–M8 are complete under the explicitly authorized sequential request, with a
-validated local commit per checkpoint. **Stopped after M8 — Scoring.**
-
-M9 is the next incomplete milestone and has not been started. It requires a new
-user request; the current multi-milestone authorization ends at M8.
+M0–M9 are complete. The user authorized M9–M14 sequentially with a healthy local
+commit per checkpoint. M10 — Viggo Rest is next. Stop after M14; do not begin M15.

@@ -1,10 +1,21 @@
 # Escape Viggo
 
-Unity 6.3 LTS (**6000.3.25f1**), URP, Windows PC. M1–M8 are implemented and
-validated. Stopped after M8; M9 has not been started. Read [AGENTS.md](AGENTS.md),
+Unity 6.3 LTS (**6000.3.25f1**), URP, Windows PC. The current sequential request
+covers M9–M14, with validation and a local commit at each checkpoint. Read [AGENTS.md](AGENTS.md),
 [GAME_SPEC.md](GAME_SPEC.md), and [MILESTONES.md](MILESTONES.md) before changes.
 
 ## Open and play
+
+M9 stamina tuning is in `Assets/EscapeViggo/ScriptableObjects/Viggo.asset`.
+During Workday, moving Viggo drains 20 stamina/second from 100; standing still
+recovers 15/second. Walk/chase/crouch speeds are 3.5/5.5/1.8 metres/second.
+The movement threshold and drain/recovery conditions are configurable. Only
+Viggo's development panel shows the value. The server measures horizontal
+movement and owns stamina; electricians keep the original controller tuning.
+To manually verify M9, follow the host/client steps below, move Viggo for two
+seconds and stop: its value should fall and then return to 100. Shift changes
+chase speed. Observe the same movement from the client, whose movement and HUD
+remain unchanged. M9 alone does not force rest at zero; that is the M10 checkpoint.
 
 1. Open this repository in Unity Hub with 6000.3.25f1.
 2. Wait for package import, then open

@@ -9,6 +9,7 @@ namespace EscapeViggo.Player
         [SerializeField] private Transform _body;
         private CharacterController _controller;
         private PlayerInputReader _input;
+        private Viggo.ViggoStamina _stamina;
         private float _verticalSpeed;
         private readonly Collider[] _ceilingHits = new Collider[16];
         public bool IsCrouching { get; private set; }
@@ -20,6 +21,7 @@ namespace EscapeViggo.Player
         {
             _controller = GetComponent<CharacterController>();
             _input = GetComponent<PlayerInputReader>();
+            _stamina = GetComponent<Viggo.ViggoStamina>();
             if (_settings == null)
             {
                 Debug.LogError("PlayerMovement requires MovementSettings.", this);
@@ -44,6 +46,7 @@ namespace EscapeViggo.Player
             }
             var move = Vector2.ClampMagnitude(command.Move, 1);
             var speed = IsCrouching ? _settings.CrouchSpeed : command.Sprint ? _settings.SprintSpeed : _settings.WalkSpeed;
+            if (_stamina != null && _stamina.Applies) speed = _stamina.MovementSpeed(IsCrouching, command.Sprint);
             if (IsGrounded && _verticalSpeed < 0) _verticalSpeed = -_settings.GroundStickSpeed;
             if (command.Jump && IsGrounded && !IsCrouching)
                 _verticalSpeed = Mathf.Sqrt(2 * _settings.Gravity * _settings.JumpHeight);

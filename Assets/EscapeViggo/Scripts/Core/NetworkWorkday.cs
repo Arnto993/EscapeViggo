@@ -23,7 +23,7 @@ namespace EscapeViggo.Core
             _durationMinutes = _settings.DayDurationMinutes;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             // Opt-in automation uses the same timer path with a shorter duration.
-            if (DevelopmentNetworkPanel.HasArgument("-ev-smoke")) _durationMinutes = 55d / 60;
+            if (DevelopmentNetworkPanel.HasArgument("-ev-smoke")) _durationMinutes = 85d / 60;
 #endif
             _startedAt = NetworkManager.ServerTime.Time;
             _nextPublish = _startedAt;

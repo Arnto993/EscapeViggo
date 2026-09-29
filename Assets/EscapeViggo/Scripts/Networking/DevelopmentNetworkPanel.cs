@@ -57,6 +57,9 @@ namespace EscapeViggo.Networking
                 {
                     GUILayout.Label($"Role: {player.GetComponent<NetworkPlayer>().Role}");
                     GUILayout.Label($"Score: {player.GetComponent<PlayerScore>().Value}");
+                    var stamina = player.GetComponent<Viggo.ViggoStamina>();
+                    if (stamina != null && stamina.Applies)
+                        GUILayout.Label($"Stamina: {stamina.Value:F0} / {stamina.Settings.MaximumStamina:F0}");
                     var look = player.GetComponent<PlayerLook>();
                     GUILayout.Label($"Mouse sensitivity: {look.SensitivityMultiplier:F1}x");
                     look.SensitivityMultiplier = GUILayout.HorizontalSlider(look.SensitivityMultiplier, 0.2f, 3f);
