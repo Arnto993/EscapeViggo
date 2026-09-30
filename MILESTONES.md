@@ -1348,6 +1348,67 @@ Client:
 
 ---
 
+## M17 Status — 2026-09-30
+
+Implemented and engineering validation passed; separate-network acceptance
+remains pending. The existing Cloud
+Project works: no manual organization/project linking or Dashboard setup was
+required. Unity enabled its project-local Services setting on package import.
+Added Package Manager-recommended Multiplayer Services 2.3.3; Authentication
+3.7.4 and Core 1.18.0 resolved transitively. NGO 2.13.3, Transport 2.7.4, Unity
+6000.3.25f1 and URP remain unchanged. No standalone Lobby/Relay SDKs were added.
+
+`OnlineServices` isolates initialization/anonymous authentication and retry.
+`OnlineNetworkSession` uses private Sessions, Session join codes, DTLS and the
+SDK's built-in NGO handler. Capacity follows the eight saved spawn slots.
+The menu supports host, trimmed/case-normalized code join, copy code, connection
+feedback and development-only direct IP fallback. Host leave deletes the session;
+host loss returns clients to the menu without migration. Gameplay authority,
+spawn callbacks and the M0–M16 loop are retained. SDK requests are serialized
+through cleanup, including late responses after a timeout/cancel.
+
+Validation evidence (ignored local logs):
+
+- M1–M17 saved scene/prefab validation and Windows development build passed
+  (`Logs/M17-retry-build.log`), without C# compiler errors/warnings.
+- 71 Edit Mode tests passed (`Logs/M17-final-editmode.xml`), including readiness,
+  anonymous authentication, retry, code validation, duplicate request protection,
+  state transitions, timeout feedback and wrapped session-full/not-found errors.
+- All 13 Play Mode tests passed (`Logs/M17-final-playmode.xml`).
+- Real Sessions/DTLS Relay full loop passed with two processes on one PC
+  (`Logs/Online-20260930-173014`): roles, movement, reconnect, work, scores,
+  theft, discovery/Rage, capture, EndOfDay, matching results and host restart.
+- Real abrupt host-process loss, menu/cursor recovery, online rehosting and direct
+  fallback passed (`Logs/Online-20260930-172810`). Graceful host leave and the same
+  recovery path passed (`Logs/Online-20260930-221555`). The latter includes a
+  nonfatal cleanup warning when the host deletes the session during client leave.
+- Local unavailable-host timeout, retained retry guidance, retry, selected day
+  duration, results, preset restart and cursor cleanup passed
+  (`Logs/Multiplayer-20260930-221245-20777`). The expanded headless test also
+  passed three consecutive immediate disconnect/reconnect cycles after adding
+  a 0.25-second transport reuse delay (`Logs/Multiplayer-20260930-222050-22777`).
+- Final three-process local full workday passed, including battery contention,
+  observer reconnect to frozen results and host restart
+  (`Logs/Multiplayer-20260930-222054-23777`).
+- Online launcher PowerShell syntax passed. README includes exact host/join,
+  optional project-link repair, separate-network gameplay and host-loss checks.
+
+An initial Relay smoke run exposed movement-baseline sampling that assumed local
+connection timing. A test-only shared-file barrier now aligns baseline sampling;
+gameplay assertions still use real Relay traffic. The first compile also exposed
+a missing Services environments assembly reference, which was corrected.
+Local observer tests exposed a transport reuse race on immediate reconnect.
+A one-frame wait was insufficient; a 0.25-second restart gate passed both rapid
+headless reconnects and the complete three-player results/reconnect regression.
+No gameplay timing or authority rules were changed to satisfy these tests.
+
+Real Relay was tested, not mocked. Two PCs on separate connections and human
+UI/readability/input review are still unverified, so M17 acceptance is **not yet
+fully satisfied**. No credentials were added, no cloud project was created, and
+the existing Workday.asset user edit stays outside the commit. No M18 work.
+
+---
+
 # M18 — FIVE-DAY WORK WEEK
 
 ## Goal
@@ -1602,6 +1663,7 @@ Wait for the next user instruction.
 
 # CURRENT TARGET
 
-M0–M14 remain the stable baseline. M15 and M16 implementation and engineering
-checks passed, with separate local commits. Human UI/usability acceptance remains
-pending as documented above. Stopped after M16. M17 is not authorized.
+M0–M16 are the stable baseline for the user's M17 request. M17 implements private
+online Sessions/Relay while preserving the direct local development path.
+Two-PC separate-network acceptance and human UI/input review remain pending.
+Stop after M17. M18 is not authorized.

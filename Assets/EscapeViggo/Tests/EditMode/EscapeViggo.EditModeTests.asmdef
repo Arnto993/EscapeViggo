@@ -1,6 +1,6 @@
 {
   "name": "EscapeViggo.EditModeTests",
-  "references": ["EscapeViggo.Runtime", "Unity.Netcode.Runtime"],
+  "references": ["EscapeViggo.Runtime", "Unity.Netcode.Runtime", "Unity.Services.Multiplayer", "Unity.Services.Core"],
   "includePlatforms": ["Editor"],
   "optionalUnityReferences": ["TestAssemblies"]
 }

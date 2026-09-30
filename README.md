@@ -1,16 +1,17 @@
 # Escape Viggo
 
-Unity 6.3 LTS (**6000.3.25f1**), URP, Windows PC. M0–M14 provide one local multiplayer
-workday, with validation and a local commit at each checkpoint. Read [AGENTS.md](AGENTS.md),
+Unity 6.3 LTS (**6000.3.25f1**), URP, Windows PC. M0–M16 provide the playable workday;
+M17 adds private online Sessions/Relay, with separate-network acceptance pending. Read [AGENTS.md](AGENTS.md),
 [GAME_SPEC.md](GAME_SPEC.md), and [MILESTONES.md](MILESTONES.md) before changes.
 
 ## How to Playtest Escape Viggo
 
 Use `Builds/Windows/EscapeViggo.exe`, or build with **Escape Viggo > Build >
 Windows Development Player** in Unity 6000.3.25f1. The game opens directly at the
-PrototypeWorksite connection menu; no services or accounts are needed.
+PrototypeWorksite connection menu. Online play uses an anonymous Unity account;
+**Local Development** needs no services or accounts.
 
-1. Launch the game. Leave IP **127.0.0.1** and port **7777** for one-PC testing.
+1. Launch the game. Select **Local Development**. Leave IP **127.0.0.1** and port **7777** for one-PC testing.
    Select **Guided: 5 min**, then **Start Host**. The host is Viggo.
 2. Launch one or two more copies, use the same IP/port and choose **Start Client**.
    Clients become electricians. The day starts automatically five seconds after
@@ -53,7 +54,7 @@ The menu presets and `-ev-day-minutes 2` override only the next host's runtime
 configuration; **Asset tuning** uses `Workday.asset`. No asset editing is needed.
 
 For another PC on the same LAN, enter the host's LAN IP in both host and client
-menus and use the same port. Cross-network/Relay connections are not included.
+menus and use the same port. For separate networks, use the online flow below.
 A failed connection times out with retry guidance. A reconnect gets a new player
 ID and score zero; completed tasks remain completed until the host restarts.
 Results remain frozen even after reconnect. Host disconnect ends that session.
@@ -62,7 +63,105 @@ Human review: check HUD readability at **1280x720** and **1920x1080**, actual
 button clicks, mouse resume after task cancel/completion or window focus loss,
 and whether the objectives/warnings make sense to someone new. In another day,
 leave a task open or Rage active at 15:00; both must stop. New mechanics, final
-art/audio and M17 are outside this build.
+art/audio and M18 are outside this build.
+
+## Online play setup (M17)
+
+The existing EscapeViggo Cloud Project was successfully used for real anonymous
+authentication and Sessions/Relay connections. **No manual linking is required
+for this checkout.** The SDK uses the `production` environment, configurable on
+**Local Network > Online Network Session** in `PrototypeWorksite`.
+
+If another checkout loses its project link or online access is refused:
+
+1. Open Unity **6000.3.25f1**, sign in with the Unity account that owns/accesses
+   the project, then open **Edit > Project Settings > Services**.
+2. Check the organization and linked project are **arnto993 / EscapeViggo**.
+   If unlinked, choose **Use an existing Unity Cloud Project**, select that
+   organization and **EscapeViggo**, then **Link project ID**. Do not create a
+   replacement project or paste credentials into game scripts.
+3. Open **Unity Dashboard** from the Services settings (or
+   [Unity Cloud Dashboard](https://cloud.unity.com/)), select the same organization
+   and project, then **Gaming Services > Multiplayer**. If onboarding is shown,
+   click **Set up / Get started** for **Relay** and **Lobby**. Sessions uses both
+   through the unified SDK; no standalone packages are needed.
+4. Under **Gaming Services > Authentication**, complete **Get started** if shown.
+   Anonymous sign-in does not require an external identity provider or player
+   registration. Select **production** in the environment selector; if using a
+   different environment, set the scene component to that exact environment name.
+5. Let Package Manager finish, check the Console, then choose **Escape Viggo >
+   Validation > Validate M17 Online Sessions** and **Escape Viggo > Build > Windows
+   Development Player**. Distribute the entire `Builds/Windows` folder to both PCs.
+
+Unity UI labels may vary by Dashboard layout. The repository stores only its
+existing non-secret project association; anonymous credentials are managed by
+Unity Authentication in each player's local storage.
+
+## Host and join online
+
+1. PC A: launch `EscapeViggo.exe`, choose **Quick: 2 min** or **Guided: 5 min**, then
+   **Host Online Game**. Services initialize and authenticate automatically.
+2. Wait for **Connected online**. Read the six-character **Join Code** at the top
+   right, or press **Esc > Copy join code** and share it privately.
+3. PC B on a different connection (for example mobile hotspot): launch the same
+   build, enter the code and click **Join Online Game**. Input accepts lowercase
+   and trims surrounding whitespace. No IP address or port forwarding is needed.
+4. The host is Viggo; joining players are electricians. Capacity follows the
+   saved spawn slots (currently eight total). The five-second preparation period
+   starts when the host spawns, so join promptly. Existing late joining works.
+5. Follow steps 3–9 in **How to Playtest Escape Viggo** above. Compare movement,
+   task completion, scores, theft, delayed discovery/Rage, capture/respawn and
+   the same frozen results at **15:00** on both PCs.
+6. Choose **Disconnect / return to start**. Verify the overview/menu returns and
+   a new host/join attempt works. Also force-close PC A: PC B must report host
+   loss, release the mouse and recover to the connection menu. No host migration.
+7. Try an empty code, a mistyped code, an ended session's code and a full session.
+   Verify useful feedback and retry. Disconnect before switching to **Local
+   Development**, then verify `127.0.0.1:7777` still works without cloud access.
+
+Architecture: `OnlineServices` owns UGS initialization and anonymous sign-in;
+`OnlineNetworkSession` creates/joins private Multiplayer Sessions and uses
+`WithRelayNetwork()` plus DTLS network options. The SDK's NGO handler starts and
+stops networking. `LocalNetworkSession` retains approval, spawn slots and world
+callbacks. Gameplay authority is unchanged. Host leave deletes the session;
+clients leave membership. Join code is the **Session code**, not a Relay allocation
+code. UI reads connection state and never assigns gameplay outcomes.
+
+Only one create/join/leave operation can run at once. A 60-second connection
+deadline requests cleanup. MPS create/join APIs have no cancellation token: a
+pending SDK request must settle before retry/local fallback becomes available,
+so a late response cannot start a second game. Failure feedback remains visible
+during cleanup. Closing the application also ends pending work. After shutdown,
+a 0.25-second transport reuse delay prevents the immediate local reconnect race
+found by the headless observer test.
+
+For automated **real** cloud testing with two isolated authentication profiles:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Test-OnlineMultiplayer.ps1 -Graphics
+powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Test-OnlineMultiplayer.ps1 -Graphics -Recovery -KillHost
+```
+
+The full-loop test reuses the gameplay assertions from local testing. A shared
+file barrier only aligns movement baseline sampling between processes; all
+gameplay travels through real Sessions/DTLS Relay. `-Recovery` tests graceful
+host leave; adding `-KillHost` tests abrupt process loss, online retry and switching
+to direct transport. `-EndDayStress` leaves a task and Rage active at cutoff.
+Logs are under ignored `Logs/Online-*`. These are **one-PC tests**, not proof of
+two PCs on separate networks. Separate-network play and human UI/input review
+remain the final M17 acceptance check.
+
+For two interactive online copies on the same Windows account, start each with
+a distinct `-ev-online-profile` value (for example `host` and `friend`); otherwise
+Unity Authentication may reuse the same cached player identity. Distinct PCs
+need no special arguments. The local launcher remains unchanged.
+
+Packages: unified Multiplayer Services **2.3.3**, with Package Manager-resolved
+Authentication **3.7.4** and Core **1.18.0**. NGO **2.13.3** and Transport **2.7.4**
+are unchanged. No deprecated standalone Lobby/Relay SDKs were added. Unity's
+[session networking guide](https://docs.unity.com/en-us/mps-sdk/manage-session-network-connection)
+and [SDK installation guide](https://docs.unity.com/en-us/mps-sdk/install-and-upgrade)
+describe the supported integration.
 
 ## Open and play
 
@@ -282,9 +381,10 @@ server-observed position, range and line of sight; this is not anti-teleport
 protection. Role, phase, task outcomes, stamina/rest, battery, Rage, captures,
 scores and results are server-owned. Remote CharacterControllers
 are disabled; players currently pass through each other. Crouch synchronization
-is presentation state. No prediction, cloud sessions, Relay or M17+ gameplay
-is included. The connection panel, scoreboard, test cube and smoke harness operate only in the
-Editor/development builds; use a development build for this checkpoint.
+is presentation state. M17 adds private cloud sessions and Relay; gameplay
+authority is unchanged. The online connection menu is available in player builds.
+Direct-local controls, diagnostic UI, test cube and smoke fixtures remain
+Editor/development-only. No prediction or M18 gameplay is included.
 
 ## Packages
 
@@ -295,6 +395,9 @@ Editor/development builds; use a development build for this checkpoint.
 | Unity Test Framework | 1.6.0 |
 | Netcode for GameObjects | 2.13.3 |
 | Unity Transport | 2.7.4 |
+| Multiplayer Services | 2.3.3 |
+| Authentication (transitive) | 3.7.4 |
+| Services Core (transitive) | 1.18.0 |
 
 Unity's Package Manager reported NGO 2.13.2/2.13.3 compatible with this editor
 and Transport 2.7.4 recommended. NGO 2.13.3 is the unsuffixed
@@ -308,10 +411,10 @@ version suffixes or alternative networking frameworks were added.
 Close the project in Unity before running batch editor commands from the root:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -Method EscapeViggo.Editor.PrototypeUiSetup.ValidatePlaytest -LogName M16-validation
-powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -TestPlatform EditMode -LogName M16-editmode
-powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -TestPlatform PlayMode -LogName M16-playmode
-powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -Method EscapeViggo.Editor.NetworkSetup.Build -LogName M16-build
+powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -Method EscapeViggo.Editor.OnlineSessionSetup.Validate -LogName M17-validation
+powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -TestPlatform EditMode -LogName M17-editmode
+powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -TestPlatform PlayMode -LogName M17-playmode
+powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -Method EscapeViggo.Editor.NetworkSetup.Build -LogName M17-build
 powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Test-LocalMultiplayer.ps1 -Graphics -Observer
 powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Test-LocalMultiplayer.ps1 -Graphics -Observer -EndDayStress
 powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Test-LocalMultiplayer.ps1 -ConnectionOnly
@@ -398,14 +501,14 @@ retry, selected runtime duration, results, preset change on restart and cursor
 cleanup. The launcher passed PowerShell syntax validation; actual mouse clicks
 and window arrangement are part of human review.
 
-`-ConnectionOnly` exercises connection recovery and runtime day presets without
+`-ConnectionOnly` exercises connection recovery, three rapid reconnects and runtime day presets without
 the full gameplay fixture. Normal full-loop and `-EndDayStress` runs retain all
 prior authority/state regression checks. Hidden framebuffer captures are detected
 as unavailable; only valid camera renders count as render evidence. The normal
-launcher never enables test fixtures or edits assets. M17 is outside this request.
+launcher never enables test fixtures or edits assets. This records the M16 checkpoint.
 
 The final two-process full-loop stress test also passed in
 `Logs/Multiplayer-20260930-122535-19777`: task UI and Rage were active at 15:00,
 then stopped; both processes agreed on frozen results and restart succeeded.
 M15/M16 engineering work is finished. Human UI/usability acceptance remains the
-walkthrough above. Stopped after M16; no M17 work was started.
+walkthrough above. M17 validation is recorded in `MILESTONES.md`.

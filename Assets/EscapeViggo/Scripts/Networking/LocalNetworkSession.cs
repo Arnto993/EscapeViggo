@@ -20,10 +20,16 @@ namespace EscapeViggo.Networking
         private bool _connecting;
         private bool _connectionFailed;
         private float _connectionDeadline;
+        private OnlineNetworkSession _online;
+        private float _restartAvailableAt;
+        private const float TransportReuseDelaySeconds = 0.25f;
         [SerializeField, Min(1)] private float _connectionTimeoutSeconds = 12;
         public NetworkManager Manager => _manager;
         public string Status { get; private set; } = "Offline";
-        public bool CanStart => !_connecting && !_manager.IsListening && !_manager.ShutdownInProgress;
+        public bool CanStart => Time.realtimeSinceStartup >= _restartAvailableAt && !_connecting && !_manager.IsListening &&
+            !_manager.ShutdownInProgress && !(_online != null && _online.Active);
+        public int Capacity => _spawnPoints.Length;
+        public OnlineNetworkSession Online => _online;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         public double? PlaytestDayMinutes { get; private set; }
         public bool ConfigurePlaytestDay(string minutes)
@@ -59,6 +65,7 @@ namespace EscapeViggo.Networking
         private void Awake()
         {
             Application.runInBackground = true;
+            _online = GetComponent<OnlineNetworkSession>();
             _overviewListener = _overview.GetComponent<AudioListener>();
             _manager.ConnectionApprovalCallback += Approve;
             _manager.OnClientConnectedCallback += Connected;
@@ -88,6 +95,7 @@ namespace EscapeViggo.Networking
             }
             _slots.Clear();
             _connectionFailed = false;
+            // SetConnectionData also restores direct transport mode after a Relay session.
             _transport.SetConnectionData(address, port, host ? address : null);
             Status = host ? "Starting host..." : "Connecting...";
             _connecting = !host;
@@ -103,9 +111,25 @@ namespace EscapeViggo.Networking
 
         public void Disconnect()
         {
+            if (_online != null && _online.Active) { _online.Disconnect(); return; }
             Status = "Disconnecting...";
             _connecting = false;
             _manager.Shutdown();
+        }
+
+        internal void PrepareOnlineConnection()
+        {
+            _slots.Clear();
+            _connectionFailed = false;
+            _connecting = false;
+        }
+
+        internal void FinishOnlineConnection()
+        {
+            _connecting = false;
+            if (_manager.IsListening && !_manager.ShutdownInProgress) _manager.Shutdown();
+            _slots.Clear();
+            Status = "Offline";
         }
 
         private void Approve(NetworkManager.ConnectionApprovalRequest request, NetworkManager.ConnectionApprovalResponse response)
@@ -120,7 +144,7 @@ namespace EscapeViggo.Networking
             response.Pending = false;
             if (!response.Approved)
             {
-                response.Reason = "All development spawn slots are occupied.";
+                response.Reason = "Session is full. All player places are occupied.";
                 return;
             }
             _slots[request.ClientNetworkId] = slot;
@@ -150,11 +174,13 @@ namespace EscapeViggo.Networking
                     Status = string.IsNullOrEmpty(_manager.DisconnectReason) ? "Disconnected. Start or join a host to play again." : _manager.DisconnectReason;
                 _connecting = false;
             }
-            Debug.Log($"Local session disconnected client {clientId}.", this);
+            Debug.Log($"Network session disconnected client {clientId} ({_transport.DisconnectEvent}).", this);
         }
 
         private void Stopped(bool wasHost)
         {
+            // Let the peer consume the old disconnect before reusing the local transport.
+            _restartAvailableAt = Time.realtimeSinceStartup + TransportReuseDelaySeconds;
             _slots.Clear();
             _connecting = false;
             if (Status == "Connecting...") Status = "Could not connect. Start the host and check the IP/port.";

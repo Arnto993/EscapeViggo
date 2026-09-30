@@ -5916,6 +5916,7 @@ GameObject:
   - component: {fileID: 1936951474}
   - component: {fileID: 1936951473}
   - component: {fileID: 1936951478}
+  - component: {fileID: 1936951479}
   m_Layer: 0
   m_Name: Local Network
   m_TagString: Untagged
@@ -5961,6 +5962,7 @@ MonoBehaviour:
   - {fileID: 1775695730}
   - {fileID: 1382042465}
   _workdayPrefab: {fileID: 3668786552912107937, guid: 0c8058b67f3a7094fa2462ecd885b791, type: 3}
+  _connectionTimeoutSeconds: 12
 --- !u!114 &1936951475
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6082,6 +6084,20 @@ MonoBehaviour:
   - Prefab: {fileID: 8989033337199137456, guid: 339a01cd11fdf89469d1fb395890fba8, type: 3}
     Location: {fileID: 1180743687}
     DevelopmentOnly: 0
+--- !u!114 &1936951479
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1936951472}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 889d6524d319f624d9a88f436a6a973d, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: EscapeViggo.Runtime::EscapeViggo.Networking.OnlineNetworkSession
+  _environment: production
+  _connectionTimeoutSeconds: 60
 --- !u!1 &1973085734
 GameObject:
   m_ObjectHideFlags: 0

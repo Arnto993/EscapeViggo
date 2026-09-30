@@ -9,7 +9,7 @@ namespace EscapeViggo.Editor
     {
         private static SearchRequest _request;
         private static int _index;
-        private static readonly string[] Packages = { "com.unity.netcode.gameobjects", "com.unity.transport" };
+        private static readonly string[] Packages = { "com.unity.netcode.gameobjects", "com.unity.transport", "com.unity.services.multiplayer" };
 
         public static void Query()
         {

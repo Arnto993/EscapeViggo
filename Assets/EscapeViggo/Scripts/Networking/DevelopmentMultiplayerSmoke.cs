@@ -24,12 +24,13 @@ namespace EscapeViggo.Networking
         private LocalNetworkSession _session;
         private bool _failed;
         private bool _host;
+        private bool Online => DevelopmentNetworkPanel.HasArgument("-ev-online");
         private bool EndDayStress => DevelopmentNetworkPanel.HasArgument("-ev-endday-stress");
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Install()
         {
-            if (!DevelopmentNetworkPanel.HasArgument("-ev-smoke") && !DevelopmentNetworkPanel.HasArgument("-ev-observer") && !DevelopmentNetworkPanel.HasArgument("-ev-connection-smoke")) return;
+            if (!DevelopmentNetworkPanel.HasArgument("-ev-smoke") && !DevelopmentNetworkPanel.HasArgument("-ev-observer") && !DevelopmentNetworkPanel.HasArgument("-ev-connection-smoke") && !DevelopmentNetworkPanel.HasArgument("-ev-online-recovery")) return;
             var session = FindFirstObjectByType<LocalNetworkSession>();
             if (session != null) session.gameObject.AddComponent<DevelopmentMultiplayerSmoke>();
         }
@@ -43,6 +44,11 @@ namespace EscapeViggo.Networking
 
         private IEnumerator Start()
         {
+            if (DevelopmentNetworkPanel.HasArgument("-ev-online-recovery"))
+            {
+                yield return CheckOnlineRecovery();
+                yield break;
+            }
             if (DevelopmentNetworkPanel.HasArgument("-ev-connection-smoke"))
             {
                 yield return CheckConnectionFlow();
@@ -53,7 +59,7 @@ namespace EscapeViggo.Networking
                 yield return CheckLateJoin();
                 yield break;
             }
-            yield return Until(() => _session.PlayerCount == 2, "initial two players");
+            yield return Until(() => _session.PlayerCount == 2, "initial two players", Online ? 100 : 30);
             if (_host && EndDayStress)
             {
                 // Runtime-only test tuning: leave Rage active through carrier recovery to test the clock cutoff.
@@ -74,7 +80,8 @@ namespace EscapeViggo.Networking
                 _session.Disconnect();
                 yield return Until(() => _session.CanStart && _session.PlayerCount == 0, "client cleanup");
                 yield return new WaitForSecondsRealtime(2);
-                Check(_session.StartClient(DevelopmentNetworkPanel.Argument("-ev-address") ?? "127.0.0.1", Port()), "Client restart failed.");
+                if (Online) yield return RestartConnection(false);
+                else Check(_session.StartClient(DevelopmentNetworkPanel.Argument("-ev-address") ?? "127.0.0.1", Port()), "Client restart failed.");
                 yield return Until(() => _session.PlayerCount == 2, "reconnected players");
             }
             yield return Round(2);
@@ -106,7 +113,8 @@ namespace EscapeViggo.Networking
                 yield return Until(() => _session.PlayerCount == 1, "final client disconnect");
                 _session.Disconnect();
                 yield return Until(() => _session.CanStart && _session.PlayerCount == 0, "host cleanup");
-                Check(_session.StartHost("127.0.0.1", Port()), "Host restart failed.");
+                if (Online) yield return RestartConnection(true);
+                else Check(_session.StartHost("127.0.0.1", Port()), "Host restart failed.");
                 yield return Until(() => _session.PlayerCount == 1, "host respawn");
                 yield return null;
                 CheckOwnership();
@@ -116,6 +124,56 @@ namespace EscapeViggo.Networking
             yield return Until(() => _session.CanStart && _session.PlayerCount == 0, "final cleanup");
             Debug.Log("EV_SMOKE PASSED " + (_host ? "HOST" : "CLIENT"));
             Application.Quit(_failed ? 1 : 0);
+        }
+
+        private IEnumerator CheckOnlineRecovery()
+        {
+            yield return Until(() => _session.PlayerCount == 2 && _session.Online.Connection.Phase == OnlineConnectionPhase.Connected,
+                "online recovery pair", 100);
+            Debug.Log("EV_ONLINE_RECOVERY READY");
+            if (_host)
+            {
+                if (DevelopmentNetworkPanel.HasArgument("-ev-kill-host"))
+                {
+                    // The launcher terminates this process after both peers are ready.
+                    yield return new WaitForSecondsRealtime(90);
+                    Check(false, "Recovery launcher did not terminate the host.");
+                }
+                yield return new WaitForSecondsRealtime(5);
+                _session.Disconnect();
+                yield return Until(() => _session.CanStart && _session.PlayerCount == 0, "online host leave");
+            }
+            else
+            {
+                yield return Until(() => _session.CanStart && _session.PlayerCount == 0, "host loss cleanup", 90);
+                Check(_session.Online.Connection.Phase == OnlineConnectionPhase.Failed, "Host loss must retain failure feedback.");
+                Check(Cursor.lockState != CursorLockMode.Locked, "Host loss left cursor captured.");
+                yield return RestartConnection(true);
+                Check(_session.PlayerCount == 1, "Online retry did not spawn host.");
+                _session.Disconnect();
+                yield return Until(() => _session.CanStart && _session.PlayerCount == 0, "retry session cleanup");
+                Check(_session.StartHost("127.0.0.1", Port()), "Direct fallback failed after Relay.");
+                yield return Until(() => _session.PlayerCount == 1, "direct host after Relay");
+                var transport = _session.GetComponent<Unity.Netcode.Transports.UTP.UnityTransport>();
+                Check(transport.Protocol == Unity.Netcode.Transports.UTP.UnityTransport.ProtocolType.UnityTransport,
+                    "Direct fallback retained Relay transport mode.");
+                _session.Disconnect();
+                yield return Until(() => _session.CanStart && _session.PlayerCount == 0, "direct cleanup");
+            }
+            Debug.Log("EV_ONLINE_RECOVERY PASSED " + (_host ? "HOST" : "CLIENT"));
+            Application.Quit(_failed ? 1 : 0);
+        }
+
+        private IEnumerator RestartConnection(bool host)
+        {
+            if (Online)
+            {
+                var attempt = host ? _session.Online.HostAsync() : _session.Online.JoinAsync(DevelopmentNetworkPanel.Argument("-ev-join-code"));
+                yield return Until(() => attempt.IsCompleted, "online reconnect", 90);
+                Check(_session.Online.Connection.Phase == OnlineConnectionPhase.Connected, _session.Online.Status);
+            }
+            else Check(host ? _session.StartHost("127.0.0.1", Port())
+                : _session.StartClient(DevelopmentNetworkPanel.Argument("-ev-address") ?? "127.0.0.1", Port()), "Local restart failed.");
         }
 
         private IEnumerator CheckConnectionFlow()
@@ -136,6 +194,14 @@ namespace EscapeViggo.Networking
                 Check(_session.PlayerCount == 0 && _session.Status.Contains("retry"), "Connection failure lost retry guidance or remained stuck.");
                 Check(_session.StartClient("127.0.0.1", Port()), "Retry failed.");
                 yield return Until(() => _session.PlayerCount == 2, "successful connection retry");
+                for (var retry = 0; retry < 3; retry++)
+                {
+                    _session.Disconnect();
+                    yield return Until(() => _session.CanStart && _session.PlayerCount == 0, "rapid disconnect cleanup");
+                    Check(_session.StartClient("127.0.0.1", Port()), "Rapid reconnect could not start.");
+                    yield return Until(() => _session.PlayerCount == 2, "rapid reconnect: " + retry);
+                }
+                Debug.Log("EV_CONNECTION RAPID_RECONNECT PASSED");
             }
             yield return null;
             CheckOwnership();
@@ -180,6 +246,9 @@ namespace EscapeViggo.Networking
             var initial = new Dictionary<ulong, Vector3>();
             foreach (var player in FindObjectsByType<NetworkPlayer>(FindObjectsSortMode.None))
                 initial.Add(player.OwnerClientId, player.transform.position);
+            // Service setup can finish later on the joining process. Both instances must
+            // sample their baseline before either moves; this is test orchestration only.
+            if (Online) yield return OnlineBarrier("movement-baseline-" + round);
             var local = _session.Manager.LocalClient.PlayerObject;
             var input = local.GetComponent<PlayerInputReader>();
             var movement = local.GetComponent<PlayerMovement>();
@@ -214,6 +283,15 @@ namespace EscapeViggo.Networking
             yield return new WaitForSecondsRealtime(2);
             input.enabled = movement.enabled = look.enabled = true;
             input.ReleaseCursor();
+        }
+
+        private IEnumerator OnlineBarrier(string stage)
+        {
+            var directory = DevelopmentNetworkPanel.Argument("-ev-online-sync-dir");
+            Check(!string.IsNullOrEmpty(directory), "Online smoke requires a shared orchestration directory.");
+            System.IO.File.WriteAllText(System.IO.Path.Combine(directory, stage + (_host ? "-host" : "-client")), "ready");
+            var peer = System.IO.Path.Combine(directory, stage + (_host ? "-client" : "-host"));
+            yield return Until(() => System.IO.File.Exists(peer), "online peer baseline");
         }
 
         private void CheckOwnership()
@@ -862,7 +940,8 @@ namespace EscapeViggo.Networking
             var frozenResults = ResultsText(_session.Workday.GetComponent<DailyResults>());
             _session.Disconnect();
             yield return Until(() => _session.CanStart && _session.PlayerCount == 0, "results observer disconnect");
-            Check(_session.StartClient("127.0.0.1", Port()), "Results observer reconnect failed.");
+            if (Online) yield return RestartConnection(false);
+            else Check(_session.StartClient("127.0.0.1", Port()), "Results observer reconnect failed.");
             yield return Until(() => _session.Workday != null && _session.Workday.GetComponent<DailyResults>().Ready &&
                 _session.Manager.LocalClient.PlayerObject != null, "late finalized results");
             Check(ResultsText(_session.Workday.GetComponent<DailyResults>()) == frozenResults &&
