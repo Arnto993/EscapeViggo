@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: caa48e7ad1858014db80716f95396b27, type: 3}
   m_Name: Workday
   m_EditorClassIdentifier: EscapeViggo.Runtime::EscapeViggo.Core.WorkdaySettings
-  DayDurationMinutes: 2
+  DayDurationMinutes: 5
   PreparingSeconds: 5
