@@ -11,6 +11,7 @@ namespace EscapeViggo.Networking
         [SerializeField] private LocalNetworkSession _session;
         private string _address = "127.0.0.1";
         private string _port = "7777";
+        private bool _diagnostics;
 
         private void Start()
         {
@@ -29,12 +30,14 @@ namespace EscapeViggo.Networking
 
         private void OnGUI()
         {
-            GUILayout.BeginArea(new Rect(12, 12, 325, 340 + _session.PlayerCount * 22), GUI.skin.box);
-            GUILayout.Label("ESCAPE VIGGO - LOCAL DEVELOPMENT");
+            var localInput = _session.Manager.LocalClient?.PlayerObject?.GetComponent<PlayerInputReader>();
+            if (localInput != null && (localInput.IsCaptured || localInput.IsTaskModal ||
+                (_session.Workday != null && _session.Workday.State.Phase == Core.MatchPhase.EndOfDay))) return;
+            using var gui = new Core.PrototypeGui(true);
+            GUILayout.BeginArea(new Rect(Core.PrototypeGui.Width - 350, 180, 330, Core.PrototypeGui.Height - 200), GUI.skin.box);
+            GUILayout.Label("ESCAPE VIGGO - LOCAL PLAYTEST");
             GUILayout.Label(_session.Status);
-            GUILayout.Label($"Players: {_session.PlayerCount}  |  Local ID: {_session.Manager.LocalClientId}");
-            if (_session.Workday != null)
-                GUILayout.Label($"{_session.Workday.State.Phase} | {_session.Workday.State.ClockText}");
+            GUILayout.Label($"Players: {_session.PlayerCount}");
             if (_session.CanStart)
             {
                 GUILayout.Label("IP address / port");
@@ -49,29 +52,23 @@ namespace EscapeViggo.Networking
             }
             else
             {
-                if (GUILayout.Button("Disconnect")) _session.Disconnect();
-                GUILayout.Label("WASD move | Shift sprint | Space jump");
-                GUILayout.Label("Ctrl / C crouch | Esc release mouse");
+                if (GUILayout.Button("Disconnect / return to start")) _session.Disconnect();
                 var player = _session.Manager.LocalClient?.PlayerObject;
                 if (player != null)
                 {
-                    GUILayout.Label($"Role: {player.GetComponent<NetworkPlayer>().Role}");
-                    GUILayout.Label($"Score: {player.GetComponent<PlayerScore>().Value}");
-                    var stamina = player.GetComponent<Viggo.ViggoStamina>();
-                    if (stamina != null && stamina.Applies)
-                        GUILayout.Label($"Stamina: {stamina.Value:F0} / {stamina.Settings.MaximumStamina:F0}");
                     var look = player.GetComponent<PlayerLook>();
                     GUILayout.Label($"Mouse sensitivity: {look.SensitivityMultiplier:F1}x");
                     look.SensitivityMultiplier = GUILayout.HorizontalSlider(look.SensitivityMultiplier, 0.2f, 3f);
-                }
-            }
-            if (_session.Manager.IsConnectedClient)
-            {
-                GUILayout.Label("PLAYERS / ROLE / SCORE");
-                foreach (var spawned in _session.Manager.SpawnManager.SpawnedObjects.Values)
-                {
-                    if (!spawned.IsPlayerObject) continue;
-                    GUILayout.Label($"{spawned.OwnerClientId} | {spawned.GetComponent<NetworkPlayer>().Role} | {spawned.GetComponent<PlayerScore>().Value}");
+                    _diagnostics = GUILayout.Toggle(_diagnostics, "Development diagnostics");
+                    if (_diagnostics)
+                    {
+                        GUILayout.Label($"Local ID: {_session.Manager.LocalClientId}");
+                        foreach (var spawned in _session.Manager.SpawnManager.SpawnedObjects.Values)
+                        {
+                            if (!spawned.IsPlayerObject) continue;
+                            GUILayout.Label($"{spawned.OwnerClientId} | {spawned.GetComponent<NetworkPlayer>().Role} | {spawned.GetComponent<PlayerScore>().Value}");
+                        }
+                    }
                 }
             }
             GUILayout.EndArea();

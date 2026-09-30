@@ -103,13 +103,7 @@ namespace EscapeViggo.Interaction
         private NetworkInteractable Cast(Vector3 origin, Vector3 direction, float range) =>
             InteractionQuery.Raycast(origin, direction, range, _controller, _rayHits);
 
-        private void OnGUI()
-        {
-            if (!IsSpawned || !IsOwner || !_input.IsCaptured) return;
-            GUI.Label(new Rect(Screen.width / 2f - 5, Screen.height / 2f - 12, 20, 25), "+");
-            if (Target != null)
-                GUI.Box(new Rect(Screen.width / 2f - 175, Screen.height / 2f + 30, 350, 30), Prompt);
-        }
+
 
         public override void OnNetworkDespawn() { Target = null; _heldTarget = null; }
     }

@@ -54,8 +54,9 @@ namespace EscapeViggo.Tasks
         private void OnGUI()
         {
             if (!_open || !_task.IsSpawned) return;
+            using var gui = new Core.PrototypeGui(true);
             var state = _task.State;
-            GUILayout.BeginArea(new Rect(Screen.width / 2f - 200, Screen.height / 2f - 125, 400, 250), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(Core.PrototypeGui.Width / 2 - 260, Core.PrototypeGui.Height / 2 - 110, 520, 280), GUI.skin.box);
             GUILayout.Label("SIMPLE CIRCUIT TASK");
             GUILayout.Label("Activate in order: " + _task.SequenceText);
             GUILayout.Label($"Connected: {state.Progress} / 3");

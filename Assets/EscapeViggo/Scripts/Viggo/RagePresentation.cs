@@ -1,5 +1,3 @@
-using EscapeViggo.Networking;
-using EscapeViggo.Player;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -10,14 +8,8 @@ namespace EscapeViggo.Viggo
     {
         private ViggoRage _rage;
         private void Awake() => _rage = GetComponent<ViggoRage>();
-        private void OnGUI()
-        {
-            if (!IsSpawned || !_rage.Active || !NetworkManager.IsConnectedClient) return;
-            var local = NetworkManager.LocalClient.PlayerObject;
-            if (local == null) return;
-            var viggo = local.GetComponent<NetworkPlayer>().Role == PlayerRole.Viggo;
-            GUI.Box(new Rect(Screen.width / 2f - 225, 25, 450, 35), viggo ?
-                "BATTERY MISSING! RAGE - pursue without resting" : "WARNING: VIGGO IS RAGING!");
-        }
+        public string WarningFor(bool viggo) => !IsSpawned || !_rage.Active ? string.Empty : viggo
+            ? "BATTERY MISSING - RAGE!\nPursue workers without resting."
+            : "VIGGO IS RAGING!\nRun, hide, and avoid being captured.";
     }
 }

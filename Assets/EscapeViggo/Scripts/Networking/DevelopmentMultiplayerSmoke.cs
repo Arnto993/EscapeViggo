@@ -76,10 +76,13 @@ namespace EscapeViggo.Networking
             yield return CheckInteraction();
             yield return CheckTask();
             yield return CheckScores();
+            yield return CaptureUi("task-complete");
             yield return CheckStamina();
             yield return CheckRest();
             yield return CheckBattery();
             yield return CheckRage();
+            Check(LocalHud.ShowsRage, "Local Rage warning missing.");
+            yield return CaptureUi("rage");
             yield return CheckCapture();
             if (EndDayStress) yield return PrepareActiveEndOfDay();
             yield return Until(() => _session.Workday != null && _session.Workday.State.Phase == MatchPhase.EndOfDay, "authoritative end of day", 120);
@@ -87,6 +90,7 @@ namespace EscapeViggo.Networking
             yield return Until(() => !_session.Workday.GetComponent<ViggoRage>().Active, "Rage ended with workday");
             Debug.Log("EV_WORKDAY END PASSED: EndOfDay 15:00");
             yield return CheckResults();
+            yield return CaptureUi("results");
             var scoring = _session.Workday.GetComponent<ScoreService>();
             var completedTask = FindFirstObjectByType<SimpleCircuitTask>();
             if (_host) Check(!scoring.TryAwardOnce(_session.Manager.LocalClient.PlayerObject.GetComponent<PlayerScore>(),
@@ -175,6 +179,9 @@ namespace EscapeViggo.Networking
             {
                 var local = player.IsOwner;
                 if (local) owned++;
+                var hud = player.GetComponent<PrototypeHud>();
+                Check(hud != null && hud.IsVisible == local, "HUD ownership mismatch.");
+                Check(hud.ShowsStamina == (local && player.Role == PlayerRole.Viggo), "Role HUD mismatch.");
                 Check(player.GetComponent<PlayerInputReader>().enabled == local, "Input ownership mismatch.");
                 Check(player.GetComponent<PlayerMovement>().enabled == local, "Movement ownership mismatch.");
                 Check(player.GetComponent<PlayerLook>().enabled == local, "Look ownership mismatch.");
@@ -494,6 +501,7 @@ namespace EscapeViggo.Networking
                 yield return Until(() => battery.State.Phase == BatteryPhase.BeingStolen, "theft start");
                 yield return new WaitForSecondsRealtime(0.7f);
                 Check(battery.State.Phase == BatteryPhase.AtDrill, "Missing hold pulses did not cancel theft.");
+                Check(LocalHud.Feedback.StartsWith("Theft cancelled"), "Theft cancellation feedback missing.");
                 BatteryPulse();
                 yield return Until(() => battery.State.Phase == BatteryPhase.BeingStolen, "range cancellation start");
                 PlaceForBattery(17, 2);
@@ -511,6 +519,9 @@ namespace EscapeViggo.Networking
                 BatteryPulse(); // Repeated completion cannot create another carrier/theft.
             }
             yield return Until(() => battery.State.Phase == BatteryPhase.Carried, "replicated battery theft");
+            yield return null;
+            Check(LocalHud.ShowsCarrier == !_host, "Carrier HUD exposed remotely or missing locally.");
+            Check(!LocalHud.ShowsRage, "HUD revealed theft before discovery.");
             Check(!battery.State.Discovered && battery.State.TheftId == 1 && battery.State.CarrierId == 2 &&
                 battery.State.OriginalThiefId == 2, "Incorrect carrier, original thief, secrecy or duplicate theft.");
             Check(!_session.Workday.GetComponent<ViggoRage>().Active, "Theft triggered Rage before discovery.");
@@ -803,6 +814,7 @@ namespace EscapeViggo.Networking
             yield return Until(() => _session.Workday == null || _session.Workday.State.Phase == MatchPhase.EndOfDay, "late observer end of day", 120);
             Check(_session.Workday != null, "Host disconnected before observer saw EndOfDay.");
             yield return CheckResults();
+            yield return CaptureUi("results");
             var frozenResults = ResultsText(_session.Workday.GetComponent<DailyResults>());
             _session.Disconnect();
             yield return Until(() => _session.CanStart && _session.PlayerCount == 0, "results observer disconnect");
@@ -816,6 +828,19 @@ namespace EscapeViggo.Networking
             yield return Until(() => _session.CanStart && _session.PlayerCount == 0, "observer cleanup");
             Debug.Log("EV_OBSERVER PASSED: three players, roles, completed task, scores, clock and EndOfDay.");
             Application.Quit(_failed ? 1 : 0);
+        }
+
+        private PrototypeHud LocalHud => _session.Manager.LocalClient.PlayerObject.GetComponent<PrototypeHud>();
+
+        private IEnumerator CaptureUi(string stage)
+        {
+            var directory = DevelopmentNetworkPanel.Argument("-ev-capture-dir");
+            if (string.IsNullOrEmpty(directory)) yield break;
+            yield return new WaitForEndOfFrame();
+            var pixels = ScreenCapture.CaptureScreenshotAsTexture();
+            Check(pixels != null, "UI screenshot unavailable.");
+            System.IO.File.WriteAllBytes(System.IO.Path.Combine(directory, (_host ? "host-" : "client-") + stage + "-ui.png"), pixels.EncodeToPNG());
+            Destroy(pixels);
         }
 
         private void CaptureCamera(Camera camera, string path)

@@ -112,6 +112,7 @@ GameObject:
   - component: {fileID: 6323220610234482820}
   - component: {fileID: 4803067508905276782}
   - component: {fileID: 4780060082646187279}
+  - component: {fileID: 747019749941230715}
   m_Layer: 0
   m_Name: NetworkPlayer
   m_TagString: Untagged
@@ -383,6 +384,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: EscapeViggo.Runtime::EscapeViggo.Player.PlayerCapture
   ShowTopMostFoldoutHeaderGroup: 1
   _settings: {fileID: 11400000, guid: 15d6b035bcc19b84fb244a30a97d28f1, type: 2}
+--- !u!114 &747019749941230715
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5300135973281005513}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 39d3963ae2d77cd4ab1367b28279a9f5, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: EscapeViggo.Runtime::EscapeViggo.Core.PrototypeHud
 --- !u!1 &8215181289536905387
 GameObject:
   m_ObjectHideFlags: 0

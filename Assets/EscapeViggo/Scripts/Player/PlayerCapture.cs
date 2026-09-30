@@ -72,10 +72,6 @@ namespace EscapeViggo.Player
             controller.enabled = true;
         }
 
-        private void OnGUI()
-        {
-            if (IsCaptured && IsOwner)
-                GUI.Box(new Rect(Screen.width / 2f - 175, 190, 350, 35), "Captured! Returning to worker spawn shortly.");
-        }
+
     }
 }

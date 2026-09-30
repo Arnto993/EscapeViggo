@@ -311,4 +311,17 @@ negative-request and late-results-join checks. Across M9–M14 checkpoints, the
 Edit/Play suites executed 300 passing cases (58 cases in the final suite), and
 seven successful three-process multiplayer runs covered the growing loop.
 
-Development stops after M14 for this request. M15 has not been started.
+M15 adds a local role/score/clock HUD, objectives and interaction feedback,
+private battery carry/progress/cancellation, stamina/rest/Javell, Rage warning,
+capture timeout, task/score notifications and readable frozen results. Escape
+releases controls and exposes the connection panel; diagnostics are optional.
+Task and results UI use a shared 1280x720 layout. Results include a disconnect
+button. All gameplay state still comes from the server.
+
+M15 engineering checks passed: 46 Edit Mode, 12 Play Mode, asset validation,
+Windows build and three-process full workday (`Logs/Multiplayer-20260930-121318`).
+The harness also verifies owner-only HUD, carrier secrecy, cancellation feedback
+and Rage warning. Camera renders work; attempted hidden-window UI screenshots
+are black and cannot establish visual correctness. Review the HUD, task buttons,
+results, readability at 1280x720/1920x1080 and mouse capture manually using the
+walkthrough above. M16 is next; M17 is outside this request.
