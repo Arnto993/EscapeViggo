@@ -29,7 +29,7 @@ namespace EscapeViggo.Networking
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Install()
         {
-            if (!DevelopmentNetworkPanel.HasArgument("-ev-smoke") && !DevelopmentNetworkPanel.HasArgument("-ev-observer")) return;
+            if (!DevelopmentNetworkPanel.HasArgument("-ev-smoke") && !DevelopmentNetworkPanel.HasArgument("-ev-observer") && !DevelopmentNetworkPanel.HasArgument("-ev-connection-smoke")) return;
             var session = FindFirstObjectByType<LocalNetworkSession>();
             if (session != null) session.gameObject.AddComponent<DevelopmentMultiplayerSmoke>();
         }
@@ -43,6 +43,11 @@ namespace EscapeViggo.Networking
 
         private IEnumerator Start()
         {
+            if (DevelopmentNetworkPanel.HasArgument("-ev-connection-smoke"))
+            {
+                yield return CheckConnectionFlow();
+                yield break;
+            }
             if (DevelopmentNetworkPanel.HasArgument("-ev-observer"))
             {
                 yield return CheckLateJoin();
@@ -110,6 +115,45 @@ namespace EscapeViggo.Networking
             _session.Disconnect();
             yield return Until(() => _session.CanStart && _session.PlayerCount == 0, "final cleanup");
             Debug.Log("EV_SMOKE PASSED " + (_host ? "HOST" : "CLIENT"));
+            Application.Quit(_failed ? 1 : 0);
+        }
+
+        private IEnumerator CheckConnectionFlow()
+        {
+            if (_host)
+            {
+                Check(!_session.ConfigurePlaytestDay("NaN"), "Invalid day configuration accepted.");
+                Check(_session.ConfigurePlaytestDay("0.5"), "Short day configuration rejected.");
+                Check(_session.StartHost("127.0.0.1", Port()), "Connection test host failed.");
+                yield return Until(() => _session.PlayerCount == 2, "retrying client", 40);
+                Check(Math.Abs(_session.Workday.DurationMinutes - 0.5) < 0.001, "Host preset not applied.");
+                Check(!_session.ConfigurePlaytestDay("5"), "Running day configuration changed.");
+            }
+            else
+            {
+                Check(_session.StartClient("127.0.0.1", (ushort)(Port() + 1)), "Unreachable client could not start.");
+                yield return Until(() => _session.CanStart, "failed connection cleanup", 25);
+                Check(_session.PlayerCount == 0 && _session.Status.Contains("retry"), "Connection failure lost retry guidance or remained stuck.");
+                Check(_session.StartClient("127.0.0.1", Port()), "Retry failed.");
+                yield return Until(() => _session.PlayerCount == 2, "successful connection retry");
+            }
+            yield return null;
+            CheckOwnership();
+            yield return Until(() => _session.Workday != null && _session.Workday.State.Phase == MatchPhase.EndOfDay, "configured short day", 45);
+            yield return Until(() => _session.Workday.GetComponent<DailyResultsPanel>().IsOpen, "connection test results");
+            if (_host)
+            {
+                yield return Until(() => _session.PlayerCount == 1, "connection client leaving results");
+                _session.Disconnect();
+                yield return Until(() => _session.CanStart, "connection host cleanup");
+                Check(_session.ConfigurePlaytestDay("0.1") && _session.StartHost("127.0.0.1", Port()), "Preset restart failed.");
+                yield return Until(() => _session.Workday != null && _session.PlayerCount == 1, "preset restart spawn");
+                Check(Math.Abs(_session.Workday.DurationMinutes - 0.1) < 0.001, "Restart did not use new preset.");
+            }
+            _session.Disconnect();
+            yield return Until(() => _session.CanStart && _session.PlayerCount == 0, "connection test cleanup");
+            Check(Cursor.lockState != CursorLockMode.Locked, "Disconnect left mouse locked.");
+            Debug.Log("EV_CONNECTION PASSED " + (_host ? "HOST" : "CLIENT"));
             Application.Quit(_failed ? 1 : 0);
         }
 
@@ -839,7 +883,13 @@ namespace EscapeViggo.Networking
             yield return new WaitForEndOfFrame();
             var pixels = ScreenCapture.CaptureScreenshotAsTexture();
             Check(pixels != null, "UI screenshot unavailable.");
-            System.IO.File.WriteAllBytes(System.IO.Path.Combine(directory, (_host ? "host-" : "client-") + stage + "-ui.png"), pixels.EncodeToPNG());
+            var colors = pixels.GetPixels32();
+            var visible = false;
+            for (var i = 0; i < colors.Length; i += 97)
+                if (colors[i].r > 4 || colors[i].g > 4 || colors[i].b > 4) { visible = true; break; }
+            if (visible)
+                System.IO.File.WriteAllBytes(System.IO.Path.Combine(directory, (_host ? "host-" : "client-") + stage + "-ui.png"), pixels.EncodeToPNG());
+            else Debug.Log("EV_UI_CAPTURE_UNAVAILABLE: hidden window backbuffer is black; use camera renders and manual UI review.");
             Destroy(pixels);
         }
 

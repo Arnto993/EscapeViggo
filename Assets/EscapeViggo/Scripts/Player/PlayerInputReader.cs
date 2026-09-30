@@ -84,6 +84,7 @@ namespace EscapeViggo.Player
 
         private void OnGUI()
         {
+            if (_networkPlayer != null) return; // Network pause/resume belongs to the connection menu.
             if (!GameplayStopped && !IsTaskModal && !IsCaptured && GUI.Button(new Rect(Screen.width / 2f - 90, Screen.height - 65, 180, 40), "Resume controls"))
                 CaptureCursor();
         }

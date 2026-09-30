@@ -160,6 +160,25 @@ namespace EscapeViggo.Tests
             }
         }
 
+        [Test]
+        public void TaskModalBlocksResumeAndClosingAllowsExplicitResume()
+        {
+            var input = _player.GetComponent<PlayerInputReader>();
+            input.enabled = true;
+            input.CaptureCursor();
+            Assert.That(input.IsCaptured, Is.True);
+            input.SetTaskModal(true);
+            input.CaptureCursor();
+            Assert.That(input.IsCaptured, Is.False, "Resume must not activate movement while task UI owns the mouse.");
+            input.SetTaskModal(false);
+            input.ReleaseCursor(); // Switching windows leaves an explicit resume path.
+            input.CaptureCursor();
+            Assert.That(input.IsCaptured, Is.True);
+            Assert.That(input.IsTaskModal, Is.False);
+            input.enabled = false;
+            Assert.That(input.IsCaptured, Is.False);
+        }
+
         private void Place(Vector3 position)
         {
             _controller.enabled = false;

@@ -17,9 +17,28 @@ namespace EscapeViggo.Networking
         [SerializeField] private NetworkWorkday _workdayPrefab;
         private readonly Dictionary<ulong, int> _slots = new();
         private AudioListener _overviewListener;
+        private bool _connecting;
+        private bool _connectionFailed;
+        private float _connectionDeadline;
+        [SerializeField, Min(1)] private float _connectionTimeoutSeconds = 12;
         public NetworkManager Manager => _manager;
         public string Status { get; private set; } = "Offline";
-        public bool CanStart => !_manager.IsListening && !_manager.ShutdownInProgress;
+        public bool CanStart => !_connecting && !_manager.IsListening && !_manager.ShutdownInProgress;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        public double? PlaytestDayMinutes { get; private set; }
+        public bool ConfigurePlaytestDay(string minutes)
+        {
+            if (!CanStart) return false;
+            if (string.IsNullOrEmpty(minutes)) { PlaytestDayMinutes = null; return true; }
+            if (!PlaytestOptions.TryParseDayMinutes(minutes, out var duration))
+            {
+                Status = "Day length must be 0.1-60 minutes.";
+                return false;
+            }
+            PlaytestDayMinutes = duration;
+            return true;
+        }
+#endif
         public NetworkWorkday Workday { get; private set; }
         public Battery.BatteryStation Battery { get; private set; }
         internal void RegisterBattery(Battery.BatteryStation battery) => Battery = battery;
@@ -68,16 +87,24 @@ namespace EscapeViggo.Networking
                 return false;
             }
             _slots.Clear();
+            _connectionFailed = false;
             _transport.SetConnectionData(address, port, host ? address : null);
             Status = host ? "Starting host..." : "Connecting...";
+            _connecting = !host;
+            _connectionDeadline = Time.unscaledTime + _connectionTimeoutSeconds;
             var started = host ? _manager.StartHost() : _manager.StartClient();
-            if (!started) Status = "Connection could not start. Check the Console/player log.";
+            if (!started)
+            {
+                _connecting = false;
+                Status = "Could not start. Check the IP/port; another host may already use this port.";
+            }
             return started;
         }
 
         public void Disconnect()
         {
             Status = "Disconnecting...";
+            _connecting = false;
             _manager.Shutdown();
         }
 
@@ -104,7 +131,10 @@ namespace EscapeViggo.Networking
         private void Connected(ulong clientId)
         {
             if (clientId == _manager.LocalClientId)
+            {
+                _connecting = false;
                 Status = _manager.IsHost ? "Host connected" : "Client connected";
+            }
             Debug.Log($"Local session connected client {clientId}.", this);
         }
 
@@ -112,20 +142,41 @@ namespace EscapeViggo.Networking
         {
             _slots.Remove(clientId);
             if (clientId == _manager.LocalClientId)
-                Status = string.IsNullOrEmpty(_manager.DisconnectReason) ? "Disconnected" : _manager.DisconnectReason;
+            {
+                if (_connecting)
+                    Status = string.IsNullOrEmpty(_manager.DisconnectReason)
+                        ? "Could not connect. Start the host and check the IP/port, then retry." : _manager.DisconnectReason;
+                else if (!_connectionFailed)
+                    Status = string.IsNullOrEmpty(_manager.DisconnectReason) ? "Disconnected. Start or join a host to play again." : _manager.DisconnectReason;
+                _connecting = false;
+            }
             Debug.Log($"Local session disconnected client {clientId}.", this);
         }
 
         private void Stopped(bool wasHost)
         {
             _slots.Clear();
+            _connecting = false;
+            if (Status == "Connecting...") Status = "Could not connect. Start the host and check the IP/port.";
             if (Status == "Disconnecting..." || Status == "Host connected" || Status == "Client connected") Status = "Offline";
         }
 
-        private void TransportFailed() => Status = "Transport failed. Check the address and port, then reconnect.";
+        private void TransportFailed()
+        {
+            _connectionFailed = true;
+            _connecting = false;
+            Status = "Transport failed. Check the address and port, then reconnect.";
+        }
 
         private void Update()
         {
+            if (_connecting && Time.unscaledTime >= _connectionDeadline)
+            {
+                _connecting = false;
+                _connectionFailed = true;
+                Status = "Connection timed out. Start the host and check the IP/port, then retry.";
+                _manager.Shutdown();
+            }
             var hasLocalPlayer = _manager.IsConnectedClient && _manager.LocalClient.PlayerObject != null;
             _overview.enabled = !hasLocalPlayer;
             _overviewListener.enabled = !hasLocalPlayer;

@@ -1,9 +1,9 @@
-param([int]$Port = 17777, [switch]$Graphics, [switch]$Observer, [switch]$EndDayStress)
+param([int]$Port = 17777, [switch]$Graphics, [switch]$Observer, [switch]$EndDayStress, [switch]$ConnectionOnly)
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot -Parent
 $playerPath = Join-Path $projectRoot 'Builds/Windows/EscapeViggo.exe'
 if (!(Test-Path -LiteralPath $playerPath)) { throw 'Build the Windows development player first.' }
-$runDirectory = Join-Path $projectRoot ('Logs/Multiplayer-' + (Get-Date -Format 'yyyyMMdd-HHmmss'))
+$runDirectory = Join-Path $projectRoot ('Logs/Multiplayer-' + (Get-Date -Format 'yyyyMMdd-HHmmss') + '-' + $Port)
 New-Item -ItemType Directory -Path $runDirectory -Force | Out-Null
 $processes = @()
 try {
@@ -11,6 +11,7 @@ try {
         $logPath = Join-Path $runDirectory "$mode.log"
         $arguments = @('-ev-smoke', "-ev-$mode", '-ev-port', $Port,
             '-logFile', ('"{0}"' -f $logPath))
+        if ($ConnectionOnly) { $arguments = @('-ev-connection-smoke', "-ev-$mode", '-ev-port', $Port, '-logFile', ('"{0}"' -f $logPath)) }
         if ($EndDayStress) { $arguments += '-ev-endday-stress' }
         if ($Graphics) {
             $arguments += @('-screen-width', '960', '-screen-height', '540',
@@ -25,7 +26,7 @@ try {
     $observerStarted = $false
     while (@($processes | Where-Object { !$_.HasExited }).Count -gt 0) {
         if ((Get-Date) -gt $deadline) { throw 'Multiplayer smoke test timed out.' }
-        if ($Observer -and !$observerStarted -and ((Get-Content (Join-Path $runDirectory 'host.log')) -match '^EV_TASK PASSED')) {
+        if (!$ConnectionOnly -and $Observer -and !$observerStarted -and ((Get-Content (Join-Path $runDirectory 'host.log')) -match '^EV_TASK PASSED')) {
             $observerArguments = @('-batchmode', '-nographics', '-ev-observer', '-ev-client', '-ev-port', $Port,
                 '-logFile', ('"{0}"' -f (Join-Path $runDirectory 'observer.log')))
             if ($EndDayStress) { $observerArguments += '-ev-endday-stress' }
@@ -41,6 +42,13 @@ try {
     }
     $hostLog = Get-Content (Join-Path $runDirectory 'host.log')
     $clientLog = Get-Content (Join-Path $runDirectory 'client.log')
+    if ($ConnectionOnly) {
+        if (!($hostLog -match 'EV_CONNECTION PASSED HOST') -or !($clientLog -match 'EV_CONNECTION PASSED CLIENT')) {
+            throw 'Connection lifecycle check failed.'
+        }
+        Write-Output "PASS: unreachable-host timeout, retry, configured workday/results, preset restart and cursor cleanup. Logs: $runDirectory"
+        return
+    }
     if (!($hostLog -match 'EV_SMOKE PASSED HOST') -or !($clientLog -match 'EV_SMOKE PASSED CLIENT')) {
         throw 'Missing success markers in player logs.'
     }
