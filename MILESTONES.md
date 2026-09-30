@@ -1179,6 +1179,26 @@ A new tester can understand the basic state of the game without watching the Uni
 
 ---
 
+## M15 Status — 2026-09-30
+
+Implemented and engineering validation passed; checkpoint commit `5f86d2a`.
+The local-owner HUD presents role, ID, score, phase/time, objectives, interaction,
+stamina/rest/Javell, private carrier status, theft progress/cancellation, Rage,
+capture timeout, task completion and score changes. Diagnostics are optional.
+Task UI and scrollable frozen results use a shared 1280x720 layout. Existing rest
+events and server authority remain intact; results still use M14 frozen data.
+
+Unity compilation, M1–M15 saved asset/reference validation and Windows build
+passed (`Logs/M15-*`). All 46 Edit Mode and 12 Play Mode tests passed. The
+three-process full-loop run `Logs/Multiplayer-20260930-121318` passed ownership,
+private carrier feedback, cancellation, Rage, existing gameplay regressions,
+reconnect, frozen results and host restart. Camera renders were inspected.
+Hidden-window framebuffer screenshots were black and do not establish IMGUI
+visual correctness. New-tester comprehension, readability and real mouse/button
+feel remain human acceptance checks in README, not claimed by automation.
+
+---
+
 # M16 — LOCAL MULTIPLAYER PLAYTEST BUILD
 
 ## Goal
@@ -1240,6 +1260,48 @@ At this point:
 Do NOT immediately expand scope.
 
 Playtest it first.
+
+---
+
+## M16 Status — 2026-09-30
+
+Implemented and engineering validation passed; checkpoint commit `b8e3d0e`.
+The connection menu supports Host/Client, IP/port, state/count, resume,
+sensitivity, disconnect and quit. Hosts select two-minute, five-minute (default)
+or asset-configured days. `-ev-day-minutes` is a runtime-only development override.
+`Tools/Start-LocalPlaytest.ps1` launches 2–8 normal interactive game windows.
+README includes **How to Playtest Escape Viggo**. No new gameplay mechanics.
+
+Connection attempts have a bounded timeout and retry guidance. A review found
+disconnect callbacks could overwrite failure guidance; final code preserves it
+through cleanup. The ordinary launcher never enables automated test fixtures.
+
+Validation:
+
+- Compilation, M1–M16 saved scene/prefab/reference validation and Windows
+  development build passed (`Logs/M16-final-build.log`).
+- All 53 Edit Mode and 13 Play Mode cases passed (`Logs/M16-*.xml`), including
+  invalid/locale-dependent duration input and modal resume/release regression.
+- Three processes completed the full workday, late join, battery contention,
+  capture, matching frozen results, reconnect and host restart
+  (`Logs/Multiplayer-20260930-122230-17777`).
+- The final build completed the two-process full loop with unfinished task and
+  active Rage at 15:00; both stopped, results agreed and restart passed
+  (`Logs/Multiplayer-20260930-122535-19777`, EndDayStress).
+- A separate final two-process run passed unreachable-host timeout, retained
+  retry guidance, retry connection, selected duration/results, preset change on
+  restart and cursor cleanup (`Logs/Multiplayer-20260930-122535-18777`).
+- Launcher PowerShell syntax passed. Camera renders were inspected. Hidden UI
+  captures are black and explicitly reported unavailable. Interactive launcher
+  window arrangement, IMGUI clicks/readability at 720p/1080p, input feel and
+  new-tester comprehension still require human judgement.
+
+No C# compiler warnings/errors or critical gameplay/network errors were found.
+Baseline Unity licensing/shutdown diagnostics remain. Automated checks establish
+local start-to-finish gameplay; human usability acceptance remains pending.
+The pre-existing five-minute Workday.asset edit remains outside these commits.
+Unrelated Unity-written build settings were restored. No editor, package,
+pipeline or scene architecture changes. Stopped after M16; no M17 work.
 
 ---
 
@@ -1540,6 +1602,6 @@ Wait for the next user instruction.
 
 # CURRENT TARGET
 
-M0–M14 are complete. The authorized M9–M14 sequence is finished, with validation
-and a local commit per checkpoint. Stopped after M14. Do not begin M15 without
-a new explicit request.
+M0–M14 remain the stable baseline. M15 and M16 implementation and engineering
+checks passed, with separate local commits. Human UI/usability acceptance remains
+pending as documented above. Stopped after M16. M17 is not authorized.
