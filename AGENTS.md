@@ -1,987 +1,270 @@
 # ESCAPE VIGGO — CODEX PROJECT INSTRUCTIONS
 
-This file contains persistent instructions for any coding agent working in this repository.
+This file contains persistent instructions for coding agents working in this repository.
+Keep this file short, stable, and operational. Do not turn it into milestone history.
 
-Read this file before making changes.
+## 1. Project
 
-Also read:
+- Project: **Escape Viggo**
+- Engine: **Unity 6.3 LTS**
+- Rendering: **Universal Render Pipeline**
+- Language: **C#**
+- Architecture: **GameObject / MonoBehaviour**
+- Networking: **Netcode for GameObjects**
+- Online services: **Unity Multiplayer Services / Sessions / Relay**
+- Input: **Unity Input System**
+- Primary platform: **Windows PC**
+- Target match size: approximately **5–8 players**
 
-- `GAME_SPEC.md`
-- `MILESTONES.md`
+Do not change the Unity editor version, render pipeline, networking framework, or core platform direction unless the user explicitly requests it.
 
-The three documents have different purposes:
+## 2. Read Context Efficiently
 
-- `GAME_SPEC.md` defines the game.
-- `MILESTONES.md` defines what should be built and in what order.
-- `AGENTS.md` defines how you must work.
+Before a meaningful change, read in this order:
 
----
+1. `AGENTS.md`.
+2. `CURRENT_STATE.md`.
+3. The active milestone or explicitly requested section of `MILESTONES.md`.
+4. Relevant existing code, prefabs, scenes, configuration, and tests.
 
-# 1. Project
+Then read **only the relevant sections** of other documentation when needed:
 
-Project name:
+- `GAME_SPEC.md` — canonical game design and gameplay intent.
+- `CHARACTER_ART_SPECS.md` — character modelling, rigging, animation, and character art work.
+- `ART_DIRECTION_PROPS.md` — prop and environment art work.
+- `README.md` — player/testing instructions and operational setup when relevant.
+- `MILESTONE_HISTORY.md` — historical evidence only when debugging a regression or investigating why an old decision exists.
 
-**Escape Viggo**
+Do **not** reread complete large design/history documents by default.
+Search or open the specific heading relevant to the task.
 
-Engine:
+If `CURRENT_STATE.md` conflicts with the repository, the repository is the source of truth. Correct `CURRENT_STATE.md` as part of the task when appropriate.
 
-**Unity 6.3 LTS**
+## 3. Scope
 
-Rendering:
-
-**Universal Render Pipeline**
-
-Language:
-
-**C#**
-
-Primary platform:
-
-**Windows PC**
-
-Architecture:
-
-**GameObject / MonoBehaviour**
-
-Networking:
-
-**Netcode for GameObjects**
-
-Online session services:
-
-**Unity Multiplayer Services**
-
-Input:
-
-**Unity Input System**
-
----
-
-# 2. Primary Rule
-
-Build the game incrementally.
-
-Do NOT attempt to implement the entire GAME_SPEC in one task.
-
-Only implement:
+Implement only:
 
 1. The user's explicit request.
-2. The currently active milestone in `MILESTONES.md`.
-3. Small supporting changes required to make that milestone work.
+2. The active milestone if the user requested milestone work.
+3. Small supporting changes required to make that work correct.
 
-Do not implement later milestones simply because they appear easy.
+Do not automatically implement later milestones, backlog items, or adjacent features.
+Stop when the requested scope is complete.
 
----
+For an unspecified small decision, choose the simplest reversible option and make it configurable when useful.
+Do not silently invent major design decisions.
 
-# 3. Before Changing Code
-
-Before making meaningful changes:
-
-1. Read `GAME_SPEC.md`.
-2. Read `MILESTONES.md`.
-3. Inspect the existing project.
-4. Identify the currently relevant milestone.
-5. Inspect related existing code before creating new systems.
-6. Reuse working architecture where reasonable.
-
-Do not assume that the repository still matches an earlier prompt.
-
-The repository is the current source of truth for implementation state.
-
----
-
-# 4. Preserve Working Behaviour
-
-Do not rewrite working systems unnecessarily.
+## 4. Preserve Working Architecture
 
 Prefer:
 
-- Small changes.
-- Local changes.
-- Clear changes.
-- Reversible changes.
+- small changes;
+- local changes;
+- clear responsibilities;
+- composition over inheritance;
+- reusable existing systems;
+- configurable gameplay tuning;
+- reversible implementation choices.
 
-Avoid broad refactors unless:
+Do not broadly refactor working systems unless:
 
-- The current architecture prevents the requested feature.
-- There is a demonstrated technical problem.
-- The user explicitly requests the refactor.
+- the current architecture blocks the requested feature;
+- there is a demonstrated technical problem; or
+- the user explicitly requests the refactor.
 
 A new feature is not permission to redesign unrelated code.
 
----
+Avoid giant managers, unnecessary singletons, deep inheritance, static mutable gameplay state, and abstractions created only for imagined future needs.
 
-# 5. Keep the Project Buildable
+## 5. Multiplayer Authority
 
-The Unity project should remain compilable after every meaningful implementation step.
+Important gameplay state remains host/server authoritative.
 
-Before considering a task complete:
+The authority owns, where applicable:
 
-- Resolve C# compiler errors caused by your changes.
-- Resolve missing references caused by your changes.
-- Run relevant automated tests when available.
-- Check for obvious Unity console errors if tooling permits it.
+- role assignment;
+- match/week/day state;
+- authoritative time;
+- task state and completion;
+- scoring;
+- battery state, carrier, theft, and discovery;
+- Viggo stamina/rest and Rage state;
+- captures;
+- Viggo distractions and power state;
+- day/week results.
 
-Do not knowingly finish a task with a broken compilation state.
+Clients may own local input and presentation.
+Clients must not award themselves authoritative outcomes.
+Never trust a client-provided score or completion result.
+Prefer client intentions followed by server-side validation.
 
----
+Do not redesign the project as an MMO, competitive shooter, lockstep simulation, or dedicated-server game. This is a small party game using a listen-server model.
 
-# 6. Unity Version
+## 6. Unity and Assets
 
-Do NOT:
+Use official Unity packages where practical. Do not add third-party packages without a clear requirement.
 
-- Upgrade Unity.
-- Downgrade Unity.
-- Change the project's Unity editor version.
-- Migrate the project to another render pipeline.
+Do not casually hand-edit large Unity scene/prefab YAML files.
+Prefer Unity editor operations or focused editor automation when practical.
+Never invent GUIDs or arbitrarily regenerate existing `.meta` files.
 
-The project targets:
-
-**Unity 6.3 LTS**
-
----
-
-# 7. Package Management
-
-Do not add third-party packages without a clear requirement.
-
-Prefer official Unity packages.
-
-Current intended technologies include:
-
-- Universal Render Pipeline.
-- Unity Input System.
-- Netcode for GameObjects.
-- Unity Transport.
-- Unity Multiplayer Services.
-- Unity Test Framework.
-- Multiplayer testing tools where useful.
-
-When installing Unity packages:
-
-- Prefer versions compatible with the current Unity editor.
-- Prefer released/stable versions shown as compatible by Unity Package Manager.
-- Do not deliberately choose experimental or pre-release versions unless required and explicitly justified.
-- Do not manually edit package lock data unless necessary.
-
-Do not replace Netcode for GameObjects with:
-
-- Mirror.
-- FishNet.
-- Photon.
-- Netcode for Entities.
-- A custom networking framework.
-
-unless the user explicitly changes the technical direction.
-
----
-
-# 8. Networking Authority
-
-Escape Viggo uses host/server-authoritative gameplay for important state.
-
-The authority must control:
-
-- Role assignment.
-- Match state.
-- Workday timer.
-- Task completion.
-- Scoring.
-- Battery state.
-- Battery carrier.
-- Battery discovery.
-- Viggo Rage Mode.
-- Captures.
-- End-of-day state.
-
-Clients may own local input.
-
-Clients must not independently award themselves gameplay outcomes.
-
-Never trust a client-provided score value.
-
-Prefer client requests followed by server-side validation.
-
----
-
-# 9. Networking Philosophy
-
-This is an approximately 5–8 player party game.
-
-Do not design networking as if this were:
-
-- A 128-player shooter.
-- An MMO.
-- A deterministic lockstep simulation.
-- A dedicated esports server.
-
-Priorities are:
-
-1. Correct shared state.
-2. Reasonable responsiveness.
-3. Simple architecture.
-4. Easy multiplayer testing.
-5. Security against obvious client authority mistakes.
-
-Do not prematurely optimize networking.
-
----
-
-# 10. Host Architecture
-
-Initial architecture should support a listen server:
-
-- One player is host/server.
-- That same player is also a local client.
-- Other players connect as clients.
-
-Dedicated servers are not part of the prototype.
-
-Do not introduce dedicated-server infrastructure unless a later milestone requests it.
-
----
-
-# 11. Multiplayer Development Order
-
-Networking should be implemented progressively:
-
-1. Local host/client networking.
-2. Player spawning.
-3. Movement synchronization.
-4. Authoritative shared gameplay systems.
-5. Local multiplayer testing.
-6. Session/join-code flow.
-7. Relay/internet connectivity.
-
-Do not start with matchmaking.
-
----
-
-# 12. C# Style
-
-Prefer readable modern C# supported by Unity.
-
-Naming:
-
-- Classes: `PascalCase`
-- Public properties: `PascalCase`
-- Methods: `PascalCase`
-- Private fields: `_camelCase`
-- Local variables: `camelCase`
-- Interfaces: `IName`
-- Constants: follow established project convention
-
-Use meaningful names.
-
-Avoid abbreviations unless universally obvious.
-
-Good:
-
-`WorkdayClock`
-
-`BatteryState`
-
-`ViggoStamina`
-
-Bad:
-
-`WDC`
-
-`BatMgr`
-
-`StuffController`
-
----
-
-# 13. Components
-
-MonoBehaviours should have focused responsibilities.
-
-Prefer:
-
-`PlayerMovement`
-
-`PlayerInteraction`
-
-`ViggoStamina`
-
-`BatteryStation`
-
-`ScoreService`
-
-over:
-
-`EverythingManager`
-
-Do not create a single giant `GameManager` containing unrelated gameplay.
-
-A small coordinator responsible for match state is acceptable.
-
----
-
-# 14. Composition Over Inheritance
-
-Prefer composing GameObjects from focused components.
-
-Avoid deep gameplay inheritance trees.
-
-For example, do not create:
-
-`Entity -> Person -> Worker -> Electrician -> PlayerElectrician`
-
-unless there is a genuine need.
-
-Use role/state/components where simpler.
-
----
-
-# 15. Global State
-
-Avoid unnecessary:
-
-- Static mutable state.
-- Global service locators.
-- Singleton proliferation.
-
-A small number of explicit persistent services may be appropriate.
-
-Networking systems should integrate cleanly with `NetworkManager`.
-
----
-
-# 16. ScriptableObjects
-
-Use ScriptableObjects when they improve editable configuration.
-
-Good candidates:
-
-- Movement tuning.
-- Viggo tuning.
-- Match timing.
-- Score values.
-- Task definitions.
-- Audio definitions.
-
-Do not move runtime mutable network state into ScriptableObjects.
-
-ScriptableObjects are configuration assets, not authoritative multiplayer state.
-
----
-
-# 17. Hard-Coded Values
-
-Do not scatter gameplay constants throughout code.
-
-Important tuning should be adjustable.
-
-Examples:
-
-- Movement speed.
-- Day duration.
-- Stamina.
-- Rest duration.
-- Rage speed.
-- Task rewards.
-- Battery rewards.
-- Capture range.
-- Capture penalty.
-- Interaction duration.
-
-Use serialized configuration or appropriate ScriptableObjects.
-
----
-
-# 18. Input
-
-Use Unity's Input System.
-
-Gameplay code should respond to actions rather than directly checking arbitrary hard-coded keys throughout multiple scripts.
-
-Initial controls:
-
-- WASD movement.
-- Mouse look.
-- Shift sprint.
-- Space jump.
-- Ctrl/C crouch.
-- E interact.
-
-The exact bindings may later change.
-
----
-
-# 19. Interaction System
-
-Prefer one reusable player interaction mechanism.
-
-The player should not contain separate raycast code for:
-
-- Battery.
-- Tasks.
-- Doors.
-- Viggo interactions.
-
-Use a small reusable abstraction such as an interactable interface or component where appropriate.
-
-Do not build a complex interaction framework before it is needed.
-
----
-
-# 20. Game State
-
-Prefer explicit match phases/states.
-
-Avoid large collections of loosely related booleans.
-
-The current game phase should have one clear authoritative source.
-
-Potential states include:
-
-- Lobby
-- Preparing
-- Workday
-- EndOfDay
-- Results
-
-Rage Mode may be represented as an independent modifier/state when appropriate.
-
----
-
-# 21. UI Separation
-
-Do not let UI own important gameplay state.
-
-UI should:
-
-- Read gameplay state.
-- Present gameplay state.
-- Send allowed player intentions.
-
-UI should not:
-
-- Determine scores.
-- Advance the authoritative timer.
-- Decide who has the battery.
-- Decide if Rage Mode starts.
-
----
-
-# 22. Presentation Separation
-
-Whenever practical, separate:
-
-**Game state**
-
-from:
-
-**Presentation**
-
-Examples:
-
-Rage state decides that Viggo is raging.
-
-Separate presentation may:
-
-- Play sound.
-- Show UI.
-- Trigger animation.
-- Add camera effect.
-
-This allows placeholder presentation during prototype development.
-
----
-
-# 23. Scenes
-
-Keep the number of scenes small during early development.
-
-Expected early scenes:
-
-- `Bootstrap`
-- `MainMenu`
-- `PrototypeWorksite`
-
-Do not create one scene per system.
-
----
-
-# 24. Scene and Prefab Editing
-
-Unity scene and prefab files are serialized assets.
-
-Do not casually make large hand-written YAML modifications.
-
-Prefer:
-
-- Unity editor operations when available.
-- Editor scripts for repeatable setup.
-- Prefab construction through Unity APIs where practical.
-
-If text modification of Unity YAML is necessary:
-
-- Make the smallest possible change.
-- Preserve file structure.
-- Preserve references.
-- Never invent GUIDs.
-
----
-
-# 25. Meta Files
-
-Never arbitrarily delete or regenerate `.meta` files for existing assets.
-
-Do not manually invent asset GUIDs.
-
-When moving assets:
-
-- Preserve their associated `.meta` files.
-
-Broken GUID references can corrupt scenes and prefabs.
-
----
-
-# 26. Generated Unity Directories
-
-Never treat these as source code:
+Do not edit or commit generated Unity directories such as:
 
 - `Library/`
 - `Temp/`
 - `Logs/`
 - `obj/`
 
-Do not edit them.
+Keep source assets and runtime Unity assets separated according to the established repository structure.
 
-Do not commit them.
+## 7. Gameplay and Presentation Separation
 
-Do not depend on their contents.
-
----
-
-# 27. Assets Structure
-
-Prefer a clean structure similar to:
-
-`Assets/EscapeViggo/Art`
-
-`Assets/EscapeViggo/Audio`
-
-`Assets/EscapeViggo/Materials`
-
-`Assets/EscapeViggo/Prefabs`
-
-`Assets/EscapeViggo/Scenes`
-
-`Assets/EscapeViggo/Scripts`
-
-`Assets/EscapeViggo/ScriptableObjects`
-
-`Assets/EscapeViggo/UI`
-
-`Assets/EscapeViggo/Tests`
-
-Inside `Scripts`, organize by feature rather than creating dozens of tiny technical folders.
-
-Potential feature areas:
-
-- Core
-- Networking
-- Player
-- Interaction
-- Tasks
-- Battery
-- Viggo
-- Scoring
-- UI
-
-Follow the existing project structure if it has already stabilized.
-
----
-
-# 28. Namespaces
-
-Use a project namespace.
-
-Preferred root:
-
-`EscapeViggo`
+Gameplay state owns outcomes. Presentation reads state and reacts to it.
 
 Examples:
 
-`EscapeViggo.Player`
+- Rage state decides whether Viggo is raging; audio/animation/UI present it.
+- Task state decides completion; sounds and effects react to completion.
+- Capture state decides a capture; presentation shows feedback.
 
-`EscapeViggo.Tasks`
+Animation, UI, VFX, and audio must not become the authoritative owner of gameplay state.
 
-`EscapeViggo.Networking`
+## 8. Configuration
 
-Do not create excessive namespace nesting.
+Do not scatter important tuning values through code.
+Reuse established configuration assets and ScriptableObjects where appropriate.
 
----
+Typical configurable values include movement, stamina, rest, Rage, interactions, capture, task rewards, distraction timing, power timing, day duration, and audio/presentation tuning.
 
-# 29. Assembly Definitions
+ScriptableObjects are configuration assets, not authoritative mutable multiplayer state.
 
-Assembly definitions may be introduced when useful for:
+## 9. Testing Strategy
 
-- Runtime/editor separation.
-- Tests.
-- Compilation boundaries.
+Use the **lowest validation tier that gives credible evidence for the current change**.
+Escalate when risk or scope requires it.
 
-Do not create many assembly definitions without a practical benefit.
+### Tier 1 — Targeted change
 
-Editor-only code must not leak into runtime builds.
+Use for small/local implementation work.
 
----
+- Compile affected code.
+- Run directly relevant Edit Mode/Play Mode tests.
+- Validate directly affected assets/references when applicable.
 
-# 30. Editor Scripts
+Do not run the complete multiplayer/Relay suite for an isolated presentation, documentation, or local UI change unless there is a concrete reason.
 
-Editor automation is encouraged when it makes agent-driven development safer.
+### Tier 2 — Feature integration
 
-Possible uses:
+Use when a feature crosses gameplay systems, networking, scenes, prefabs, or shared state.
 
-- Construct prototype scenes.
-- Create configuration assets.
-- Validate project setup.
-- Generate development prefabs.
-- Verify required components.
+- Compile.
+- Run relevant Edit Mode and Play Mode suites.
+- Run focused multiplayer validation when network behaviour is affected.
+- Validate scene/prefab integration.
 
-Place editor-only code inside `Editor` folders.
+### Tier 3 — Milestone/checkpoint regression
 
-Do not require editor scripts for normal runtime gameplay.
+Use when completing a milestone or changing central networking/authority/session architecture.
 
----
+- Full compilation and asset validation.
+- Full relevant Edit Mode and Play Mode suites.
+- Windows development build when applicable.
+- Baseline multiplayer regression.
+- Relay/online regression when the milestone affects or could regress online multiplayer.
 
-# 31. Testing
+Do not repeatedly run expensive full-week + Relay validation during every intermediate edit. Run it at meaningful checkpoints.
 
-Write automated tests for deterministic gameplay logic where practical.
+Never claim a test passed if it was not run successfully.
+Human fun, readability, feel, and balance must be reported as human acceptance items when automation cannot establish them.
 
-Good test targets:
+## 10. Code Quality
 
-- Workday time conversion.
-- Score calculations.
-- Battery state transitions.
-- Match phase transitions.
-- Stamina logic that can be isolated from frame/input dependencies.
-- Task state rules.
+Prefer readable modern C# supported by the current Unity version.
 
-Do not create meaningless tests that merely duplicate implementation.
+Conventions:
 
-Gameplay requiring full networking or physics may need integration/manual tests.
+- Classes/methods/public properties: `PascalCase`
+- Private fields: `_camelCase`
+- Local variables: `camelCase`
+- Interfaces: `IName`
 
----
+MonoBehaviours should have focused responsibilities.
+Reuse the existing interaction/task/scoring/presentation architecture instead of duplicating systems per feature.
 
-# 32. Multiplayer Testing
+Avoid obvious performance problems such as repeated global searches every frame, unnecessary allocations in `Update`, excessive physics queries, and unnecessary per-frame network traffic.
+Do not prematurely optimize beyond demonstrated needs.
 
-Every networked milestone should include a manual verification path.
+## 11. Git Discipline
 
-Document how to verify:
+Before major work, inspect Git state.
 
-- Start host.
-- Start client.
-- Observe synchronization.
-- Trigger the new mechanic.
-- Confirm both instances agree.
+- Do not delete or revert unrelated user changes.
+- Keep changes logically scoped.
+- Do not rewrite history unless explicitly requested.
+- Do not push unless the user explicitly asks.
+- Commit only when the user/task requests a commit.
+- Use concise descriptive commit messages.
 
-When automated multiplayer tests are practical, add them.
+Art/design documents supplied by the user must not be modified unless the current task explicitly requires it.
 
-Do not claim multiplayer functionality is verified solely because one local player works.
+Never write credentials, secrets, or tokens into source files.
 
----
+## 12. Documentation Discipline
 
-# 33. Debug Tools
+Keep active operational documentation concise.
 
-Development-only debug tools are encouraged.
+### `CURRENT_STATE.md`
 
-Examples:
+Update it after meaningful architecture or milestone changes.
+Replace obsolete information instead of appending a chronological diary.
+It should remain a fast map of the current repository.
 
-- Short workday duration.
-- Force Rage Mode.
-- Refill/deplete stamina.
-- Award points.
-- Reset battery.
-- Display current network state.
+### `MILESTONES.md`
 
-Debug functionality must be clearly separated from normal production behaviour.
+Keep roadmap, active requirements, acceptance criteria, and short status summaries.
+Do not store long test transcripts or debugging narratives here.
 
-Do not ship debug UI accidentally.
+### `MILESTONE_HISTORY.md`
 
----
+Store historical checkpoint notes only when worth preserving.
+Agents do not need to read it by default.
 
-# 34. Logging
+### `README.md`
 
-Use useful logs during development.
+Keep player-facing setup, build, playtest, and operational instructions that humans actually need.
+Do not duplicate internal milestone history there.
 
-Include context.
+## 13. Definition of Done
 
-Good:
+A requested feature is done only when, as applicable:
 
-`Battery stolen by client 3`
+- code compiles;
+- required assets/references exist;
+- it is wired into the relevant scene/prefab;
+- it can actually be exercised;
+- multiplayer behaviour is verified when relevant;
+- relevant tests pass;
+- no known critical errors were introduced.
 
-Bad:
+For a milestone, its acceptance criteria must also be satisfied.
+If human acceptance remains, say so explicitly instead of claiming full completion.
 
-`working`
+## 14. Completion Report
 
-Avoid console spam every frame.
+At the end of meaningful work, report concisely:
 
-Remove or reduce noisy temporary logs after diagnosing issues.
+1. What changed.
+2. Important files/systems changed.
+3. Validation performed and validation tier used.
+4. Anything not verified.
+5. Exact manual test the user should perform, if useful.
+6. Whether the requested scope/milestone acceptance criteria are satisfied.
+7. The local commit hash, if a commit was requested and created.
 
----
+Do not automatically begin the next milestone.
 
-# 35. Error Handling
+## 15. Core Engineering Principle
 
-Fail clearly.
-
-If a required reference is missing:
-
-- Produce a useful error.
-- Avoid silent undefined behaviour.
-
-Do not wrap large sections in empty catch blocks.
-
----
-
-# 36. Performance
-
-Do not optimize prematurely.
-
-However:
-
-Avoid obvious problems such as:
-
-- `FindObjectOfType` repeatedly every frame.
-- Unbounded allocations in `Update`.
-- Sending network messages every frame when not needed.
-- Excessive physics queries.
-- Recreating UI repeatedly.
-
-Optimize only when architecture or profiling gives a reason.
-
----
-
-# 37. Physics
-
-Use physics consistently.
-
-Do not mix unrelated movement approaches without reason.
-
-Character movement should initially use one clear implementation.
-
-Do not introduce advanced custom physics unless normal Unity systems fail to meet the game's needs.
-
----
-
-# 38. Placeholder Assets
-
-Use placeholders freely.
-
-Prototype visuals may use:
-
-- Capsules.
-- Cubes.
-- Unity primitives.
-- Simple materials.
-- Text labels.
-
-Do not search for or import arbitrary copyrighted assets to make the prototype prettier.
-
-Gameplay progress is more important.
-
----
-
-# 39. Viggo Placeholder
-
-Until a real character is provided:
-
-Represent Viggo with a clearly different placeholder.
-
-Examples:
-
-- Larger capsule.
-- Wider scale.
-- Distinct material.
-- Floating "VIGGO" label during development.
-
-Do not attempt to generate a realistic likeness from code.
-
----
-
-# 40. Audio Placeholders
-
-Gameplay must function with no final voice/audio assets.
-
-If required:
-
-- Use temporary neutral audio.
-- Use visible debug text.
-- Expose audio hooks for later clips.
-
-Do not block functionality on voice files.
-
----
-
-# 41. Documentation
-
-When adding a major system, update relevant project documentation if its usage is not obvious.
-
-Keep documentation concise and useful.
-
-Do not generate large redundant design documents inside the repository.
-
-`GAME_SPEC.md` remains the primary design source.
-
----
-
-# 42. MILESTONES.md
-
-`MILESTONES.md` is the development roadmap.
-
-Do not mark a milestone complete merely because code exists.
-
-A milestone is complete only when its acceptance criteria are satisfied.
-
-If tooling prevents verification:
-
-- State what was implemented.
-- State what remains unverified.
-- Do not pretend it passed.
-
----
-
-# 43. Active Milestone
-
-Unless the user explicitly names another target, work on the earliest milestone in `MILESTONES.md` whose acceptance criteria have not yet been met.
-
-Do not automatically start the next milestone in the same task unless explicitly requested.
-
----
-
-# 44. Scope Creep
-
-Do not implement ideas listed under future possibilities simply because they appear in `GAME_SPEC.md`.
-
-Examples of prohibited premature work:
-
-- Voice chat.
-- Steam integration.
-- Character cosmetics.
-- Multiple maps.
-- Complex inventory.
-- Matchmaking.
-- Dedicated servers.
-
-unless the relevant milestone or user explicitly requests them.
-
----
-
-# 45. New Design Decisions
-
-When a small unspecified decision is necessary:
-
-1. Choose the simplest reversible option.
-2. Make it configurable if appropriate.
-3. Document the assumption briefly.
-
-When a major design decision is necessary:
-
-Do not silently invent it.
-
-Surface the decision to the user when possible.
-
----
-
-# 46. User Intent
-
-The user is intentionally using Codex to perform a large portion of implementation.
-
-Therefore optimize the repository for:
-
-- Agent readability.
-- Predictable structure.
-- Easy validation.
-- Small independent systems.
-- Clear names.
-- Repeatable setup.
-
-Avoid clever code that is difficult for future agents or humans to understand.
-
----
-
-# 47. Git Discipline
-
-Keep changes logically scoped.
-
-Before major changes, inspect Git state.
-
-Do not delete unrelated user changes.
-
-Do not revert changes you did not create unless explicitly requested.
-
-Avoid committing generated Unity directories.
-
-If instructed to commit:
-
-- Use descriptive commit messages.
-- Keep commits coherent.
-
-Do not rewrite Git history unless explicitly instructed.
-
----
-
-# 48. Do Not Touch
-
-Do not modify:
-
-- User documents unrelated to the task.
-- IDE configuration unnecessarily.
-- Machine-wide configuration.
-- Unity installation.
-- Credentials.
-- Secrets.
-- External accounts.
-
-Never put secret tokens or credentials into source files.
-
----
-
-# 49. Completion Report
-
-At the end of a meaningful Codex task, summarize:
-
-1. What was implemented.
-2. Important files created or changed.
-3. Tests/checks performed.
-4. Anything that could not be verified.
-5. The exact manual Unity test the user should perform.
-6. Whether the active milestone's acceptance criteria are satisfied.
-
-Keep this report concise.
-
----
-
-# 50. Definition of Done
-
-A feature is not done merely because scripts were created.
-
-For a feature to be considered done:
-
-- Code compiles.
-- Required assets/references exist.
-- It is wired into the relevant scene/prefab.
-- It can actually be exercised.
-- Multiplayer behaviour is verified when relevant.
-- Relevant tests pass.
-- There are no known critical errors introduced by the change.
-
----
-
-# 51. Most Important Engineering Principle
-
-When choosing between:
-
-**A large sophisticated solution**
-
-and:
-
-**A smaller clear solution that satisfies the current milestone**
-
-choose the smaller clear solution.
+When choosing between a large sophisticated solution and a smaller clear solution that satisfies the current task, choose the smaller clear solution.
 
 Build Escape Viggo one reliable system at a time.
