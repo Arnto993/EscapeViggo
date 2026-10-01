@@ -10,7 +10,7 @@ try {
     for ($i = 0; $i -lt $Players; $i++) {
         $mode = if ($i -eq 0) { '-ev-host' } else { '-ev-client' }
         $arguments = @('-batchmode', '-nographics', '-ev-week-smoke', $mode, '-ev-port', $Port,
-            '-ev-day-minutes', '0.75', '-ev-week-peers', $Players, '-ev-week-sync-dir', ('"{0}"' -f $runDirectory),
+            '-ev-day-minutes', '1', '-ev-week-peers', $Players, '-ev-week-sync-dir', ('"{0}"' -f $runDirectory),
             '-logFile', ('"{0}"' -f (Join-Path $runDirectory "player$i.log")))
         if ($Online) {
             $arguments += @('-ev-online', '-ev-online-profile', "week_$i")
@@ -28,7 +28,7 @@ try {
             }
         }
     }
-    $deadline = (Get-Date).AddSeconds(380)
+    $deadline = (Get-Date).AddSeconds(450)
     while (@($processes | Where-Object { !$_.HasExited }).Count -gt 0) {
         if ((Get-Date) -gt $deadline) { throw "Week timed out. Logs: $runDirectory" }
         foreach ($process in $processes) { if ($process.HasExited -and $process.ExitCode -ne 0) { throw "Week player failed. Logs: $runDirectory" } }
@@ -36,8 +36,14 @@ try {
     }
     $reference = @()
     for ($i = 0; $i -lt $Players; $i++) {
+        if ($processes[$i].ExitCode -ne 0) { throw "Player $i exited with an error. Logs: $runDirectory" }
         $log = Get-Content (Join-Path $runDirectory "player$i.log")
         if (!($log -match '^EV_WEEK PASSED')) { throw "Missing success for player $i. Logs: $runDirectory" }
+        foreach ($kind in @('VoltageMeasurement', 'OutletReplacement', 'BreakerInstallation')) {
+            if (@($log | Where-Object { $_ -match "^EV_ELECTRICAL PASSED day=\d kind=$kind " }).Count -ne 5) {
+                throw "Expected $kind validation on all five days for player $i. Logs: $runDirectory"
+            }
+        }
         $days = @($log | Where-Object { $_ -match '^EV_WEEK_DAY ' })
         if ($days.Count -ne 5) { throw 'Expected five daily snapshots.' }
         if ($i -eq 0) { $reference = $days }

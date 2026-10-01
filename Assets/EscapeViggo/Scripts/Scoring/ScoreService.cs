@@ -16,6 +16,7 @@ namespace EscapeViggo.Scoring
         private readonly ScoreAwardLedger _ledger = new();
         private NetworkWorkday _workday;
         public ScoreSettings Settings => _settings;
+        internal bool HasActiveTask(ulong worker) => _tasks.Exists(task => task != null && task.State.Phase == WorkTaskPhase.InProgress && task.State.WorkerId == worker);
         private void Awake() => _workday = GetComponent<NetworkWorkday>();
 
         internal void RegisterTask(WorkTask task)
@@ -33,7 +34,7 @@ namespace EscapeViggo.Scoring
             var player = client.PlayerObject.GetComponent<NetworkPlayer>();
             if (player.Role != PlayerRole.Electrician) return;
             var score = player.GetComponent<PlayerScore>();
-            if (TryAwardOnce(score, task.NetworkObject, 0, Mathf.Max(0, _settings.CircuitTaskPoints))) score.RecordTaskOnServer();
+            if (TryAwardOnce(score, task.NetworkObject, 0, Mathf.Max(0, task.Reward(_settings)))) score.RecordTaskOnServer();
         }
 
         internal void AwardCapture(PlayerCapture target, NetworkPlayer captor, bool wasCarrier)

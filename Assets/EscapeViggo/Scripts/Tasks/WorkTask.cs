@@ -17,11 +17,15 @@ namespace EscapeViggo.Tasks
         public event Action<WorkTaskState> StateChanged;
         public event Action<WorkTask, ulong> CompletedOnServer;
         public override string Prompt => "Start electrical task";
+        public virtual string Title => "SIMPLE CIRCUIT";
+        public virtual int Reward(Scoring.ScoreSettings settings) => settings.CircuitTaskPoints;
+        protected void RefreshPresentation() => StateChanged?.Invoke(State);
         public bool IsWorkday => _session != null && _session.Workday != null && _session.Workday.State.Phase == MatchPhase.Workday;
 
         public static bool RoleCanWork(PlayerRole role) => role == PlayerRole.Electrician;
         public override bool CanInteract(PlayerInteraction player) => IsSpawned && IsWorkday &&
-            State.Phase == WorkTaskPhase.Available && player != null && player.CanAct && RoleCanWork(player.Player.Role);
+            State.Phase == WorkTaskPhase.Available && player != null && player.CanAct && RoleCanWork(player.Player.Role) &&
+            !_session.Workday.GetComponent<Scoring.ScoreService>().HasActiveTask(player.OwnerClientId);
 
         public override void OnNetworkSpawn()
         {
@@ -69,7 +73,7 @@ namespace EscapeViggo.Tasks
             if (IsServer && IsSpawned && State.Phase == WorkTaskPhase.InProgress) CancelOnServer();
         }
 
-        internal void ResetDayOnServer()
+        internal virtual void ResetDayOnServer()
         {
             if (IsServer && IsSpawned) CancelOnServer(); // Keep revisions monotonic across days.
         }

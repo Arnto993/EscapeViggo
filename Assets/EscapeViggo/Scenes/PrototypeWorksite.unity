@@ -633,7 +633,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 297001484}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -692,7 +692,7 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
@@ -1659,7 +1659,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &586065262
 Transform:
   m_ObjectHideFlags: 0
@@ -2069,7 +2069,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &670097753
 Transform:
   m_ObjectHideFlags: 0
@@ -4730,7 +4730,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1476170179}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -4789,7 +4789,7 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
@@ -4819,7 +4819,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1480149426
 Transform:
   m_ObjectHideFlags: 0
@@ -6084,6 +6084,18 @@ MonoBehaviour:
   - Prefab: {fileID: 8989033337199137456, guid: 339a01cd11fdf89469d1fb395890fba8, type: 3}
     Location: {fileID: 1180743687}
     DevelopmentOnly: 0
+  - Prefab: {fileID: 8071505161678292841, guid: 3bf0e04df9263034181c4035d8d866ab, type: 3}
+    Location: {fileID: 2053711759}
+    DevelopmentOnly: 0
+  - Prefab: {fileID: 8595655740195399001, guid: 6f0b19d9650379f428195c920d26e638, type: 3}
+    Location: {fileID: 2030792496}
+    DevelopmentOnly: 0
+  - Prefab: {fileID: 4253968409738356408, guid: 4970775aad44f824b8a0805b05d2d038, type: 3}
+    Location: {fileID: 1476170180}
+    DevelopmentOnly: 0
+  - Prefab: {fileID: 8595655740195399001, guid: 6f0b19d9650379f428195c920d26e638, type: 3}
+    Location: {fileID: 297001485}
+    DevelopmentOnly: 0
 --- !u!114 &1936951479
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6094,7 +6106,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 889d6524d319f624d9a88f436a6a973d, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: EscapeViggo.Runtime::EscapeViggo.Networking.OnlineNetworkSession
   _environment: production
   _connectionTimeoutSeconds: 60
@@ -6228,7 +6240,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1998999622
 Transform:
   m_ObjectHideFlags: 0
@@ -6370,7 +6382,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2030792495}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -6429,7 +6441,7 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
@@ -6706,7 +6718,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2053711758}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -6765,7 +6777,7 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}

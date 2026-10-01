@@ -26,11 +26,11 @@ namespace EscapeViggo.Core
                 DrawRow($"Player {row.PlayerId}", row.Role.ToString(), row.Score.ToString(), row.TasksCompleted.ToString(), row.Captures.ToString());
             }
             GUILayout.Space(12);
-            GUILayout.Label("WEEK TOTALS (includes earlier disconnected player IDs)");
+            GUILayout.Label("WEEK TOTALS");
             for (var i = 0; i < week.Count; i++)
             {
                 var row = week.RowAt(i);
-                GUILayout.Label($"Player {row.PlayerId} | Score {row.Score} | Viggo days {row.DaysAsViggo} | Tasks {row.Tasks} | Captures {row.Captures} | Thefts {row.BatteryThefts} | Kept battery {row.BatterySurvivals}");
+                GUILayout.Label($"Player {row.PlayerId} | Score {row.Score} | Tasks {row.Tasks} | Captures {row.Captures}\nViggo days: {row.DaysAsViggo} | Battery thefts: {row.BatteryThefts} | Kept until 15:00: {row.BatterySurvivals}");
             }
             GUILayout.EndScrollView();
             GUILayout.Space(10);

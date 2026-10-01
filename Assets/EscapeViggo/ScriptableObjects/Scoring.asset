@@ -13,6 +13,9 @@ MonoBehaviour:
   m_Name: Scoring
   m_EditorClassIdentifier: EscapeViggo.Runtime::EscapeViggo.Scoring.ScoreSettings
   CircuitTaskPoints: 100
+  VoltageTaskPoints: 120
+  OutletTaskPoints: 150
+  BreakerTaskPoints: 180
   CapturePoints: 50
   CarrierCaptureBonus: 50
   CapturedPenalty: 25

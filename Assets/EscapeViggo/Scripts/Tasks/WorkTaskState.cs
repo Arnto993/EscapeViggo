@@ -10,15 +10,18 @@ namespace EscapeViggo.Tasks
         public WorkTaskPhase Phase;
         public ulong WorkerId;
         public int Progress;
+        public int Connections, Selection;
         public bool WrongInput;
         public uint Revision;
         public bool Equals(WorkTaskState other) => Phase == other.Phase && WorkerId == other.WorkerId &&
-            Progress == other.Progress && WrongInput == other.WrongInput && Revision == other.Revision;
+            Progress == other.Progress && Connections == other.Connections && Selection == other.Selection && WrongInput == other.WrongInput && Revision == other.Revision;
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
         {
             serializer.SerializeValue(ref Phase);
             serializer.SerializeValue(ref WorkerId);
             serializer.SerializeValue(ref Progress);
+            serializer.SerializeValue(ref Connections);
+            serializer.SerializeValue(ref Selection);
             serializer.SerializeValue(ref WrongInput);
             serializer.SerializeValue(ref Revision);
         }

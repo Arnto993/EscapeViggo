@@ -1489,6 +1489,36 @@ Do not copy entire task systems for each minigame.
 
 At least three distinct task types function in multiplayer.
 
+## M19 Status — 2026-10-01
+
+Implemented four task types: existing Simple Circuit, Voltage Measurement,
+Outlet Replacement and Circuit Breaker Installation. All share WorkTask authority,
+modal presentation, cancellation and ScoreService rewards; the new tasks use
+validated mode/probe/diagnosis, wire-terminal matching and breaker installation
+actions. Five existing task locations are wired; short prefab Daily Types arrays
+vary voltage/outlet placement across weekdays while preserving the circuit station.
+Rewards are configurable (100/120/150/180 defaults). One worker can hold one active
+task, revisions reject replay, and daily reset clears per-minigame state.
+
+Compilation, saved scene/prefab/reference validation and Windows development build
+passed (`Logs/M19-barrier-build.log`, `Logs/M19-final-assets.log`). All 81 Edit Mode
+and 13 Play Mode tests passed (`Logs/M19-*.xml`). The three-process M0–M18 baseline
+including observer reconnect, unfinished-task/Rage cutoff and host restart passed
+(`Logs/Multiplayer-20261001-100720-27779`).
+
+Early expanded week runs exposed test coordination races, including overlapping
+wildcard barrier names. Barriers now use separate directories and wait for competing
+RPCs before cancellation. Test days begin after peers arrive and use one minute.
+No gameplay authority or reward rules were relaxed to satisfy the harness.
+
+Final three-player full weeks passed over direct networking
+(`Logs/Week-20261001-101556-29777`) and real Sessions/Relay
+(`Logs/Week-20261001-101600-29778`). Every peer verified all four task types on
+all five days, wrong input, cancellation/reopen, contention, duplicate requests,
+exact rewards, rotating roles/layouts, unfinished-task cutoff, weekly totals and
+Friday reconnect. M19 acceptance criteria are satisfied. Human task readability
+and mouse/button feel remain manual checks; no final art was added.
+
 ---
 
 # M20 — VIGGO DISTRACTION EXPANSION

@@ -16,7 +16,7 @@ using Unity.Netcode;
 
 namespace EscapeViggo.Networking
 {
-    public sealed class DevelopmentWeekSmoke : MonoBehaviour
+    public sealed partial class DevelopmentWeekSmoke : MonoBehaviour
     {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         private LocalNetworkSession _session;
@@ -58,9 +58,10 @@ namespace EscapeViggo.Networking
         }
         private IEnumerator Barrier(string step)
         {
-            var prefix = $"day{_week.Day}-{step}-";
-            File.WriteAllText(Path.Combine(_directory, prefix + Local.OwnerClientId), "ready");
-            yield return Until(() => Directory.GetFiles(_directory, prefix + "*").Length == _peers, step);
+            var stepDirectory = Path.Combine(_directory, $"day{_week.Day}-{step}");
+            Directory.CreateDirectory(stepDirectory);
+            File.WriteAllText(Path.Combine(stepDirectory, Local.OwnerClientId + ".ready"), "ready");
+            yield return Until(() => Directory.GetFiles(stepDirectory, "*.ready").Length == _peers, step);
         }
         private void Place(Vector3 position, NetworkInteractable target = null)
         {
@@ -86,6 +87,12 @@ namespace EscapeViggo.Networking
         {
             yield return Until(() => _session.PlayerCount == _peers && _session.Workday != null, "connected players", 110);
             _week = _session.Workday.GetComponent<WorkWeek>();
+            if (_session.Manager.IsServer)
+            {
+                Check(!_session.Workday.GetComponent<DailyResults>().Ready, "Players joined after initial workday ended.");
+                _session.Workday.RestartDayOnServer(); // Explicit test fixture: start timing after all peers arrive.
+            }
+            yield return Barrier("initial-clock");
             var networkId = _session.Workday.NetworkObjectId;
             var connectionId = Local.OwnerClientId;
             var totals = new System.Collections.Generic.Dictionary<ulong, int>();
@@ -123,6 +130,7 @@ namespace EscapeViggo.Networking
                 if (Local == viggo) { Request(task); task.SubmitElementRpc(1, task.State.Revision); }
                 yield return Barrier("role-rejection");
                 Check(task.State.Phase == WorkTaskPhase.Available, "Viggo started work.");
+                yield return Barrier("role-checked");
                 if (Local == worker)
                 {
                     Request(task);
@@ -142,7 +150,28 @@ namespace EscapeViggo.Networking
                 var reward = _session.Workday.GetComponent<ScoreService>().Settings.CircuitTaskPoints;
                 yield return Until(() => worker.GetComponent<PlayerScore>().Value == reward, "task reward");
                 yield return Barrier("task");
-                Place(new Vector3(Local == worker ? 17 : Local == viggo ? 16 : 13, 0.03f, 5.5f), battery);
+                var electricalTasks = FindObjectsByType<ElectricalWorkTask>(FindObjectsSortMode.None).OrderBy(t => t.NetworkObjectId).ToArray();
+                var completedTypes = electricalTasks.GroupBy(t => t.Kind).Select(group => group.First()).ToArray();
+                foreach (var electrical in completedTypes)
+                {
+                    yield return CheckElectricalTask(electrical, worker, viggo);
+                    reward += electrical.Reward(_session.Workday.GetComponent<ScoreService>().Settings);
+                }
+                var unfinished = electricalTasks.FirstOrDefault(t => !completedTypes.Contains(t));
+                var observer = players.FirstOrDefault(p => p != worker && p != viggo);
+                if (unfinished != null && observer != null)
+                {
+                    if (Local == observer)
+                    {
+                        Place(new Vector3(unfinished.transform.position.x, 0.03f, unfinished.transform.position.z - 2), unfinished);
+                        yield return new WaitForSecondsRealtime(0.5f);
+                        Request(unfinished);
+                        yield return Until(() => unfinished.State.Phase == WorkTaskPhase.InProgress, "unfinished task begin");
+                        unfinished.SubmitActionRpc(ActionsFor(unfinished.Kind)[0], unfinished.State.Revision);
+                    }
+                    yield return Until(() => unfinished.State.Progress == 1, "unfinished task progress");
+                }
+                if (unfinished == null || Local != observer) Place(new Vector3(Local == worker ? 17 : Local == viggo ? 16 : 13, 0.03f, 5.5f), battery);
                 yield return new WaitForSecondsRealtime(0.8f);
                 if (Local == worker)
                 {
@@ -169,7 +198,7 @@ namespace EscapeViggo.Networking
                         target.Settings.DisableSeconds = 120;
                         viggo.GetComponent<ViggoStamina>().Settings.RestSeconds = 120;
                     }
-                    Place(new Vector3(Local == worker ? -13 : Local == viggo ? -14.5f : -19, 0.03f, -12), target);
+                    if (unfinished == null || Local != observer) Place(new Vector3(Local == worker ? -13 : Local == viggo ? -14.5f : -19, 0.03f, -12), target);
                     yield return new WaitForSecondsRealtime(0.8f);
                     if (Local == viggo) { Request(target); Request(target); }
                     yield return Until(() => target.IsCaptured && !rage.Active, "rotated Viggo capture and recovery");
@@ -199,6 +228,8 @@ namespace EscapeViggo.Networking
                 var results = _session.Workday.GetComponent<DailyResults>();
                 Check(results.Count == _peers && results.Summary.CarrierId == (day % 2 == 0 ? BatteryState.Nobody : worker.OwnerClientId), "Frozen daily results mismatch.");
                 Check(!worker.GetComponent<PlayerCapture>().IsCaptured, "EndOfDay did not clear capture.");
+                if (unfinished != null && observer != null)
+                    Check(unfinished.State.Phase == WorkTaskPhase.Available && !unfinished.GetComponent<WorkTaskPanel>().IsOpen, "Unfinished task/UI did not stop at EndOfDay.");
                 totals.TryGetValue(worker.OwnerClientId, out var prior);
                 totals[worker.OwnerClientId] = prior + reward;
                 totals.TryGetValue(viggo.OwnerClientId, out var viggoPrior);

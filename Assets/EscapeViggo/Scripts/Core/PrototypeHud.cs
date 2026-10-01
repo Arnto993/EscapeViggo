@@ -67,7 +67,7 @@ namespace EscapeViggo.Core
                 _scoreFeedback = $"{(delta > 0 ? "+" : "")}{delta} points";
                 _scoreUntil = Time.unscaledTime + 4;
             }
-            if (_score.TasksCompleted > _lastTasks) Notify("Circuit complete! Find cover or go for Viggo's battery.");
+            if (_score.TasksCompleted > _lastTasks) Notify("Task complete! Find another job or go for Viggo's battery.");
             if (_score.Captures > _lastCaptures) Notify("Capture successful!");
             if (_wasStealing && !ShowsTheftProgress && !ShowsCarrier && !_player.GameplayStopped)
                 Notify("Theft cancelled. Keep holding E while aiming at the station.");
@@ -97,7 +97,7 @@ namespace EscapeViggo.Core
             if (state.Phase == MatchPhase.EndOfDay) return;
             GUI.Box(new Rect(20, 94, 370, 66), ShowsStamina
                 ? "Protect your battery. Check its station.\nGet close and press E to capture workers."
-                : "Work at SIMPLE CIRCUIT in the main room.\nHold E at the battery station to steal.");
+                : "Find yellow task stations around the worksite.\nHold E at the battery station to steal.");
             if (ShowsStamina)
             {
                 PrototypeGui.Bar(new Rect(20, 174, 350, 32), _stamina.Value / _stamina.Settings.MaximumStamina,

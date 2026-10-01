@@ -555,3 +555,33 @@ powershell -ExecutionPolicy Bypass -File Tools/Test-WorkWeek.ps1 -Online -Port 2
 The week harness drives actual task/theft/discovery requests. Its even-day fixture
 extends capture/rest durations in memory only, so those states cross the cutoff.
 The ordinary playtest launcher does not enable fixtures or automated input.
+
+## Electrical tasks (M19)
+
+All five existing task locations now contain real work. Simple Circuit stays in
+the main room (location 2). Locations 1 and 3 alternate Voltage Measurement and
+Outlet Replacement on successive days. Location 4 offers Breaker Installation;
+location 5 is another rotating outlet/voltage station. Each ElectricalWorkTask
+prefab has a small **Daily Types** array; the server chooses its weekday entry.
+
+- Simple Circuit: press the displayed three-element sequence.
+- Voltage Measurement: choose AC voltage, place black on N and red on L, then
+  compare the displayed 230 V reading with the work order.
+- Outlet Replacement: remove the faceplate; disconnect all three conductors in
+  any order; select each labelled wire and its matching L/N/PE terminal; fit the
+  outlet and replace the faceplate. Both labels and colours identify wires.
+- Breaker Installation: match the 16 A/slot 2 work order, attach supply and load,
+  switch on and confirm the indicator.
+
+Default rewards are 100/120/150/180 respectively in `Scoring.asset`. All rewards
+come through the existing server ScoreService. One player can own one active task;
+other workers cannot take it over. Cancel, range loss, capture, disconnect and
+15:00 release unfinished work. Completion stays shared until the next day.
+
+Human check: in the three-window Debug Week, complete a different task in each
+window/day as roles rotate. Try a wrong mode/terminal/rating, Cancel and reopen,
+and two workers using the same station. Compare the score recipient and amount.
+Leave an open task at 15:00; verify the modal closes, next day starts clean, and
+the alternate task types appear. Repeat the five-day procedure above with Relay.
+`Test-WorkWeek.ps1` automatically exercises the same task rules, cancellation,
+contention, duplicate requests, scoring, unfinished cutoff and weekday reset.
