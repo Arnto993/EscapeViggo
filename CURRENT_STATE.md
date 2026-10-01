@@ -233,6 +233,11 @@ Do not “solve” M23 balance theoretically before multiplayer playtest evidenc
   state: owner shadows only, remote visible, Viggo keeps its capsule. Existing
   colliders, Body references, movement and network authority remain unchanged.
 - Front/side/back/three-quarter renders: `ArtSource/Characters/Electrician/Review/`.
+  C4 visual fix: recessed the lower torso cap that protruded between the upper legs
+  (10 vertex positions only; rig/weights/animations unchanged). Updated source, FBX
+  and renders passed Tier 1 Blender checks and 4 targeted Edit Mode + 3 Play Mode
+  tests (`C4VisualFixEdit/Play` logs in the validation copy). Existing Windows player
+  predates this mesh-only fix; use the Unity project to review the corrected mesh.
   Human visual identity/readability/deformation/animation-feel acceptance remains.
   Crouch currently scales visual height; full crouch/jump/task animation and final
   stride/foot-placement polish are outside the minimum C3 locomotion scope.

@@ -82,6 +82,14 @@ def make_body(base=False):
     mat='Skin' if base else 'Blue'
     torso=tube('Torso',[(0,0,.90,.17,.105),(0,0,1.03,.16,.11),(0,0,1.17,.18,.12),(0,0,1.34,.225,.12),(0,0,1.40,.17,.095)],mat,'Spine',12)
     skin_rings(torso,'Spine','Chest',1.10,1.29)
+    if not base:
+        # Recess the central lower cap into the trousers instead of leaving a
+        # flat shirt tab projecting into the gap between the upper legs.
+        for vertex in torso.data.vertices:
+            if abs(vertex.co.z - .90) < .00001:
+                edge = abs(vertex.co.x) / .17
+                vertex.co.z += .05 * (1 - edge * edge)
+                vertex.co.y *= .75 + .25 * edge
     ell('Neck',(0,0,1.46),(.064,.065,.105),'Skin','Neck')
     tube('Head',[(0,.01,1.48,.06,.058),(0,.015,1.52,.09,.085),(0,0,1.62,.115,.098),(0,-.008,1.71,.11,.092),(0,-.008,1.75,.07,.065)],'Skin','Head',12)
     for side,s in [('Left',1),('Right',-1)]:
