@@ -7,6 +7,13 @@ namespace EscapeViggo.Scoring
         private readonly NetworkVariable<int> _score = new(0,
             NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
         public int Value => _score.Value;
+        internal void ResetDayOnServer()
+        {
+            if (!IsServer || !IsSpawned) return;
+            _score.Value = 0;
+            _captures.Value = 0;
+            _tasksCompleted.Value = 0;
+        }
         private readonly NetworkVariable<int> _captures = new(0,
             NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
         public int Captures => _captures.Value;

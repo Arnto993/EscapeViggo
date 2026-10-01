@@ -116,6 +116,15 @@ namespace EscapeViggo.Battery
             if (BatteryRules.Cancel(ref next, next.ActorId)) _state.Value = next;
         }
 
+        internal void ResetDayOnServer()
+        {
+            if (!IsServer || !IsSpawned) return;
+            var initial = BatteryState.Initial;
+            initial.TheftId = State.TheftId;
+            _state.Value = initial;
+            _startedAt = _lastPulse = _nextUpdate = 0;
+        }
+
         public override void OnNetworkDespawn()
         {
             if (_session.Battery == this) _session.RegisterBattery(null);

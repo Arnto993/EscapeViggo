@@ -69,5 +69,14 @@ namespace EscapeViggo.Scoring
             if (!IsServer) return;
             foreach (var task in _tasks) if (task != null) task.StopOnServer();
         }
+
+        internal void ResetDayOnServer()
+        {
+            if (!IsServer || !IsSpawned) return;
+            _ledger.Clear();
+            foreach (var task in _tasks) if (task != null) task.ResetDayOnServer();
+            foreach (var client in NetworkManager.ConnectedClientsList)
+                if (client.PlayerObject != null) client.PlayerObject.GetComponent<PlayerScore>().ResetDayOnServer();
+        }
     }
 }

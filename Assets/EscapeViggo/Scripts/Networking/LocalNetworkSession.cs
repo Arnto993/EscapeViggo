@@ -50,6 +50,30 @@ namespace EscapeViggo.Networking
         internal void RegisterBattery(Battery.BatteryStation battery) => Battery = battery;
         internal void RegisterWorkday(NetworkWorkday workday) => Workday = workday;
         internal Transform SpawnPointFor(ulong clientId) => _slots.TryGetValue(clientId, out var slot) ? _spawnPoints[slot] : _spawnPoints[1];
+        internal void PromoteViggoOnServer(ulong id)
+        {
+            if (!_manager.IsServer || !_manager.ConnectedClients.TryGetValue(id, out var client) || client.PlayerObject == null) return;
+            _slots[id] = 0;
+            client.PlayerObject.GetComponent<NetworkPlayer>().AssignRoleOnServer(Player.PlayerRole.Viggo);
+            client.PlayerObject.GetComponent<Player.PlayerCapture>().ResetDayOnServer();
+            client.PlayerObject.GetComponent<Viggo.ViggoStamina>().ResetDayOnServer();
+        }
+        internal void RotateRolesOnServer(ulong viggo)
+        {
+            if (!_manager.IsServer) return;
+            _slots.Clear();
+            _slots[viggo] = 0;
+            var workerSlot = 1;
+            foreach (var client in _manager.ConnectedClientsList)
+            {
+                if (client.PlayerObject == null) continue;
+                if (client.ClientId != viggo) _slots[client.ClientId] = workerSlot++;
+                var player = client.PlayerObject.GetComponent<NetworkPlayer>();
+                player.AssignRoleOnServer(client.ClientId == viggo ? Player.PlayerRole.Viggo : Player.PlayerRole.Electrician);
+                player.GetComponent<Player.PlayerCapture>().ResetDayOnServer();
+                player.GetComponent<Viggo.ViggoStamina>().ResetDayOnServer();
+            }
+        }
         public int PlayerCount
         {
             get

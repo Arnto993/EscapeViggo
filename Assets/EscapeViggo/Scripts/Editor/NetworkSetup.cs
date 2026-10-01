@@ -138,7 +138,7 @@ namespace EscapeViggo.Editor
         [MenuItem("Escape Viggo/Build/Windows Development Player")]
         public static void Build()
         {
-            OnlineSessionSetup.Validate();
+            WeekSetup.Validate();
             Directory.CreateDirectory("Builds/Windows");
             var result = BuildPipeline.BuildPlayer(new BuildPlayerOptions
             {

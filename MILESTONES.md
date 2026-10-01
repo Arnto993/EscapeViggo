@@ -1441,6 +1441,29 @@ Monday
 
 Five short debug days can run consecutively without reloading project manually.
 
+## M18 Status — 2026-10-01
+
+Implemented: server-owned Monday–Friday progression, frozen daily results and
+independent weekly totals, host Continue after a review delay, balanced Viggo
+rotation with live role/spawn changes, day resets and final Friday results.
+The session/world remain connected between days. Debug week uses 30-second days;
+Guided/normal tuning remains available. Reconnect retains the existing new-client-ID
+semantics; completed-day totals for earlier IDs remain in the week results.
+
+Unity compilation, saved prefab/scene/reference validation and Windows build
+passed (`Logs/M18-final-build.log`). All 74 Edit Mode and 13 Play Mode tests passed
+(`Logs/M18-final-*.xml`). The three-process baseline loop including observer
+reconnect passed (`Logs/Multiplayer-20261001-092836-25777`), as did unfinished-task
+and active-Rage cutoff (`Logs/Multiplayer-20261001-093537-26777`). Direct three-player
+five-day validation passed (`Logs/Week-20261001-093413-24779`): matching daily/week
+scores, repeated rewards, rotation/spawns, battery/discovery/Rage, even-day captures
+and extended rest through cutoff, clean resets, no Day 6 and Friday reconnect.
+
+The same three-process five-day test also passed over real Sessions/DTLS Relay
+(`Logs/Week-20261001-093421-24778`), including Friday reconnect with frozen totals.
+M18 acceptance criteria are satisfied. Human mouse/input and results readability
+remain README playtest checks; two-PC separate-network verification remains open.
+
 ---
 
 # M19 — MULTIPLE WORK TASKS
@@ -1663,7 +1686,7 @@ Wait for the next user instruction.
 
 # CURRENT TARGET
 
-M0–M16 are the stable baseline for the user's M17 request. M17 implements private
-online Sessions/Relay while preserving the direct local development path.
-Two-PC separate-network acceptance and human UI/input review remain pending.
-Stop after M17. M18 is not authorized.
+The current request authorizes M18, M19 and M20 sequentially, with independent
+validation and local commits at each checkpoint. Preserve M0–M17, including both
+direct local networking and real Sessions/Relay. Do not start M21 or push commits.
+M17 two-PC separate-network acceptance and human UI/input review remain pending.

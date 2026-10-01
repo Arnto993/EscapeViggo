@@ -6,6 +6,7 @@ namespace EscapeViggo.Scoring
     public sealed class ScoreAwardLedger
     {
         private readonly HashSet<(ulong Source, uint Sequence)> _awarded = new();
+        public void Clear() => _awarded.Clear();
 
         public bool TryApply(ulong source, uint sequence, int currentScore, int points, out int updatedScore)
         {

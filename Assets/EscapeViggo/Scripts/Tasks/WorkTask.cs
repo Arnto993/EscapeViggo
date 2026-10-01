@@ -69,6 +69,11 @@ namespace EscapeViggo.Tasks
             if (IsServer && IsSpawned && State.Phase == WorkTaskPhase.InProgress) CancelOnServer();
         }
 
+        internal void ResetDayOnServer()
+        {
+            if (IsServer && IsSpawned) CancelOnServer(); // Keep revisions monotonic across days.
+        }
+
         protected void PublishProgress(WorkTaskState next)
         {
             if (!IsServer || State.Phase != WorkTaskPhase.InProgress) return;

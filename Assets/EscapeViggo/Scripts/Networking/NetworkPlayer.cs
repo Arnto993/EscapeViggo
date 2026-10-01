@@ -17,6 +17,7 @@ namespace EscapeViggo.Networking
         private readonly NetworkVariable<PlayerRole> _role = new(PlayerRole.Electrician,
             NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
         public PlayerRole Role => _role.Value;
+        internal void AssignRoleOnServer(PlayerRole role) { if (IsServer && IsSpawned) _role.Value = role; }
         private PlayerInputReader _input;
         private PlayerMovement _movement;
         private PlayerLook _look;

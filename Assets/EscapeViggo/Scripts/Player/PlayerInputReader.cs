@@ -12,6 +12,7 @@ namespace EscapeViggo.Player
         private InputAction _interact;
         private Networking.NetworkPlayer _networkPlayer;
         private bool GameplayStopped => _networkPlayer != null && _networkPlayer.GameplayStopped;
+        private bool _wasStopped;
         private void Awake() => _networkPlayer = GetComponent<Networking.NetworkPlayer>();
         public bool InteractPressed => enabled && IsCaptured && _interact != null && _interact.WasPressedThisFrame();
         public bool InteractHeld => enabled && IsCaptured && _interact != null && _interact.IsPressed();
@@ -44,7 +45,8 @@ namespace EscapeViggo.Player
 
         private void Update()
         {
-            if (GameplayStopped) { if (IsCaptured) ReleaseCursor(); return; }
+            if (GameplayStopped) { _wasStopped = true; if (IsCaptured) ReleaseCursor(); return; }
+            if (_wasStopped) { _wasStopped = false; SetTaskModal(false); }
             if (_release.WasPressedThisFrame()) ReleaseCursor();
         }
 

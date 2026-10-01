@@ -19,7 +19,7 @@ namespace EscapeViggo.Core
         private ViggoStamina _stamina;
         private LocalNetworkSession _session;
         private bool _initialized, _wasStealing, _wasCarrying, _wasRaging;
-        private int _lastScore, _lastTasks, _lastCaptures;
+        private int _lastScore, _lastTasks, _lastCaptures, _lastDay;
         private string _feedback = "", _scoreFeedback = "";
         private float _feedbackUntil, _scoreUntil, _rageUntil;
         public bool IsVisible => _player != null && _player.IsSpawned && _player.IsOwner;
@@ -47,6 +47,13 @@ namespace EscapeViggo.Core
         {
             if (!IsVisible) { _initialized = false; return; }
             if (_session == null) _session = _player.NetworkManager.GetComponent<LocalNetworkSession>();
+            if (_session.Workday != null && _session.Workday.GetComponent<WorkWeek>() is WorkWeek week && _lastDay != week.Day)
+            {
+                _lastDay = week.Day;
+                _initialized = false;
+                _feedbackUntil = _scoreUntil = _rageUntil = 0;
+                _wasStealing = _wasCarrying = _wasRaging = false;
+            }
             if (!_initialized)
             {
                 _lastScore = _score.Value;
@@ -82,8 +89,10 @@ namespace EscapeViggo.Core
             var width = PrototypeGui.Width;
             var height = PrototypeGui.Height;
             var state = _session.Workday.State;
-            GUI.Box(new Rect(20, 16, 310, 66), $"{_player.Role}  |  Player {_player.OwnerClientId}\nScore: {_score.Value}");
-            GUI.Box(new Rect(width / 2 - 125, 16, 250, 66), $"{state.ClockText}\n{(state.Phase == MatchPhase.EndOfDay ? "Workday finished" : state.Phase.ToString())}");
+            var week = _session.Workday.GetComponent<WorkWeek>();
+            var total = (long)(week != null ? week.TotalFor(_player.OwnerClientId).Score : 0) + (state.Phase == MatchPhase.EndOfDay ? 0 : _score.Value);
+            GUI.Box(new Rect(20, 16, 310, 66), $"{_player.Role}  |  Player {_player.OwnerClientId}\nToday: {_score.Value} | Week: {total}");
+            GUI.Box(new Rect(width / 2 - 125, 16, 250, 66), $"{week?.DayName} {state.ClockText}\n{(state.Phase == MatchPhase.EndOfDay ? "Workday finished" : state.Phase.ToString())}");
             GUI.Box(new Rect(width - 275, 16, 255, 40), "Esc: menu / release mouse");
             if (state.Phase == MatchPhase.EndOfDay) return;
             GUI.Box(new Rect(20, 94, 370, 66), ShowsStamina

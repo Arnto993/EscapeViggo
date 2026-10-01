@@ -51,6 +51,14 @@ namespace EscapeViggo.Viggo
 
         public override void OnNetworkDespawn() => _stamina.OnValueChanged -= OnStateChanged;
 
+        internal void ResetDayOnServer()
+        {
+            if (!IsServer || !IsSpawned) return;
+            _stamina.Value = new ViggoMobilityState { Stamina = Applies ? _settings.MaximumStamina : 0, RestCount = State.RestCount };
+            _lastPosition = transform.position;
+            _lastSample = NetworkManager.ServerTime.Time;
+        }
+
         private void LateUpdate()
         {
             if (!IsServer || !Applies) return;

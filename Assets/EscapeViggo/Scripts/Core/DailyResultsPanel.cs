@@ -15,8 +15,9 @@ namespace EscapeViggo.Core
             if (!IsOpen) return;
             using var gui = new PrototypeGui(true);
             GUILayout.BeginArea(new Rect((PrototypeGui.Width - 860) / 2, 110, 860, PrototypeGui.Height - 210), GUI.skin.box);
-            GUILayout.Label("WORKDAY COMPLETE - 15:00");
-            GUILayout.Label("Final results for players present at the end of the workday.");
+            var week = GetComponent<WorkWeek>();
+            GUILayout.Label($"{week.DayName.ToUpperInvariant()} COMPLETE - 15:00" + (week.IsFinal ? " - FINAL WEEK RESULTS" : ""));
+            GUILayout.Label("Daily results for players present at the end of the workday.");
             DrawRow("Player", "Role", "Score", "Tasks", "Captures");
             _scroll = GUILayout.BeginScrollView(_scroll);
             for (var i = 0; i < _results.Count; i++)
@@ -24,11 +25,25 @@ namespace EscapeViggo.Core
                 var row = _results.RowAt(i);
                 DrawRow($"Player {row.PlayerId}", row.Role.ToString(), row.Score.ToString(), row.TasksCompleted.ToString(), row.Captures.ToString());
             }
+            GUILayout.Space(12);
+            GUILayout.Label("WEEK TOTALS (includes earlier disconnected player IDs)");
+            for (var i = 0; i < week.Count; i++)
+            {
+                var row = week.RowAt(i);
+                GUILayout.Label($"Player {row.PlayerId} | Score {row.Score} | Viggo days {row.DaysAsViggo} | Tasks {row.Tasks} | Captures {row.Captures} | Thefts {row.BatteryThefts} | Kept battery {row.BatterySurvivals}");
+            }
             GUILayout.EndScrollView();
             GUILayout.Space(10);
             GUILayout.Label("Battery: " + (_results.Summary.BatteryOutcome == Battery.BatteryPhase.Secured ? "Recovered by Viggo and secured at the station" :
                 _results.Summary.BatteryOutcome == Battery.BatteryPhase.Carried ? "Kept away from Viggo until 15:00" : "At the drill station"));
-            GUILayout.Label("Workday finished. Disconnect and restart the host for a new day.");
+            if (week.IsFinal) GUILayout.Label("Week complete. Disconnect and host again to start a new week.");
+            else if (_workday.IsServer)
+            {
+                GUI.enabled = week.CanContinue;
+                if (GUILayout.Button("Continue to " + WeekRules.DayName(week.Day + 1), GUILayout.Height(38))) week.ContinueOnServer();
+                GUI.enabled = true;
+            }
+            else GUILayout.Label("Review the results. Waiting for the host to continue.");
             GUILayout.EndArea();
             if (GUI.Button(new Rect(PrototypeGui.Width / 2 - 160, PrototypeGui.Height - 85, 320, 40), "Disconnect / return to start"))
                 _workday.NetworkManager.GetComponent<Networking.LocalNetworkSession>().Disconnect();

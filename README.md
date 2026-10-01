@@ -512,3 +512,46 @@ The final two-process full-loop stress test also passed in
 then stopped; both processes agreed on frozen results and restart succeeded.
 M15/M16 engineering work is finished. Human UI/usability acceptance remains the
 walkthrough above. M17 validation is recorded in `MILESTONES.md`.
+
+## Five-day work week (M18)
+
+The host starts as Viggo on Monday. At 15:00, daily results freeze and weekly
+scores/statistics accumulate. After a minimum three-second review, only the host
+can click **Continue**. Tuesday through Friday reuse the same connected players,
+world objects and local/Relay session. Friday has final week results and no Day 6.
+Viggo rotates to the least-used connected player, excluding yesterday's Viggo
+when possible. A departing client Viggo is replaced by the server during gameplay.
+
+Daily tasks, battery ownership/discovery, Rage, captures, stamina/rest, scores and
+transient feedback reset. Weekly totals and completed-day rows remain independent.
+Results identify network client IDs: reconnect creates a new ID (as before), not
+an account identity. Earlier completed-day totals remain listed under the old ID;
+unfinished-day scores for a disconnected ID are not restored.
+
+For a human five-day check, build the Windows development player, then run:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File Tools/Start-LocalPlaytest.ps1 -Players 3 -DebugWeek
+```
+
+Alternatively choose **Debug week: 30 sec** before hosting online. Keep Guided or
+Asset tuning for normal play. Each day, verify the weekday and 07:00, one Viggo,
+role-specific HUD/visuals and spawn positions. Complete work, steal the battery,
+have Viggo inspect it, and try a capture. At 15:00 compare all three results,
+then use Continue on the host. Verify clean task/battery/rest/capture state and
+persistent week totals on the next day. Repeat through Friday; confirm final
+score, tasks, captures, days as Viggo and battery statistics, with no Continue.
+Reconnect a client at Friday and compare frozen results. Repeat with online join
+codes; use two separate Internet connections for the remaining M17 human check.
+
+Engineering commands (run sequentially for Unity editor operations):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -Method EscapeViggo.Editor.WeekSetup.Validate -LogName M18-validation
+powershell -ExecutionPolicy Bypass -File Tools/Test-WorkWeek.ps1
+powershell -ExecutionPolicy Bypass -File Tools/Test-WorkWeek.ps1 -Online -Port 24778
+```
+
+The week harness drives actual task/theft/discovery requests. Its even-day fixture
+extends capture/rest durations in memory only, so those states cross the cutoff.
+The ordinary playtest launcher does not enable fixtures or automated input.

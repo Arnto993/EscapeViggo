@@ -61,6 +61,14 @@ namespace EscapeViggo.Player
             _state.Value = next;
         }
 
+        internal void ResetDayOnServer()
+        {
+            if (!IsServer || !IsSpawned) return;
+            _state.Value = new CaptureState { Sequence = State.Sequence };
+            var spawn = _session.SpawnPointFor(OwnerClientId);
+            RespawnRpc(spawn.position, spawn.rotation);
+        }
+
         [Rpc(SendTo.Owner, InvokePermission = RpcInvokePermission.Server)]
         private void RespawnRpc(Vector3 position, Quaternion rotation, RpcParams rpcParams = default)
         {

@@ -16,7 +16,8 @@ namespace EscapeViggo.Networking
         private bool _diagnostics;
         private int _dayPreset = 1;
         private string _commandLineMinutes;
-        private readonly string[] _presets = { "Quick: 2 min", "Guided: 5 min", "Asset tuning" };
+        private readonly string[] _presets = { "Quick: 2 min", "Guided: 5 min", "Asset tuning", "Debug week: 30 sec" };
+        private string PresetMinutes => _dayPreset == 0 ? "2" : _dayPreset == 1 ? "5" : _dayPreset == 3 ? "0.5" : null;
 #endif
 
         private void Start()
@@ -43,7 +44,7 @@ namespace EscapeViggo.Networking
             if (!ushort.TryParse(_port, out var port) || port == 0) return;
             if (host)
             {
-                var minutes = _commandLineMinutes ?? (_dayPreset == 0 ? "2" : _dayPreset == 1 ? "5" : null);
+                var minutes = _commandLineMinutes ?? PresetMinutes;
                 if (!_session.ConfigurePlaytestDay(minutes)) return;
                 _session.StartHost(_address, port);
             }
@@ -70,7 +71,7 @@ namespace EscapeViggo.Networking
         private void HostOnline()
         {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-            var minutes = _commandLineMinutes ?? (_dayPreset == 0 ? "2" : _dayPreset == 1 ? "5" : null);
+            var minutes = _commandLineMinutes ?? PresetMinutes;
             if (!_session.ConfigurePlaytestDay(minutes)) return;
 #endif
             _ = _session.Online.HostAsync();
@@ -101,7 +102,7 @@ namespace EscapeViggo.Networking
             }
             if (!connected)
             {
-                GUILayout.Label("Host plays Viggo. Joining players are electricians.");
+                GUILayout.Label("Monday: host plays Viggo. The role rotates each day.");
                 GUILayout.Label("The workday starts automatically after five seconds.");
                 GUILayout.Space(12);
             }
@@ -109,7 +110,7 @@ namespace EscapeViggo.Networking
             {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
                 GUILayout.Label("Host workday length (clients use the host's clock)");
-                _dayPreset = GUILayout.SelectionGrid(_dayPreset, _presets, 3, GUILayout.Height(36));
+                _dayPreset = GUILayout.SelectionGrid(_dayPreset, _presets, 2, GUILayout.Height(72));
                 if (_commandLineMinutes != null)
                 {
                     GUILayout.Label("Command-line day length: " + _commandLineMinutes + " minutes");

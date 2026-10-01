@@ -53,6 +53,14 @@ namespace EscapeViggo.Core
             var outcome = battery.State;
             _summary.Value = new DailySummary { Ready = true, PlayerCount = results.Count, BatteryOutcome = outcome.Phase,
                 OriginalThiefId = outcome.OriginalThiefId, CarrierId = outcome.CarrierId, Discovered = outcome.Discovered };
+            GetComponent<WorkWeek>()?.FinalizeDayOnServer(this);
+        }
+
+        internal void ResetOnServer()
+        {
+            if (!IsServer) return;
+            _summary.Value = default;
+            _rows.Clear();
         }
 
         public override void OnNetworkDespawn() => _workday.StateChanged -= PhaseChanged;

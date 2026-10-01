@@ -43,6 +43,14 @@ namespace EscapeViggo.Core
             _state.Value = WorkdayClock.Evaluate(now - _startedAt, _settings.PreparingSeconds, _durationMinutes);
         }
 
+        internal void RestartDayOnServer()
+        {
+            if (!IsServer || !IsSpawned) return;
+            _startedAt = NetworkManager.ServerTime.Time;
+            _nextPublish = _startedAt;
+            _state.Value = WorkdayClock.Evaluate(0, _settings.PreparingSeconds, _durationMinutes);
+        }
+
         public override void OnNetworkDespawn()
         {
             _state.OnValueChanged -= Changed;
