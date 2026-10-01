@@ -16,6 +16,7 @@ namespace EscapeViggo.Scoring
         private readonly ScoreAwardLedger _ledger = new();
         private NetworkWorkday _workday;
         public ScoreSettings Settings => _settings;
+        internal IReadOnlyList<WorkTask> Tasks => _tasks;
         internal bool HasActiveTask(ulong worker) => _tasks.Exists(task => task != null && task.State.Phase == WorkTaskPhase.InProgress && task.State.WorkerId == worker);
         private void Awake() => _workday = GetComponent<NetworkWorkday>();
 
@@ -47,6 +48,14 @@ namespace EscapeViggo.Scoring
             if (TryAwardOnce(score, target.NetworkObject, target.State.Sequence * 2, points)) score.RecordCaptureOnServer();
             TryAwardOnce(target.GetComponent<PlayerScore>(), target.NetworkObject, target.State.Sequence * 2 + 1,
                 -Mathf.Max(0, _settings.CapturedPenalty));
+        }
+
+        internal void AwardDistraction(Viggo.WorkDistractions source, NetworkPlayer actor)
+        {
+            if (!IsServer || source == null || actor == null || actor.Role != PlayerRole.Viggo ||
+                !source.State.Meaningful || source.State.ActorId != actor.OwnerClientId) return;
+            var points = source.State.Kind == Viggo.DistractionKind.WorkInterruption ? _settings.WorkInterruptionPoints : _settings.PowerCutPoints;
+            TryAwardOnce(actor.GetComponent<PlayerScore>(), source.NetworkObject, source.State.Sequence, Mathf.Max(0, points));
         }
 
         // Source plus server-generated occurrence number identifies the event; no client values enter here.

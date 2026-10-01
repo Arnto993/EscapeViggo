@@ -17,6 +17,7 @@ GameObject:
   - component: {fileID: 4090273266325989767}
   - component: {fileID: 122799401311870579}
   - component: {fileID: 5086287278263269824}
+  - component: {fileID: 4691267097248670969}
   m_Layer: 0
   m_Name: Workday
   m_TagString: Untagged
@@ -160,3 +161,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: EscapeViggo.Runtime::EscapeViggo.Core.WorkWeek
   ShowTopMostFoldoutHeaderGroup: 1
   _minimumReviewSeconds: 3
+--- !u!114 &4691267097248670969
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8818813058344074348}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 330d21337646f5c46a2e109a1fe458b8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: EscapeViggo.Runtime::EscapeViggo.Viggo.WorkDistractions
+  ShowTopMostFoldoutHeaderGroup: 1
+  _settings: {fileID: 11400000, guid: 7b94a424580b9484a8d74743bb682362, type: 2}

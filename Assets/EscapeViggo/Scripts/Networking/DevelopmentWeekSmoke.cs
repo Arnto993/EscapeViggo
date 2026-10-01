@@ -123,8 +123,12 @@ namespace EscapeViggo.Networking
                     Check(!Local.GetComponent<PlayerInputReader>().IsTaskModal && !task.GetComponent<SimpleCircuitTaskPanel>().IsOpen, "Stale task UI.");
                 }
                 Check(!_week.ContinueOnServer(), "Week advanced during gameplay or on client.");
+                var distractions = _session.Workday.GetComponent<WorkDistractions>();
+                Check(!distractions.PowerOff && distractions.State.InterruptReadyAt == 0 && distractions.State.PowerReadyAt == 0, "Distractions did not reset.");
                 yield return Barrier("reset");
                 yield return Until(() => _session.Workday.State.Phase == MatchPhase.Workday, "workday");
+                yield return CheckDistractions(task, worker, viggo);
+                var distractionReward = viggo.GetComponent<PlayerScore>().Value;
                 Place(new Vector3(Local == worker ? -5 : Local == viggo ? -6 : -9, 0.03f, -15), task);
                 yield return new WaitForSecondsRealtime(0.7f);
                 if (Local == viggo) { Request(task); task.SubmitElementRpc(1, task.State.Revision); }
@@ -205,7 +209,7 @@ namespace EscapeViggo.Networking
                     var settings = _session.Workday.GetComponent<ScoreService>().Settings;
                     captureReward = settings.CapturePoints + settings.CarrierCaptureBonus;
                     reward -= settings.CapturedPenalty;
-                    yield return Until(() => viggo.GetComponent<PlayerScore>().Value == captureReward && worker.GetComponent<PlayerScore>().Value == reward, "capture score");
+                    yield return Until(() => viggo.GetComponent<PlayerScore>().Value == captureReward + distractionReward && worker.GetComponent<PlayerScore>().Value == reward, "capture score");
                     if (Local == viggo)
                     {
                         var untilRest = Time.realtimeSinceStartup + 9;
@@ -222,9 +226,19 @@ namespace EscapeViggo.Networking
                     yield return Barrier("capture-rest");
                 }
                 // Odd days retain Rage and battery ownership; even days retain capture/rest until cutoff.
+                if (day % 2 == 1 && unfinished != null && observer != null)
+                {
+                    var control = FindFirstObjectByType<PowerControl>();
+                    if (Local == viggo) Place(new Vector3(-1, 0.03f, -12), control);
+                    yield return Until(() => _session.Workday.State.MinuteOfDay >= 14 * 60 + 40, "late outage fixture");
+                    if (Local == viggo) Request(control);
+                    yield return Until(() => distractions.PowerOff, "outage before cutoff");
+                    distractionReward += _session.Workday.GetComponent<ScoreService>().Settings.PowerCutPoints;
+                }
                 yield return Until(() => _session.Workday.GetComponent<DailyResults>().Ready, "daily results");
                 yield return new WaitForSecondsRealtime(0.4f);
                 Check(!rage.Active && _session.Workday.GetComponent<DailyResultsPanel>().IsOpen, "Results/Rage cutoff failed.");
+                Check(!distractions.PowerOff, "Power outage survived cutoff.");
                 var results = _session.Workday.GetComponent<DailyResults>();
                 Check(results.Count == _peers && results.Summary.CarrierId == (day % 2 == 0 ? BatteryState.Nobody : worker.OwnerClientId), "Frozen daily results mismatch.");
                 Check(!worker.GetComponent<PlayerCapture>().IsCaptured, "EndOfDay did not clear capture.");
@@ -233,7 +247,7 @@ namespace EscapeViggo.Networking
                 totals.TryGetValue(worker.OwnerClientId, out var prior);
                 totals[worker.OwnerClientId] = prior + reward;
                 totals.TryGetValue(viggo.OwnerClientId, out var viggoPrior);
-                totals[viggo.OwnerClientId] = viggoPrior + captureReward;
+                totals[viggo.OwnerClientId] = viggoPrior + captureReward + distractionReward;
                 foreach (var player in players)
                 {
                     totals.TryGetValue(player.OwnerClientId, out var expected);

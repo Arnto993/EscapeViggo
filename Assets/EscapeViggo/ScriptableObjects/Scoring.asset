@@ -16,6 +16,8 @@ MonoBehaviour:
   VoltageTaskPoints: 120
   OutletTaskPoints: 150
   BreakerTaskPoints: 180
+  WorkInterruptionPoints: 15
+  PowerCutPoints: 25
   CapturePoints: 50
   CarrierCaptureBonus: 50
   CapturedPenalty: 25

@@ -1543,6 +1543,43 @@ Do not implement all ideas automatically.
 
 Playing Viggo before Rage Mode is entertaining rather than merely waiting for battery theft.
 
+## M20 Status — 2026-10-01
+
+Engineering implementation and validation are complete. Viggo can interrupt a
+task with meaningful progress (15 points, 8-second cooldown, 2-second retry), or
+use POWER CONTROL for a temporary worksite outage (25 points only for actual
+lost progress, 6-second duration, 20-second cooldown). Electricians can restore
+after 2 seconds. Existing authoritative interaction validates role, phase, range,
+line of sight, rest and task state. Event identity prevents duplicate scoring.
+Work remains recoverable; EndOfDay clears outages and temporary task delays;
+the next day resets cooldowns and rotates eligibility. HUD and presentation
+events are separate from gameplay; no final audio/animation was added.
+
+Final Unity compilation, saved asset validation and Windows development build
+passed (`Logs/M20-final-build.log`). All 91 Edit Mode and 13 Play Mode tests passed
+(`Logs/M20-final-*.xml`). The existing three-process baseline passed, including
+observer, active task/Rage cutoff, reconnect and host restart
+(`Logs/Multiplayer-20261001-103348-30779`).
+
+Final three-player Monday–Friday runs passed on direct transport
+(`Logs/Week-20261001-104202-33777`) and real Unity Sessions/Relay
+(`Logs/Week-20261001-104151-33778`). Both exercised every task type every day,
+meaningful/empty distraction scoring, duplicate requests, range/role/cooldown
+rejection, lost progress and recovery, automatic/manual restoration, rotating
+Viggo, stamina/rest, theft/discovery/Rage/capture, active-state cutoff, daily reset,
+matching accumulated results and Friday reconnect. All processes exited cleanly.
+These are three local processes using actual Relay, not a two-PC Internet test.
+
+Validation fixes included a separate readiness barrier before a power-cut request
+and routing fixture movement behind the worker: interpolating a player through
+the worker's sight line legitimately cancels work before the intended cut.
+Authority rules were retained. Temporary retry state now also clears at cutoff.
+
+M20's functional requirements are satisfied. Its stated success criterion—Viggo
+being entertaining before Rage—still requires human playtesting. Fun, balance,
+UI/input readability and M17 separate-network acceptance are not claimed as passed.
+README contains the exact five-day human procedure. No M21 work or push.
+
 ---
 
 # M21 — AUDIO AND GAME FEEL
@@ -1720,3 +1757,5 @@ The current request authorizes M18, M19 and M20 sequentially, with independent
 validation and local commits at each checkpoint. Preserve M0–M17, including both
 direct local networking and real Sessions/Relay. Do not start M21 or push commits.
 M17 two-PC separate-network acceptance and human UI/input review remain pending.
+M18 and M19 acceptance criteria are satisfied. M20 engineering is complete;
+its human fun/balance acceptance remains pending. Stop here, before M21.

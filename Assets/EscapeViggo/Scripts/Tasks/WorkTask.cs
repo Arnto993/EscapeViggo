@@ -14,6 +14,8 @@ namespace EscapeViggo.Tasks
             NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
         private LocalNetworkSession _session;
         public WorkTaskState State => TaskState.Value;
+        private Viggo.WorkDistractions Distractions => _session?.Workday?.GetComponent<Viggo.WorkDistractions>();
+        public bool HasProgress => State.Phase == WorkTaskPhase.InProgress && (State.Progress > 0 || State.Connections != 0);
         public event Action<WorkTaskState> StateChanged;
         public event Action<WorkTask, ulong> CompletedOnServer;
         public override string Prompt => "Start electrical task";
@@ -23,9 +25,15 @@ namespace EscapeViggo.Tasks
         public bool IsWorkday => _session != null && _session.Workday != null && _session.Workday.State.Phase == MatchPhase.Workday;
 
         public static bool RoleCanWork(PlayerRole role) => role == PlayerRole.Electrician;
-        public override bool CanInteract(PlayerInteraction player) => IsSpawned && IsWorkday &&
-            State.Phase == WorkTaskPhase.Available && player != null && player.CanAct && RoleCanWork(player.Player.Role) &&
-            !_session.Workday.GetComponent<Scoring.ScoreService>().HasActiveTask(player.OwnerClientId);
+        public override string GetPrompt(PlayerInteraction player) => player.Player.Role == PlayerRole.Viggo ? "Interrupt active work" : Prompt;
+        public override bool CanInteract(PlayerInteraction player)
+        {
+            if (!IsSpawned || !IsWorkday || player == null || !player.CanAct) return false;
+            if (player.Player.Role == PlayerRole.Viggo) return Distractions != null && Distractions.CanInterrupt(player, this);
+            return State.Phase == WorkTaskPhase.Available && RoleCanWork(player.Player.Role) &&
+                (Distractions == null || !Distractions.PowerOff) && NetworkManager.ServerTime.Time >= State.InterruptedUntil &&
+                !_session.Workday.GetComponent<Scoring.ScoreService>().HasActiveTask(player.OwnerClientId);
+        }
 
         public override void OnNetworkSpawn()
         {
@@ -36,6 +44,7 @@ namespace EscapeViggo.Tasks
 
         protected override void OnServerInteract(PlayerInteraction player)
         {
+            if (player.Player.Role == PlayerRole.Viggo) { Distractions?.InterruptOnServer(player, this); return; }
             TaskState.Value = new WorkTaskState
             {
                 Phase = WorkTaskPhase.InProgress, WorkerId = player.OwnerClientId,
@@ -46,7 +55,7 @@ namespace EscapeViggo.Tasks
         protected bool ValidateWorker(ulong sender, out PlayerInteraction player)
         {
             player = null;
-            if (!IsServer || !IsSpawned || !IsWorkday || State.Phase != WorkTaskPhase.InProgress || State.WorkerId != sender ||
+            if (!IsServer || !IsSpawned || !IsWorkday || (Distractions != null && Distractions.PowerOff) || State.Phase != WorkTaskPhase.InProgress || State.WorkerId != sender ||
                 !NetworkManager.ConnectedClients.TryGetValue(sender, out var client) || client.PlayerObject == null) return false;
             player = client.PlayerObject.GetComponent<PlayerInteraction>();
             return player != null && RoleCanWork(player.Player.Role) && player.ServerCanReach(this);
@@ -70,7 +79,13 @@ namespace EscapeViggo.Tasks
 
         internal void StopOnServer()
         {
-            if (IsServer && IsSpawned && State.Phase == WorkTaskPhase.InProgress) CancelOnServer();
+            if (IsServer && IsSpawned && (State.Phase == WorkTaskPhase.InProgress || State.InterruptedUntil > 0)) CancelOnServer();
+        }
+
+        internal void InterruptOnServer(double retryAt)
+        {
+            if (!IsServer || !IsSpawned || !HasProgress) return;
+            TaskState.Value = new WorkTaskState { WorkerId = ulong.MaxValue, Revision = State.Revision + 1, InterruptedUntil = retryAt };
         }
 
         internal virtual void ResetDayOnServer()

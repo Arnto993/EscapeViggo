@@ -36,6 +36,7 @@ namespace EscapeViggo.Core
             if (!IsServer || !IsSpawned || Summary.Ready || _workday.State.Phase != MatchPhase.EndOfDay) return;
             GetComponent<ViggoRage>().EndOnServer();
             GetComponent<ScoreService>().StopTasksOnServer();
+            GetComponent<Viggo.WorkDistractions>()?.StopOnServer();
             var battery = NetworkManager.GetComponent<LocalNetworkSession>().Battery;
             battery.StopTheftOnServer();
             var results = new List<DailyResult>();

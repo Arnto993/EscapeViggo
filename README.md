@@ -1,7 +1,9 @@
 # Escape Viggo
 
 Unity 6.3 LTS (**6000.3.25f1**), URP, Windows PC. M0–M16 provide the playable workday;
-M17 adds private online Sessions/Relay, with separate-network acceptance pending. Read [AGENTS.md](AGENTS.md),
+M17 adds private online Sessions/Relay, with separate-network acceptance pending.
+M18–M20 add a five-day week, four electrical task types and two Viggo distractions;
+human fun/balance review remains pending. Read [AGENTS.md](AGENTS.md),
 [GAME_SPEC.md](GAME_SPEC.md), and [MILESTONES.md](MILESTONES.md) before changes.
 
 ## How to Playtest Escape Viggo
@@ -296,19 +298,19 @@ To rebuild it, use **Escape Viggo > Build > Windows Development Player**.
 
 During Workday, disconnect/rejoin also remains supported:
 a rejoining player gets a new client ID and fresh score; completed world
-tasks persist until host restart. A new host session resets tasks and scores.
+tasks persist until the next workday. A new host session resets tasks and scores.
 Check the Editor Console and player logs for errors.
 
 To check task cancellation, restart the host, begin a task,
 click Cancel or disconnect mid-task, and confirm another electrician can begin.
-The four other task locations remain placeholders; the battery station is interactive.
+All five task locations and the battery station are interactive (see M19 below).
 The low service duct near (-5, -6) still supports the M2 crouch/headroom test.
 
 Alternatively, launch the executable twice and choose Host in one window and
-Client in the other. Extra clients use the same address/port. The host is always
-Viggo (wide orange body, Viggo spawn); up to seven clients are electricians
-(blue body, electrician spawn area). Check the local role in both panels and
-observe the other player's silhouette. Disconnect/rejoin retains this policy.
+Client in the other. Extra clients use the same address/port. The host starts as
+Viggo on Monday (wide orange body, Viggo spawn); clients start as electricians
+(blue body, electrician spawn area). Roles rotate daily. Check the local role in
+both panels and observe the other player's silhouette.
 CLI shortcuts are `-ev-host`, `-ev-client`,
 `-ev-address 127.0.0.1`, and `-ev-port 7777` in development builds.
 
@@ -585,3 +587,48 @@ Leave an open task at 15:00; verify the modal closes, next day starts clean, and
 the alternate task types appear. Repeat the five-day procedure above with Relay.
 `Test-WorkWeek.ps1` automatically exercises the same task rules, cancellation,
 contention, duplicate requests, scoring, unfinished cutoff and weekday reset.
+
+## Viggo distractions (M20)
+
+Before theft, Viggo can aim at an active task station and press E to interrupt
+meaningful progress. Work closes and resets, the worker can retry after 2 seconds,
+and Viggo receives 15 points once. The interruption has an 8-second cooldown and
+requires proximity, line of sight, an active Workday and a non-resting Viggo.
+Starting an untouched task does not provide interruption points.
+
+The labelled POWER CONTROL at (-1, 0.8, -10) interrupts all active electrical work
+for 6 seconds. Viggo receives 25 points only if at least one task lost progress.
+Electricians can restore power there after a 2-second safety delay. A 20-second
+Viggo cooldown leaves a recovery window; repeated requests cannot extend an outage.
+The HUD shows outages and Viggo cooldowns. No final animation/audio is required:
+WorkDistractions exposes WorkInterrupted, PowerCut and PowerRestored events.
+Distractions.asset and Scoring.asset hold tuning. EndOfDay restores power; the next
+day clears cooldowns and transfers eligibility with the Viggo role.
+
+For the complete human acceptance check, use three people/windows and two-minute
+days so there is time to read each task:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File Tools/Start-LocalPlaytest.ps1 -Players 3 -Minutes 2
+```
+
+1. Monday: complete one correct circuit input, then have Viggo approach the station
+   and press E. Verify closed UI, lost progress, +15 once, two-second retry and
+   cooldown rejection. Reopen and complete the task. Try an empty power cut: no points.
+2. Tuesday: verify roles rotate and scores/cooldowns reset. Start work, make progress,
+   then cut power. Verify +25 once and blocked tasks. The other electrician restores
+   at POWER CONTROL after two seconds; finish the interrupted task.
+3. Wednesday: repeat the power cut, but let it restore automatically. Complete Voltage
+   Measurement and Outlet Replacement; deliberately try a wrong input and retry.
+4. Thursday: complete Breaker Installation. Steal the battery, delay Viggo's inspection,
+   then inspect and capture the carrier. Exercise normal stamina exhaustion/Javell rest.
+5. Friday: leave work open and cut power close to 15:00. Confirm cleanup and matching
+   daily/final totals in all windows, including distraction points. Verify no Continue
+   or sixth day. Reconnect a client and compare the frozen results again.
+
+At every daily result, compare scores, then only the host clicks Continue. Check
+07:00, rotated spawns, fresh tasks/battery/rest and preserved weekly totals. Repeat
+using Host Online and the join code, ideally on separate PCs/Internet connections.
+Judge whether normal Viggo play is entertaining, whether electricians have enough
+recovery time, and whether prompts/modal controls are readable at 720p and 1080p.
+Automated state checks cannot establish those human acceptance criteria.

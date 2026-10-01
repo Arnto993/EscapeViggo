@@ -124,6 +124,7 @@ namespace EscapeViggo.Core
             var session = NetworkManager.GetComponent<LocalNetworkSession>();
             GetComponent<DailyResults>().ResetOnServer();
             GetComponent<ScoreService>().ResetDayOnServer();
+            GetComponent<WorkDistractions>()?.ResetDayOnServer();
             GetComponent<ViggoRage>().EndOnServer();
             session.Battery.ResetDayOnServer();
             session.RotateRolesOnServer(_viggo);

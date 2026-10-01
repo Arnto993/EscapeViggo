@@ -39,6 +39,9 @@ try {
         if ($processes[$i].ExitCode -ne 0) { throw "Player $i exited with an error. Logs: $runDirectory" }
         $log = Get-Content (Join-Path $runDirectory "player$i.log")
         if (!($log -match '^EV_WEEK PASSED')) { throw "Missing success for player $i. Logs: $runDirectory" }
+        if (@($log | Where-Object { $_ -match '^EV_DISTRACTIONS PASSED day=' }).Count -ne 5) {
+            throw "Expected distraction validation on all five days for player $i. Logs: $runDirectory"
+        }
         foreach ($kind in @('VoltageMeasurement', 'OutletReplacement', 'BreakerInstallation')) {
             if (@($log | Where-Object { $_ -match "^EV_ELECTRICAL PASSED day=\d kind=$kind " }).Count -ne 5) {
                 throw "Expected $kind validation on all five days for player $i. Logs: $runDirectory"

@@ -20,6 +20,7 @@ namespace EscapeViggo.Core
         private LocalNetworkSession _session;
         private bool _initialized, _wasStealing, _wasCarrying, _wasRaging;
         private int _lastScore, _lastTasks, _lastCaptures, _lastDay;
+        private uint _lastDistraction;
         private string _feedback = "", _scoreFeedback = "";
         private float _feedbackUntil, _scoreUntil, _rageUntil;
         public bool IsVisible => _player != null && _player.IsSpawned && _player.IsOwner;
@@ -61,6 +62,13 @@ namespace EscapeViggo.Core
                 _lastCaptures = _score.Captures;
                 _initialized = true;
             }
+            var distractions = _session.Workday?.GetComponent<WorkDistractions>();
+            if (distractions != null && distractions.State.Sequence != _lastDistraction)
+            {
+                _lastDistraction = distractions.State.Sequence;
+                if (distractions.State.Kind == DistractionKind.WorkInterruption && distractions.State.VictimId == _player.OwnerClientId)
+                    Notify("Viggo interrupted your work! Progress lost. Retry in a moment.");
+            }
             if (_lastScore != _score.Value)
             {
                 var delta = (long)_score.Value - _lastScore;
@@ -95,6 +103,15 @@ namespace EscapeViggo.Core
             GUI.Box(new Rect(width / 2 - 125, 16, 250, 66), $"{week?.DayName} {state.ClockText}\n{(state.Phase == MatchPhase.EndOfDay ? "Workday finished" : state.Phase.ToString())}");
             GUI.Box(new Rect(width - 275, 16, 255, 40), "Esc: menu / release mouse");
             if (state.Phase == MatchPhase.EndOfDay) return;
+            var distractions = _session.Workday.GetComponent<WorkDistractions>();
+            if (distractions != null)
+            {
+                var now = _player.NetworkManager.ServerTime.Time;
+                if (distractions.PowerOff)
+                    GUI.Box(new Rect(width / 2 - 280, 270, 560, 66), $"POWER CUT - work interrupted ({System.Math.Max(0, distractions.State.PowerUntil - now):F1}s)\nElectricians: restore at POWER CONTROL after the safety delay.");
+                if (ShowsStamina)
+                    GUI.Box(new Rect(20, 340, 370, 88), $"E at active tasks: interrupt work\nReady in {System.Math.Max(0, distractions.State.InterruptReadyAt - now):F1}s\nE at POWER CONTROL: temporary outage\nReady in {System.Math.Max(0, distractions.State.PowerReadyAt - now):F1}s");
+            }
             GUI.Box(new Rect(20, 94, 370, 66), ShowsStamina
                 ? "Protect your battery. Check its station.\nGet close and press E to capture workers."
                 : "Find yellow task stations around the worksite.\nHold E at the battery station to steal.");
