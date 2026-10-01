@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 6028007796100919788}
   - component: {fileID: 7337978423661600580}
   - component: {fileID: 1357711491740984015}
+  - component: {fileID: 6270704300152184918}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -35,6 +36,7 @@ Transform:
   m_Children:
   - {fileID: 4154123446049328418}
   - {fileID: 5985877076222967521}
+  - {fileID: 7484535188385524273}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!143 &1413402600895319077
@@ -102,6 +104,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: EscapeViggo.Runtime::EscapeViggo.Player.PlayerLook
   _cameraPivot: {fileID: 5985877076222967521}
+--- !u!114 &6270704300152184918
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3463590537222682277}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 77ff25f2ba56ab243a6b6743928bc592, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: EscapeViggo.Runtime::EscapeViggo.Presentation.ElectricianPresentation
+  _animator: {fileID: 3548350306840260683}
+  _placeholder: {fileID: 4594789030279659456}
 --- !u!1 &5535346571503470592
 GameObject:
   m_ObjectHideFlags: 0
@@ -284,3 +300,70 @@ AudioListener:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7896649724016706701}
   m_Enabled: 1
+--- !u!1001 &6592782399816881668
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1000366813883433621}
+    m_Modifications:
+    - target: {fileID: 4029592589800400527, guid: 6c190bb2fc745c245901b2c51859d4df, type: 3}
+      propertyPath: m_Name
+      value: ElectricianVisual
+      objectReference: {fileID: 0}
+    - target: {fileID: 4368541875744357429, guid: 6c190bb2fc745c245901b2c51859d4df, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4368541875744357429, guid: 6c190bb2fc745c245901b2c51859d4df, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4368541875744357429, guid: 6c190bb2fc745c245901b2c51859d4df, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4368541875744357429, guid: 6c190bb2fc745c245901b2c51859d4df, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4368541875744357429, guid: 6c190bb2fc745c245901b2c51859d4df, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4368541875744357429, guid: 6c190bb2fc745c245901b2c51859d4df, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4368541875744357429, guid: 6c190bb2fc745c245901b2c51859d4df, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4368541875744357429, guid: 6c190bb2fc745c245901b2c51859d4df, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4368541875744357429, guid: 6c190bb2fc745c245901b2c51859d4df, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4368541875744357429, guid: 6c190bb2fc745c245901b2c51859d4df, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 6c190bb2fc745c245901b2c51859d4df, type: 3}
+--- !u!95 &3548350306840260683 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 7656120896734946895, guid: 6c190bb2fc745c245901b2c51859d4df, type: 3}
+  m_PrefabInstance: {fileID: 6592782399816881668}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &7484535188385524273 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4368541875744357429, guid: 6c190bb2fc745c245901b2c51859d4df, type: 3}
+  m_PrefabInstance: {fileID: 6592782399816881668}
+  m_PrefabAsset: {fileID: 0}

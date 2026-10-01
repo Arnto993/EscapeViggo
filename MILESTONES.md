@@ -39,7 +39,7 @@ Do not automatically continue into the next milestone.
 - M19 — Multiple Work Tasks — **Complete** — `2e54e57`
 - M20 — Viggo Distraction Expansion — **Engineering complete; human fun/balance judgement pending** — `885de29`
 - M21 — Audio and Game Feel — **Engineering complete; human audio/feel review pending**
-- M22 — First Art Pass — **Not started**
+- M22 — First Art Pass — **C1–C4 electrician checkpoint; remaining art not started**
 - M23 — Balance and Playtesting — **Not started**
 
 ---
@@ -51,7 +51,7 @@ configuration/emitter, all presentation hooks, neutral placeholders and empty
 Viggo voice slots are wired. Tier 3 passed: compilation/assets, 96 Edit Mode + 15
 Play Mode tests, Windows development build, rendered baseline multiplayer and
 three-player local/Relay five-day weeks with Friday reconnect and cue-count checks.
-Human listening, readability, timing and mix acceptance remain pending. M22 not started.
+Human listening, readability, timing and mix acceptance remain pending. See M22 for the subsequent art scope.
 
 ## Goal
 
@@ -111,6 +111,12 @@ Stop after M21 unless the user explicitly requests M22.
 ---
 
 # M22 — FIRST ART PASS
+
+**Scoped progress (2026-10-01):** C0 verified at `fd24a02`; C1–C4 now implement
+the reusable base, Humanoid rig, minimum in-place locomotion and first electrician.
+Tier 3 engineering passed (102 Edit Mode, 18 Play Mode, build and baseline multiplayer).
+Human visual acceptance remains. This does not complete M22: C5/Viggo, variants,
+props, environment and UI art remain unstarted. Stop before C5.
 
 ## Goal
 

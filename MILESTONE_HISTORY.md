@@ -127,3 +127,53 @@ back. Sandbox licensing stalled initially; normal licensing access resolved it.
   judge mix, spatial range, exhaustion/Rage/capture readability, timing and clutter.
   Approved voice recordings are absent by design. Separate-PC Internet listening
   was not performed. Stop before M22.
+
+## C1-C4 — Electrician character pipeline checkpoint (2026-10-01)
+
+Scope: verified C0 `fd24a02` extended only through C4. No C5/Viggo production,
+variants, environment/prop art or gameplay authority changes. Reference/spec files
+were preserved. Repository filenames are `CHARACTER_ARTS_SPECS.md` and the supplied
+reference PNGs have doubled `.png.png` extensions.
+
+Outputs: editable BaseHuman/Electrician blends, 4,380-triangle / 1.8355 m canonical
+faceted electrician, 21-bone rig (all 17 required plus shoulders/toes), minimum
+Idle/Walk/Run actions at 30 fps, Humanoid FBX/Avatar, nine URP colour materials,
+Speed blend controller and presentation prefab. Player/NetworkPlayer prefab changes
+only add the presentation component/child. Existing colliders, Body references,
+movement, cameras, role state and network components are preserved. Smoke harness
+adds read-only character assertions; no gameplay networking changes.
+
+Tier 3 evidence:
+- Blender CLI generation, both saved-source reopens, bone hierarchy/weights/applied
+  transforms, binary FBX, exact action endpoint poses and in-place roots passed.
+  Reports: `Logs/C4Blender.json`, `Logs/C4BlenderFirst.json`,
+  `Logs/C4SourceValidation.json`. Repeated semantic SHA-256:
+  `4a850934e981304a616f4fe836d344e405fb12dc4d502b62a061f85020f67a5f`.
+  Checksum canonicalizes geometry/materials/weights/rig rather than timestamps/IDs.
+- Isolated Unity project: `Builds/C4Validation`. Licensing service required the
+  normal unsandboxed batch process. `Logs/C4PrepareFinal.log` confirms valid Humanoid,
+  three looping clips, bone/mesh/URP references and presentation-only prefab.
+- `Logs/C4EditModeFinal.xml`: **102/102 passed**. An initial test incorrectly assumed
+  one network collider; corrected to preserve the existing interaction trigger and
+  assert no colliders on the new visual. Metre scale, ground pivot, +Z feet verified.
+- `Logs/C4PlayModeFinal.xml`: **18/18 passed**, including actual idle/walk/run Animator
+  playback, no root displacement, owner shadow-only visibility, and shared walk
+  retargeted onto a temporary Humanoid skeleton with altered leg proportions.
+- `Logs/C4Build.log`: compilation, existing M1-M21 asset validation chain and Windows
+  development build passed. Validated player copied to `Builds/Windows/`.
+- `Logs/Multiplayer-20261001-135932-17844/` within the isolated project: rendered
+  host/client, late observer, reconnect and host restart passed. `EV_CHARACTER`
+  verifies valid in-place Humanoid, role visibility and local/remote shadow modes.
+  Existing movement, roles, workday, interaction/tasks/scoring, stamina/rest,
+  battery/Rage, capture/respawn and frozen-results checks all passed.
+- Source `Assets/EscapeViggo` matches the validated copy byte-for-byte, including
+  original GUIDs and the new Unity-generated metas. Unrelated automatic URP build
+  serialization under `Assets/Settings` remains confined to the validation copy.
+- Full five-day/Relay regression not rerun: no material gameplay/network change.
+
+Human review artifacts: `ArtSource/Characters/Electrician/Review/{Front,Side,Back,ThreeQuarter}.png`.
+Shoulder openings and knee-pad intersections found in first renders were corrected.
+Engineering acceptance is satisfied; visual identity, gameplay-distance readability,
+deformation and animation feel require human sign-off. C3 deliberately has minimum
+locomotion only: crouch scales visual height; contextual crouch/jump/task animation
+and final stride/foot-placement polish remain outside this checkpoint. C5 is unstarted.

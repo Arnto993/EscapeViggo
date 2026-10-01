@@ -2,16 +2,17 @@
 
 **Purpose:** fast orientation for coding agents. This file describes the current repository, not its full history.
 
-**Last consolidated checkpoint:** M21 engineering completed locally, 2026-10-01.
+**Last consolidated checkpoint:** C1–C4 electrician engineering completed locally, 2026-10-01.
 
 ## 1. Current Development Position
 
 - M0–M19: engineering/acceptance criteria completed.
 - M20: engineering implementation completed; human fun/balance judgement remains a playtest concern.
 - M21: engineering implementation and Tier 3 checkpoint completed. Human listening/feel acceptance remains.
-- Next planned milestone: **M22 — First Art Pass**, not authorized by the M21 request.
-- C0 Blender-to-Unity pipeline setup is verified; M22 art production and C1 remain unstarted.
-- Do not begin M22 production or M23 unless explicitly requested.
+- M22 is partially authorized/implemented through **C1–C4 electrician production only**.
+- C0 Blender-to-Unity pipeline (`fd24a02`) is verified. C1–C4 electrician production
+  passed its engineering checkpoint; human visual review remains. C5/Viggo and the rest of M22 remain unstarted.
+- Stop before C5/Viggo, other M22 production and M23 unless explicitly requested.
 
 Recent local milestone commits:
 
@@ -207,10 +208,45 @@ Do not “solve” M23 balance theoretically before multiplayer playtest evidenc
   original source GUIDs were preserved. Logs/tests are under that copy's `Logs/`;
   player: `Builds/C0Validation/Builds/C0Preview/C0Preview.exe`.
 - Human Blender/Unity visual review remains: open the source and preview scene,
-  inspect the blue 2 m test mesh, ground origin and raised +Z nose. Rigging,
-  skinning, animations and production art are not validated or started. No core
+  inspect the blue 2 m test mesh, ground origin and raised +Z nose. At C0, rigging,
+  skinning and animation were outside scope; see C1–C4 below. No core
   gameplay/network changes; no full-week/Relay regression was needed.
 - `ArtReferences/` and supplied art/design documents remain untouched.
+
+### C1–C4 electrician pipeline (2026-10-01)
+
+- Editable sources: `ArtSource/Characters/BaseHuman/SRC_BaseHuman.blend` and
+  `ArtSource/Characters/Electrician/SRC_Electrician.blend`. Canonical reference files
+  currently have `.png.png` suffixes; the technical spec is `CHARACTER_ARTS_SPECS.md`.
+- One 1.8355 m faceted electrician: 4,380 triangles, 21-bone Humanoid rig, all 17
+  required bones plus shoulders/toes; blended torso/elbow/knee weights. No finger
+  or facial rig. Yellow helmet/vest, blue workwear, glasses/hair, gloves, boots/belt.
+- `Tools/Blender/create_electrician.py` regenerates the named sources and four review
+  renders. `export_character.py` preserves manual source edits; `validate_character.py`
+  checks saved sources/rig/weights/transforms/loops. The C0 static export is unchanged;
+  `pipeline.py` adds a separate skinned export profile. See `Tools/Blender/README.md`.
+- Unity: `Assets/EscapeViggo/Art/Characters/Electrician/` contains FBX with valid
+  Humanoid Avatar and looping Idle/Walk/Run clips, URP materials, Speed controller,
+  and `PF_Electrician.prefab`. All locomotion is in place; root motion is disabled.
+- `ElectricianArtPipeline.Prepare` uses Unity prefab APIs to wire presentation into
+  Player/NetworkPlayer. `ElectricianPresentation` reads existing movement/role/owner
+  state: owner shadows only, remote visible, Viggo keeps its capsule. Existing
+  colliders, Body references, movement and network authority remain unchanged.
+- Front/side/back/three-quarter renders: `ArtSource/Characters/Electrician/Review/`.
+  Human visual identity/readability/deformation/animation-feel acceptance remains.
+  Crouch currently scales visual height; full crouch/jump/task animation and final
+  stride/foot-placement polish are outside the minimum C3 locomotion scope.
+- Checkpoint validation uses `Builds/C4Validation` to preserve the open editor.
+  Tier 3 passed: compilation/asset checks, **102 Edit Mode + 18 Play Mode tests**,
+  Windows development build, rendered baseline host/client/late-observer regression,
+  reconnect and host restart. Character role/ownership checks passed on all peers.
+  Playback and retargeting onto a proportion-changed test skeleton passed without
+  root displacement. Repeated Blender geometry/material/weight/rig checksums match.
+  `Assets/EscapeViggo` matches the validated copy byte-for-byte; Unity-generated build
+  settings outside that directory were not copied back. Current player is at
+  `Builds/Windows/EscapeViggo.exe`; detailed evidence paths are in the history.
+  Full Relay/five-day regression was not rerun: gameplay/network authority is unchanged.
+  No C5 assets, electrician variants, environment or prop production was started.
 
 ### M21 presentation architecture
 

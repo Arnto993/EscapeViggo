@@ -310,6 +310,17 @@ namespace EscapeViggo.Networking
                 Check(player.GetComponent<CharacterController>().enabled == local, "Controller ownership mismatch.");
                 Check(player.GetComponentInChildren<Camera>(true).enabled == local, "Camera ownership mismatch.");
                 Check(player.GetComponentInChildren<AudioListener>(true).enabled == local, "Listener ownership mismatch.");
+                var presentation = player.GetComponent<Presentation.ElectricianPresentation>();
+                Check(presentation != null, "Missing electrician presentation.");
+                var animator = presentation.Animator;
+                Check(animator.avatar.isValid && animator.avatar.isHuman && !animator.applyRootMotion,
+                    "Electrician Humanoid/root-motion mismatch.");
+                Check(animator.gameObject.activeSelf == (player.Role == PlayerRole.Electrician),
+                    "Electrician role visibility mismatch.");
+                foreach (var renderer in animator.GetComponentsInChildren<Renderer>(true))
+                    Check(renderer.shadowCastingMode == (local ? UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly : UnityEngine.Rendering.ShadowCastingMode.On),
+                        "Electrician local/remote visibility mismatch.");
+                Debug.Log($"EV_CHARACTER PASSED owner={player.OwnerClientId} local={local} role={player.Role}");
             }
             Check(owned == 1, "Expected exactly one owned player.");
             var cameras = 0;
