@@ -2,6 +2,7 @@ param(
     [string]$Method = 'EscapeViggo.Editor.WorksiteValidation.Validate',
     [string]$LogName = 'Validation',
     [string]$TestPlatform,
+    [string]$TestFilter,
     [switch]$AsyncMethod
 )
 $ErrorActionPreference = 'Stop'
@@ -15,6 +16,7 @@ $unityArguments = @('-batchmode', '-nographics', '-projectPath', ('"{0}"' -f $pr
 if ($TestPlatform) {
     $unityArguments += @('-runTests', '-testPlatform', $TestPlatform,
         '-testResults', ('"{0}"' -f (Join-Path $logDirectory "$LogName.xml")))
+    if ($TestFilter) { $unityArguments += @('-testFilter', $TestFilter) }
 } else {
     if (!$AsyncMethod) { $unityArguments += '-quit' }
     $unityArguments += @('-executeMethod', $Method)

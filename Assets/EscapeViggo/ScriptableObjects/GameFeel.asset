@@ -1,0 +1,263 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f6d557002db217542bf4d6071890c490, type: 3}
+  m_Name: GameFeel
+  m_EditorClassIdentifier: EscapeViggo.Runtime::EscapeViggo.Presentation.GameFeelSettings
+  MasterVolume: 0.7
+  EffectsVolume: 1
+  AmbienceVolume: 0.35
+  VoiceVolume: 1
+  ElectricianStride: 1.8
+  ViggoStride: 2.1
+  CrouchStepVolume: 0.35
+  MinimumStepInterval: 0.2
+  EdgeOpacity: 0.22
+  Cues:
+  - Cue: 0
+    Bus: 0
+    Clips:
+    - {fileID: 8300000, guid: 8e46602f1083b694886c3154c5066611, type: 3}
+    Volume: 0.5
+    Pitch: 1
+    PitchVariation: 0.08
+    Cooldown: 0.08
+    Range: 18
+  - Cue: 1
+    Bus: 0
+    Clips:
+    - {fileID: 8300000, guid: 6ad5b0c6b6f6d1342b6863b7871cf229, type: 3}
+    Volume: 0.5
+    Pitch: 1
+    PitchVariation: 0.08
+    Cooldown: 0.08
+    Range: 18
+  - Cue: 2
+    Bus: 1
+    Clips:
+    - {fileID: 8300000, guid: eaafaccdf12d3ee4183b7bb949e6de24, type: 3}
+    Volume: 0.18
+    Pitch: 1
+    PitchVariation: 0
+    Cooldown: 0.08
+    Range: 18
+  - Cue: 3
+    Bus: 0
+    Clips:
+    - {fileID: 8300000, guid: abb7874f87f456b47bc586227985f815, type: 3}
+    Volume: 0.5
+    Pitch: 1
+    PitchVariation: 0
+    Cooldown: 0.08
+    Range: 18
+  - Cue: 4
+    Bus: 0
+    Clips:
+    - {fileID: 8300000, guid: e50857e1b3bec8d4a81b8bb108c5325f, type: 3}
+    Volume: 0.5
+    Pitch: 1
+    PitchVariation: 0
+    Cooldown: 0.08
+    Range: 18
+  - Cue: 5
+    Bus: 0
+    Clips:
+    - {fileID: 8300000, guid: d15456b78f1c7ba499424379b7743042, type: 3}
+    Volume: 0.5
+    Pitch: 1
+    PitchVariation: 0
+    Cooldown: 0.08
+    Range: 18
+  - Cue: 6
+    Bus: 0
+    Clips:
+    - {fileID: 8300000, guid: 5b8caff6527273b4d9d7f193fd517f2c, type: 3}
+    Volume: 0.5
+    Pitch: 1
+    PitchVariation: 0
+    Cooldown: 0.08
+    Range: 18
+  - Cue: 7
+    Bus: 0
+    Clips:
+    - {fileID: 8300000, guid: f73c6e394f2b43f468cfbd55d43fd844, type: 3}
+    Volume: 0.5
+    Pitch: 1
+    PitchVariation: 0
+    Cooldown: 0.08
+    Range: 18
+  - Cue: 8
+    Bus: 0
+    Clips:
+    - {fileID: 8300000, guid: 88119ffd99b52014b9779fa93ba1ad25, type: 3}
+    Volume: 0.5
+    Pitch: 1
+    PitchVariation: 0
+    Cooldown: 0.08
+    Range: 18
+  - Cue: 9
+    Bus: 0
+    Clips:
+    - {fileID: 8300000, guid: 555d4d2700ceeb24cb1a00bd0378390c, type: 3}
+    Volume: 0.5
+    Pitch: 1
+    PitchVariation: 0
+    Cooldown: 0.08
+    Range: 18
+  - Cue: 10
+    Bus: 0
+    Clips:
+    - {fileID: 8300000, guid: 63887b64a1975d248986b3e98634aceb, type: 3}
+    Volume: 0.5
+    Pitch: 1
+    PitchVariation: 0
+    Cooldown: 0.08
+    Range: 18
+  - Cue: 11
+    Bus: 1
+    Clips:
+    - {fileID: 8300000, guid: c93b2c4752d78e84bb058de8adf84111, type: 3}
+    Volume: 0.18
+    Pitch: 1
+    PitchVariation: 0
+    Cooldown: 0.08
+    Range: 18
+  - Cue: 12
+    Bus: 0
+    Clips:
+    - {fileID: 8300000, guid: efedb724cc0ce5e49b7767f8ee6b6d5a, type: 3}
+    Volume: 0.5
+    Pitch: 1
+    PitchVariation: 0
+    Cooldown: 0.08
+    Range: 18
+  - Cue: 13
+    Bus: 0
+    Clips:
+    - {fileID: 8300000, guid: 63aff819ae6fb9544a04fdfe6857d23c, type: 3}
+    Volume: 0.5
+    Pitch: 1
+    PitchVariation: 0
+    Cooldown: 0.08
+    Range: 18
+  - Cue: 14
+    Bus: 1
+    Clips:
+    - {fileID: 8300000, guid: 7428a6068a7a54940aed44501f31814b, type: 3}
+    Volume: 0.18
+    Pitch: 1
+    PitchVariation: 0
+    Cooldown: 0.08
+    Range: 18
+  - Cue: 15
+    Bus: 0
+    Clips:
+    - {fileID: 8300000, guid: d12a5c9d81c589b41840f89fbcf48634, type: 3}
+    Volume: 0.5
+    Pitch: 1
+    PitchVariation: 0
+    Cooldown: 0.08
+    Range: 18
+  - Cue: 16
+    Bus: 0
+    Clips:
+    - {fileID: 8300000, guid: 4baec795bb8ee1c4d8ca5ae1fb3ce82a, type: 3}
+    Volume: 0.5
+    Pitch: 1
+    PitchVariation: 0
+    Cooldown: 0.08
+    Range: 18
+  - Cue: 17
+    Bus: 0
+    Clips:
+    - {fileID: 8300000, guid: 15e29d630d406224180faf2a24f4679e, type: 3}
+    Volume: 0.5
+    Pitch: 1
+    PitchVariation: 0
+    Cooldown: 0.08
+    Range: 18
+  - Cue: 18
+    Bus: 0
+    Clips:
+    - {fileID: 8300000, guid: e536450cd1f78944d83afedbbc666fd9, type: 3}
+    Volume: 0.5
+    Pitch: 1
+    PitchVariation: 0
+    Cooldown: 0.08
+    Range: 18
+  - Cue: 19
+    Bus: 0
+    Clips:
+    - {fileID: 8300000, guid: e47ec40d34bb92d43994fb3c541f2638, type: 3}
+    Volume: 0.5
+    Pitch: 1
+    PitchVariation: 0
+    Cooldown: 0.08
+    Range: 18
+  - Cue: 20
+    Bus: 0
+    Clips:
+    - {fileID: 8300000, guid: 156f293040bc28a48bca5a94c94e37f3, type: 3}
+    Volume: 0.5
+    Pitch: 1
+    PitchVariation: 0
+    Cooldown: 0.08
+    Range: 18
+  - Cue: 21
+    Bus: 0
+    Clips:
+    - {fileID: 8300000, guid: c3e0cde5444ad9445b306f1248e48e63, type: 3}
+    Volume: 0.5
+    Pitch: 1
+    PitchVariation: 0
+    Cooldown: 0.08
+    Range: 18
+  - Cue: 22
+    Bus: 0
+    Clips:
+    - {fileID: 8300000, guid: 83708f14bb5100e45849d310ca89d3fc, type: 3}
+    Volume: 0.5
+    Pitch: 1
+    PitchVariation: 0
+    Cooldown: 0.08
+    Range: 18
+  - Cue: 23
+    Bus: 2
+    Clips: []
+    Volume: 0.5
+    Pitch: 1
+    PitchVariation: 0
+    Cooldown: 0.5
+    Range: 18
+  - Cue: 24
+    Bus: 2
+    Clips: []
+    Volume: 0.5
+    Pitch: 1
+    PitchVariation: 0
+    Cooldown: 0.5
+    Range: 18
+  - Cue: 25
+    Bus: 2
+    Clips: []
+    Volume: 0.5
+    Pitch: 1
+    PitchVariation: 0
+    Cooldown: 0.5
+    Range: 18
+  - Cue: 26
+    Bus: 2
+    Clips: []
+    Volume: 0.5
+    Pitch: 1
+    PitchVariation: 0
+    Cooldown: 0.5
+    Range: 18

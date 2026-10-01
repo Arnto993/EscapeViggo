@@ -13,6 +13,8 @@ GameObject:
   - component: {fileID: 4707165342043322542}
   - component: {fileID: 6380549065640683938}
   - component: {fileID: 707903836871746453}
+  - component: {fileID: 1494677923125744158}
+  - component: {fileID: 593859631506219909}
   m_Layer: 0
   m_Name: BatteryStation
   m_TagString: Untagged
@@ -113,6 +115,33 @@ MonoBehaviour:
   m_EditorClassIdentifier: EscapeViggo.Runtime::EscapeViggo.Battery.BatteryPresentation
   ShowTopMostFoldoutHeaderGroup: 1
   _batteryVisual: {fileID: 3918649818519447297}
+--- !u!114 &1494677923125744158
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2332241344852389745}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 584f706e7840a1340b73f88be481c32e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: EscapeViggo.Runtime::EscapeViggo.Presentation.AudioEmitter
+  _settings: {fileID: 11400000, guid: 2de4eff63241b094b87dce33878fb54c, type: 2}
+  _spatial: 1
+--- !u!114 &593859631506219909
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2332241344852389745}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95ca033c48b3f4046b278597efccc2b6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: EscapeViggo.Runtime::EscapeViggo.Presentation.BatteryAudioFeedback
+  ShowTopMostFoldoutHeaderGroup: 1
 --- !u!1 &3918649818519447297
 GameObject:
   m_ObjectHideFlags: 0

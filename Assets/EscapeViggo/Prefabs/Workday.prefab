@@ -18,6 +18,8 @@ GameObject:
   - component: {fileID: 122799401311870579}
   - component: {fileID: 5086287278263269824}
   - component: {fileID: 4691267097248670969}
+  - component: {fileID: 7345008815135373328}
+  - component: {fileID: 9014833827126625720}
   m_Layer: 0
   m_Name: Workday
   m_TagString: Untagged
@@ -175,3 +177,30 @@ MonoBehaviour:
   m_EditorClassIdentifier: EscapeViggo.Runtime::EscapeViggo.Viggo.WorkDistractions
   ShowTopMostFoldoutHeaderGroup: 1
   _settings: {fileID: 11400000, guid: 7b94a424580b9484a8d74743bb682362, type: 2}
+--- !u!114 &7345008815135373328
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8818813058344074348}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 584f706e7840a1340b73f88be481c32e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: EscapeViggo.Runtime::EscapeViggo.Presentation.AudioEmitter
+  _settings: {fileID: 11400000, guid: 2de4eff63241b094b87dce33878fb54c, type: 2}
+  _spatial: 0
+--- !u!114 &9014833827126625720
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8818813058344074348}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9e9494142d26694c94890f90a36a8b1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: EscapeViggo.Runtime::EscapeViggo.Presentation.WorksiteAudioFeedback
+  ShowTopMostFoldoutHeaderGroup: 1

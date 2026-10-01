@@ -132,6 +132,8 @@ GameObject:
   - component: {fileID: 4253968409738356408}
   - component: {fileID: 3858031741585909902}
   - component: {fileID: 5989235449681866965}
+  - component: {fileID: 5662882309685022308}
+  - component: {fileID: 1857513838255774780}
   m_Layer: 0
   m_Name: BreakerTask
   m_TagString: Untagged
@@ -288,3 +290,30 @@ MonoBehaviour:
   m_EditorClassIdentifier: EscapeViggo.Runtime::EscapeViggo.Tasks.ElectricalTaskPanel
   _label: {fileID: 8252215171240810598}
   _panel: {fileID: 4106196475819555617}
+--- !u!114 &5662882309685022308
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6744221957977556269}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 584f706e7840a1340b73f88be481c32e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: EscapeViggo.Runtime::EscapeViggo.Presentation.AudioEmitter
+  _settings: {fileID: 11400000, guid: 2de4eff63241b094b87dce33878fb54c, type: 2}
+  _spatial: 1
+--- !u!114 &1857513838255774780
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6744221957977556269}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3d14a3b81173c9447ad97f133cca5689, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: EscapeViggo.Runtime::EscapeViggo.Presentation.TaskAudioFeedback
+  ShowTopMostFoldoutHeaderGroup: 1

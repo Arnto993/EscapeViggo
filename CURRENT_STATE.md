@@ -2,14 +2,14 @@
 
 **Purpose:** fast orientation for coding agents. This file describes the current repository, not its full history.
 
-**Last consolidated checkpoint:** M20 implemented locally, 2026-10-01.
+**Last consolidated checkpoint:** M21 engineering completed locally, 2026-10-01.
 
 ## 1. Current Development Position
 
 - M0–M19: engineering/acceptance criteria completed.
 - M20: engineering implementation completed; human fun/balance judgement remains a playtest concern.
-- Next planned milestone: **M21 — Audio and Game Feel**.
-- M21 is not authorized merely because it is listed here; follow the user's current request.
+- M21: engineering implementation and Tier 3 checkpoint completed. Human listening/feel acceptance remains.
+- Next planned milestone: **M22 — First Art Pass**, not authorized by the M21 request.
 - Do not begin M22 or M23 unless explicitly requested.
 
 Recent local milestone commits:
@@ -39,7 +39,7 @@ The current playable game supports:
 - Viggo power-cut distraction and electrician/automatic power restoration;
 - synchronized day/week results.
 
-The prototype remains visually greybox-oriented. Final art/audio are not yet integrated.
+The prototype remains visually greybox-oriented. M21 supplies neutral development sounds and optional visual edge feedback. Final art/voice recordings are not integrated.
 
 ## 3. Task System
 
@@ -138,22 +138,31 @@ Do not treat that same-PC authentication-profile issue as a gameplay player-capa
 
 ## 8. Current Validation Baseline
 
-M18–M20 completion reported passing:
+M21 Tier 3 checkpoint passed:
 
 - Unity compilation;
 - asset/reference validation;
 - Windows development build;
-- **91 Edit Mode tests**;
-- **13 Play Mode tests**;
-- baseline multiplayer regression;
+- **96 Edit Mode tests**;
+- **15 Play Mode tests**;
+- rendered baseline multiplayer regression, late observer, reconnect and host restart;
 - complete three-player five-day weeks using direct networking;
 - complete three-player five-day weeks using actual Unity Sessions/Relay;
-- Friday reconnect coverage.
+- Friday reconnect coverage;
+- exact audio/voice cue counts on both baseline peers and all three local/Relay week peers (no duplicate checkpoint cues or Friday result replay).
 
 Relay validation above used three processes on one PC.
 Human separate-PC Internet testing and human feel/readability/fun assessment are distinct acceptance activities where relevant.
 
 Use targeted tests during intermediate work. Reserve the complete regression/build/Relay suite for milestone checkpoints or changes that can plausibly affect central networking/authority.
+
+Targeted presentation tests also passed (5 Edit Mode + 2 Play Mode).
+Validation uses an isolated copy under `Builds/M21Validation` to preserve the open
+Unity editor session; source assets/scripts/metas matched byte-for-byte. Unity-generated
+M21 assets/metas were copied back to source, and the validated development player
+is available at `Builds/Windows/EscapeViggo.exe`. Detailed log locations are in the
+M21 history checkpoint. Rendered Rage-edge presentation was inspected; listening,
+rest/capture readability, final voice timing and mix quality require human review.
 
 ## 9. Known Human Acceptance State
 
@@ -171,17 +180,40 @@ Do not “solve” M23 balance theoretically before multiplayer playtest evidenc
 ## 10. Art and Audio State
 
 - Character and prop/environment art specifications exist as separate canonical project documents.
-- They were intentionally left untouched during M18–M20 engineering work.
+- They were intentionally left untouched during M18–M21 engineering work.
 - Greybox/placeholder presentation remains valid until the relevant art/audio milestone.
-- M21 should create/use presentation hooks without requiring final approved recordings.
+- M21 supplies presentation hooks without requiring final approved recordings.
 - M22 should consult the dedicated character/prop art specifications before replacing prototype visuals.
+
+### M21 presentation architecture
+
+- `Scripts/Presentation/GameFeelSettings.cs` and `ScriptableObjects/GameFeel.asset`:
+  master/effects/ambience/voice volumes, per-cue clips/range/cooldown/variation,
+  footsteps and optional edge opacity. Configuration only.
+- `AudioEmitter`: bounded local source pool, two looping channels, separate voice
+  channel, null-safe clips, cooldowns and despawn/disable cleanup. No audio RPCs.
+- `PlayerAudioFeedback`: existing rest-start/Javell boundary, rest loop/recovery,
+  capture sequence, local/replicated movement footsteps and owner-only rest/Rage/capture edges.
+- `TaskAudioFeedback`: existing `WorkTask.StateChanged`, revision-gated tool,
+  wrong-input and completion cues. `BatteryAudioFeedback` observes battery state.
+- `WorksiteAudioFeedback`: power/interruption events plus existing day/week/Rage
+  state; worksite hum and Rage loops. Late joins seed snapshots without historical
+  one-shots; active loops resume. Gameplay authority and rules are unchanged.
+- `Editor/AudioSetup.cs`: idempotent setup and chained asset validation for all
+  affected prefabs; Windows builds include M21 validation.
+- `Audio/Development`: generated neutral placeholder WAVs. Four assignable Viggo
+  voice slots remain empty, including `VoiceJavell`.
+- `PresentationTests`, `AudioEmitterTests`, `Tools/Test-AudioFeedback.ps1` cover
+  transition/cadence/lifecycle behavior and development multiplayer cue counts.
+- README contains audio configuration and the human listening checklist.
 
 ## 11. Immediate Next Milestones
 
-### M21 — Audio and Game Feel
+### M21 — Audio and Game Feel (engineering complete; human review pending)
 
-Focus on presentation: footsteps, ambience, tool/battery/task feedback, Viggo exhaustion, Rage transition, capture, end-of-day sound, and proper voice hooks.
-Gameplay state must remain authoritative and separate from audio/presentation.
+All requested presentation hooks are wired with neutral placeholders or empty
+voice slots. Human audibility, timing, spatial range and overlapping-cue judgement
+remain acceptance items; automated state/event checks cannot establish them.
 
 ### M22 — First Art Pass
 

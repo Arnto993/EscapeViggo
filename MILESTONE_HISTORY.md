@@ -94,3 +94,36 @@ Human fun/balance judgement remains intentionally separate from engineering comp
 Do not append long raw logs, command transcripts, or every fixed diagnostic race here.
 Preserve only historical facts that could help future maintenance.
 Git history and ignored validation logs remain the detailed evidence source.
+
+## M21 — Audio and Game Feel — 2026-10-01
+
+Engineering complete; human audio/game-feel acceptance remains pending. Added a
+shared GameFeel settings asset, bounded local emitters, player/task/battery/worksite
+presentation adapters, 23 neutral generated placeholder clips and four empty
+Viggo voice slots (including Javell). Seven existing prefabs were wired using Unity
+editor automation. No authoritative gameplay rules, network variables, RPCs,
+frameworks or M22 art were changed.
+
+Validation used an isolated project at `Builds/M21Validation` because the source
+project was open in Unity. Source assets/scripts/metas matched byte-for-byte;
+Unity-generated source assets/metas and the validated Windows player were copied
+back. Sandbox licensing stalled initially; normal licensing access resolved it.
+
+- Targeted: 5 presentation Edit Mode tests and 2 emitter lifecycle Play Mode tests passed.
+- Tier 3: full compilation/chained asset validation, 96 Edit Mode tests, 15 Play Mode
+  tests and Windows development build passed. Logs/XML: `Builds/M21Validation/Logs/`
+  (`M21Setup`, `M21TargetedEdit`, `M21TargetedPlay`, `M21FullEdit`, `M21FullPlay`, `M21Build`).
+- Rendered local baseline, late observer, reconnect and host restart passed:
+  `Multiplayer-20261001-120840-27777`. Rage-edge screenshot inspected.
+- Three-player five-day local week passed: `Week-20261001-121104-28777`.
+- Three-player actual Sessions/Relay five-day week passed: `Week-20261001-120843-29777`.
+  Both week runs matched daily/weekly results and passed Friday reconnect.
+- `Tools/Test-AudioFeedback.ps1` passed on both baseline peers and every local/Relay
+  week peer: exact task, battery, rest/Javell, Rage, capture, power, day and week cue
+  counts. Each week peer requested WeekResults once, including the reconnecting peer.
+  Tests verify cue delivery, not subjective audibility. A Friday late-join guard
+  suppresses replay even when result lists become ready after initial variables.
+- Human acceptance: follow README's M21 listening checklist with real players;
+  judge mix, spatial range, exhaustion/Rage/capture readability, timing and clutter.
+  Approved voice recordings are absent by design. Separate-PC Internet listening
+  was not performed. Stop before M22.

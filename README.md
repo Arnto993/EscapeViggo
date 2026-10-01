@@ -632,3 +632,33 @@ using Host Online and the join code, ideally on separate PCs/Internet connection
 Judge whether normal Viggo play is entertaining, whether electricians have enough
 recovery time, and whether prompts/modal controls are readable at 720p and 1080p.
 Automated state checks cannot establish those human acceptance criteria.
+
+## Audio and game feel (M21)
+
+`Assets/EscapeViggo/ScriptableObjects/GameFeel.asset` configures master, effects,
+ambience and voice volumes, cue clips/variation/range/cooldown, footstep stride,
+crouch loudness, and optional screen-edge opacity (zero disables the edges).
+The checked-in sounds under `Assets/EscapeViggo/Audio/Development` are neutral,
+generated placeholders, not final recordings. Replace clips in the settings asset
+with approved assets. `VoiceJavell`, `VoiceRage`, `VoiceCapture` and
+`VoiceBatteryRecovered` are intentionally empty; gameplay works with every clip
+removed or master volume at zero. Javell uses the existing rest-start event.
+
+Use **Escape Viggo > Setup > Apply M21 Audio and Game Feel** to wire missing
+components; rerunning preserves the settings asset and assigned clips. The
+validation menu checks every cue and all affected prefabs. Audio is entirely
+local presentation of existing replicated state/events; there are no audio RPCs.
+Nearby player/task/battery effects are spatial; ambience, Rage alerts, power and
+day/week transitions are shared non-spatial cues. Rest has a slow blue edge,
+Rage a steady red edge, and capture an amber edge. Existing gameplay HUD remains.
+
+Human listening check: launch a host and two clients with two-minute days using
+the command above. Listen to one window/device at a time on a shared PC.
+Walk/sprint/crouch and jump as both roles; nearby footsteps should differ and stop
+in the air. Exhaust Viggo, then steal/discover/recover the battery and capture a
+worker. Check blue rest, red Rage, amber capture, and the matching sound changes.
+Try correct/wrong task inputs, completion, interruption, power cut/restoration,
+and daily/Friday results. Reconnect during Rage/rest and at Friday results:
+ongoing loops resume, old one-shots do not replay. Repeat muted. Judge audibility,
+spatial range, timing and overlapping cues with actual players before accepting
+the mix; final voice timing needs approved recordings.

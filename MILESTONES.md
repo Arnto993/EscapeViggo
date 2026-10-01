@@ -38,13 +38,20 @@ Do not automatically continue into the next milestone.
 - M18 — Five-Day Week — **Complete** — `bbb601d`
 - M19 — Multiple Work Tasks — **Complete** — `2e54e57`
 - M20 — Viggo Distraction Expansion — **Engineering complete; human fun/balance judgement pending** — `885de29`
-- M21 — Audio and Game Feel — **Next planned**
+- M21 — Audio and Game Feel — **Engineering complete; human audio/feel review pending**
 - M22 — First Art Pass — **Not started**
 - M23 — Balance and Playtesting — **Not started**
 
 ---
 
 # M21 — AUDIO AND GAME FEEL
+
+**Status (2026-10-01):** Engineering complete and committed locally. Reusable cue
+configuration/emitter, all presentation hooks, neutral placeholders and empty
+Viggo voice slots are wired. Tier 3 passed: compilation/assets, 96 Edit Mode + 15
+Play Mode tests, Windows development build, rendered baseline multiplayer and
+three-player local/Relay five-day weeks with Friday reconnect and cue-count checks.
+Human listening, readability, timing and mix acceptance remain pending. M22 not started.
 
 ## Goal
 
