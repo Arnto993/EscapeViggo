@@ -233,11 +233,17 @@ Do not “solve” M23 balance theoretically before multiplayer playtest evidenc
   state: owner shadows only, remote visible, Viggo keeps its capsule. Existing
   colliders, Body references, movement and network authority remain unchanged.
 - Front/side/back/three-quarter renders: `ArtSource/Characters/Electrician/Review/`.
-  C4 visual fix: recessed the lower torso cap that protruded between the upper legs
-  (10 vertex positions only; rig/weights/animations unchanged). Updated source, FBX
-  and renders passed Tier 1 Blender checks and 4 targeted Edit Mode + 3 Play Mode
-  tests (`C4VisualFixEdit/Play` logs in the validation copy). Existing Windows player
-  predates this mesh-only fix; use the Unity project to review the corrected mesh.
+  C3/C4 leg-twist fix: anatomical sides were reversed for the chosen forward axis,
+  producing an incompatible Humanoid reference pose and inward shin twist. Generator
+  now uses Left=-X / Right=+X and explicit sagittal leg axes in both source rigs.
+  Mesh and physical skinning are unchanged. `RefreshRigReferencePose` rebuilds the
+  reference skeleton/mapping without changing gameplay prefabs or materials.
+  Tier 1: Blender checks, 5 targeted Edit Mode + 4 Play Mode tests, clean Humanoid
+  import and actual runtime pose renders. Side/roll/bend-plane regressions now cover
+  the defect missed by earlier checks. See `Review/RigValidation.md`, `BlenderRig/`
+  and `UnityRig/` below the electrician source directory for axes and pose evidence.
+  The earlier torso-cap adjustment did not solve the animation-driven issue.
+  Existing Windows player predates these fixes; review using the Unity project.
   Human visual identity/readability/deformation/animation-feel acceptance remains.
   Crouch currently scales visual height; full crouch/jump/task animation and final
   stride/foot-placement polish are outside the minimum C3 locomotion scope.

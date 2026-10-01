@@ -28,12 +28,15 @@ namespace EscapeViggo.Editor
             importer.animationType = ModelImporterAnimationType.Human;
             importer.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
             importer.importAnimation = true; importer.importCameras = false; importer.importLights = false;
+            importer.optimizeBones = false; // Keep the named Humanoid toe endpoints, even without mesh weights.
             importer.materialImportMode = ModelImporterMaterialImportMode.ImportStandard;
             importer.SaveAndReimport();
             var model = AssetDatabase.LoadAssetAtPath<GameObject>(Model);
             var description = importer.humanDescription;
             description.human = HumanTrait.BoneName.Where(n => model.GetComponentsInChildren<Transform>().Any(t => t.name == n.Replace(" ", "")))
                 .Select(n => new HumanBone { humanName = n, boneName = n.Replace(" ", ""), limit = new HumanLimit { useDefaultValues = true } }).ToArray();
+            // A regenerated rig must not retain an enforced pose from an older skeleton.
+            description.skeleton = SourceSkeleton(model);
             importer.humanDescription = description;
             foreach (var material in AssetDatabase.LoadAllAssetsAtPath(Model).OfType<Material>())
             {
@@ -90,6 +93,30 @@ namespace EscapeViggo.Editor
             }
             AssetDatabase.SaveAssets(); Validate();
         }
+
+        [MenuItem("Escape Viggo/Art/C1-C4/Refresh Avatar from source rig")]
+        public static void RefreshRigReferencePose()
+        {
+            AssetDatabase.ImportAsset(Model, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
+            var importer = (ModelImporter)AssetImporter.GetAtPath(Model);
+            importer.optimizeBones = false;
+            var description = importer.humanDescription;
+            var model = AssetDatabase.LoadAssetAtPath<GameObject>(Model);
+            var names = model.GetComponentsInChildren<Transform>().Select(t => t.name).ToArray();
+            description.human = HumanTrait.BoneName.Where(n => names.Contains(n.Replace(" ", "")))
+                .Select(n => new HumanBone { humanName = n, boneName = n.Replace(" ", ""), limit = new HumanLimit { useDefaultValues = true } }).ToArray();
+            description.skeleton = SourceSkeleton(model);
+            importer.humanDescription = description;
+            importer.SaveAndReimport();
+            Validate();
+        }
+
+        private static SkeletonBone[] SourceSkeleton(GameObject model) =>
+            model.GetComponentsInChildren<Transform>().Where(t => !t.GetComponent<Renderer>()).Select(t => new SkeletonBone
+            {
+                name = t.name, position = t.localPosition,
+                rotation = t.localRotation, scale = t.localScale
+            }).ToArray();
 
         public static void Validate()
         {

@@ -110,3 +110,22 @@ prefab/model in Unity. Host and join two players; observe the electrician idle,
 walk and sprint from the other window, turn/crouch/jump and reconnect. Confirm no
 local face/body obstruction, readable silhouette at 5-15 m, and acceptable limb
 bending/foot sliding. Visual identity and animation feel need human sign-off.
+
+## C3/C4 Humanoid leg reference pose
+
+Anatomical left is **-X** for the established Blender +Y / Unity +Z forward profile.
+Never mirror a rig with negative object scale or assign sides from a front-view
+screen position. Both shins use local +X as the bend hinge and local +Z toward the
+front. `validate_character.py` guards side naming, matching roll and source-rig
+compatibility, as well as the existing weight/transform/loop checks.
+
+After a source rig change, export the FBX and use **Escape Viggo > Art > C1-C4 >
+Refresh Avatar from source rig**. This updates the reference skeleton and explicit
+Humanoid mapping without rebuilding prefabs/controllers/materials. Keeping an old
+configured Avatar pose after changing the source rig can reintroduce twist.
+
+`review_character_rig.py` renders neutral/idle/walk/run and RGB local axes from the
+saved Blender source. `ElectricianLegRigTests` checks actual Humanoid-driven knee
+and foot direction; with graphics enabled it writes front/three-quarter runtime
+PNGs to `Logs/C4RigRuntime/`. Committed review images and the measured root-cause
+report are in `ArtSource/Characters/Electrician/Review/RigValidation.md`.

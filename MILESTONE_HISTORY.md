@@ -177,3 +177,29 @@ Engineering acceptance is satisfied; visual identity, gameplay-distance readabil
 deformation and animation feel require human sign-off. C3 deliberately has minimum
 locomotion only: crouch scales visual height; contextual crouch/jump/task animation
 and final stride/foot-placement polish remain outside this checkpoint. C5 is unstarted.
+
+## C3/C4 Humanoid leg-twist correction
+
+Manual inspection exposed an animation-only defect missed by the original validity
+and coarse playback tests. Both source rolls were equal and object transforms were
+positive; the generator had reversed Left/Right anatomy for +Y Blender / +Z Unity
+forward. Unity's inferred reference pose faced backward, then Humanoid introduced
+approximately 83-degree inward shin twist while compensating the feet. The previous
+mesh-cap edit was not the root-cause fix.
+
+Corrected paired-bone/group/channel anatomy in BaseHuman and Electrician, explicitly
+constructed sagittal leg/foot roll, and rebuilt the imported reference skeleton and
+complete mapping. Geometry and weights at physical joint positions are unchanged.
+No runtime rotations, gameplay/presentation logic changes or C5 work. Existing user
+material edits were preserved outside the commit.
+
+Tier 1: Blender source/loop/weight/axis checks, 5 C4 Edit Mode and 4 C4 Play Mode tests
+passed. The new test reproduced the defect on the old rig and measures all sampled
+idle/walk/run knee and foot directions. Sideways knee component dropped from 0.9921
+to below 0.000002. Configure Avatar's editor pose validator/enforcer reports zero
+pose error and no enforced leg rotations. Final import has no animation/retargeting
+warnings; existing proportion-change retarget test passes. Runtime front/three-quarter
+captures and full axis/root-cause evidence: `ArtSource/Characters/Electrician/Review/RigValidation.md`.
+Logs: `Builds/C4Validation/Logs/C4RigEditFinal.xml`, `C4RigRenderedFinal.xml`,
+`C4RigCleanImport.log`, `C4RigFinalDiagnosis.log`; Blender checks in `Logs/C4RigFix/`.
+Windows player and multiplayer regressions were not rebuilt/rerun for this scoped fix.

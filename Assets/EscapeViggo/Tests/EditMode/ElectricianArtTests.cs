@@ -9,6 +9,22 @@ namespace EscapeViggo.Tests
     {
         private const string Root = "Assets/EscapeViggo/Art/Characters/Electrician/";
         [Test]
+        public void LegBindBasisUsesCorrectAnatomicalSidesAndMatchingRoll()
+        {
+            var model = AssetDatabase.LoadAssetAtPath<GameObject>(Root + "Models/Electrician.fbx");
+            var bones = model.GetComponentsInChildren<Transform>();
+            foreach (var part in new[] { "UpperLeg", "LowerLeg", "Foot" })
+            {
+                var left = bones.Single(t => t.name == "Left" + part);
+                var right = bones.Single(t => t.name == "Right" + part);
+                Assert.That(left.position.x, Is.LessThan(0), "Anatomical left must be -X for a +Z-facing Humanoid.");
+                Assert.That(right.position.x, Is.GreaterThan(0));
+                Assert.That(Quaternion.Angle(left.rotation, right.rotation), Is.LessThan(.01f), part + " roll mismatch");
+                Assert.That(Vector3.Dot(left.right, Vector3.right), Is.GreaterThan(.999f), part + " hinge axis");
+            }
+        }
+
+        [Test]
         public void HumanoidHasRequiredBonesMetreScaleForwardFeetAndGroundPivot()
         {
             var instance = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(Root + "PF_Electrician.prefab"));

@@ -8,6 +8,8 @@ import bpy
 from mathutils import Vector, Quaternion
 from pipeline import reset_scene, apply_transforms, export_humanoid_fbx
 ROOT = Path(__file__).resolve().parents[2]
+# With +Y forward in Blender (+Z in Unity), anatomical left is -X.
+SIDES = [('Left', -1), ('Right', 1)]
 reset_scene()
 M = {}
 for name, rgb in {'Blue':(.035,.10,.26),'Yellow':(.85,.92,.025),'Helmet':(1,.58,.012),
@@ -55,12 +57,16 @@ bpy.ops.object.armature_add(); rig=bpy.context.object; rig.name='EV_Humanoid'
 bpy.ops.object.mode_set(mode='EDIT'); rig.data.edit_bones.remove(rig.data.edit_bones[0])
 def bone(name,head,tail,parent=None):
     b=rig.data.edit_bones.new(name); b.head=head; b.tail=tail
+    # Positive local X is the sagittal hinge axis on BOTH chains. Avoid
+    # reflection/negative scale; derive roll from anatomical forward/up.
+    if name.endswith(('UpperLeg', 'LowerLeg')): b.align_roll(Vector((0,1,0)))
+    elif name.endswith(('Foot', 'Toes')): b.align_roll(Vector((0,0,1)))
     if parent: b.parent=rig.data.edit_bones[parent]
     return b
 bone('Hips',(0,0,.88),(0,0,1.03))
 bone('Spine',(0,0,1.03),(0,0,1.19),'Hips'); bone('Chest',(0,0,1.19),(0,0,1.40),'Spine')
 bone('Neck',(0,0,1.40),(0,0,1.49),'Chest'); bone('Head',(0,0,1.49),(0,0,1.77),'Neck')
-for side,s in [('Left',1),('Right',-1)]:
+for side,s in SIDES:
     bone(side+'Shoulder',(s*.045,0,1.38),(s*.22,0,1.38),'Chest')
     bone(side+'UpperArm',(s*.22,0,1.38),(s*.48,0,1.38),side+'Shoulder')
     bone(side+'LowerArm',(s*.48,0,1.38),(s*.70,0,1.38),side+'UpperArm')
@@ -92,7 +98,7 @@ def make_body(base=False):
                 vertex.co.y *= .75 + .25 * edge
     ell('Neck',(0,0,1.46),(.064,.065,.105),'Skin','Neck')
     tube('Head',[(0,.01,1.48,.06,.058),(0,.015,1.52,.09,.085),(0,0,1.62,.115,.098),(0,-.008,1.71,.11,.092),(0,-.008,1.75,.07,.065)],'Skin','Head',12)
-    for side,s in [('Left',1),('Right',-1)]:
+    for side,s in SIDES:
         leg=tube(side+'Leg',[(s*.115,0,.13,.077,.075),(s*.115,0,.29,.077,.081),(s*.115,.012,.48,.075,.083),(s*.115,.012,.55,.085,.088),(s*.115,0,.75,.092,.10),(s*.115,0,.94,.10,.105)],mat,side+'UpperLeg')
         skin_rings(leg,side+'LowerLeg',side+'UpperLeg',.47,.58)
         ell(side+'Foot',(s*.115,.072,.085),(.092,.185,.085),'Skin' if base else 'Dark',side+'Foot')
@@ -161,7 +167,7 @@ box('CrownRidge',(0,0,1.805),(.031,.18,.061),'Helmet','Head',.012)
 box('HelmetBadge',(0,.115,1.77),(.043,.010,.049),'Silver','Head',.004)
 tube('Belt',[(0,0,.963,.179,.121),(0,0,1.009,.179,.121)],'Dark','Hips',12)
 box('Buckle',(0,.125,.986),(.061,.021,.043),'Silver','Hips',.005)
-for side,s in [('Left',1),('Right',-1)]:
+for side,s in SIDES:
     box('BeltPouch',(s*.195,.040,.90),(.096,.104,.15),'Leather','Hips',.017)
     box('PouchFlap',(s*.195,.099,.94),(.092,.025,.06),'Leather','Hips',.008)
     box('ToolHandle',(s*.21,.027,1.005),(.025,.033,.10),'Helmet','Hips',.008)
@@ -177,7 +183,7 @@ for name,frames,stride in [('Idle',60,0),('Walk',30,28),('Run',20,44)]:
     for frame in range(1,frames+2):
         phase=2*math.pi*(frame-1)/frames
         for p in rig.pose.bones: p.rotation_mode='XYZ'; p.rotation_euler=(0,0,0); p.location=(0,0,0)
-        for side,s in [('Left',1),('Right',-1)]:
+        for side,s in SIDES:
             wave=math.sin(phase)*s
             rig.pose.bones[side+'UpperLeg'].rotation_euler.x=math.radians(stride)*wave
             rig.pose.bones[side+'LowerLeg'].rotation_euler.x=-math.radians(stride*.95)*max(0,-wave)
