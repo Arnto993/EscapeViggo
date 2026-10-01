@@ -41,3 +41,8 @@ sysinfo.txt
 *.apk
 *.aab
 *.unitypackage
+
+# Blender backups / Python cache (source .blend and exported .fbx stay tracked)
+*.blend[0-9]*
+__pycache__/
+*.pyc

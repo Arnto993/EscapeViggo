@@ -10,7 +10,8 @@
 - M20: engineering implementation completed; human fun/balance judgement remains a playtest concern.
 - M21: engineering implementation and Tier 3 checkpoint completed. Human listening/feel acceptance remains.
 - Next planned milestone: **M22 — First Art Pass**, not authorized by the M21 request.
-- Do not begin M22 or M23 unless explicitly requested.
+- C0 Blender-to-Unity pipeline setup is verified; M22 art production and C1 remain unstarted.
+- Do not begin M22 production or M23 unless explicitly requested.
 
 Recent local milestone commits:
 
@@ -184,6 +185,32 @@ Do not “solve” M23 balance theoretically before multiplayer playtest evidenc
 - Greybox/placeholder presentation remains valid until the relevant art/audio milestone.
 - M21 supplies presentation hooks without requiring final approved recordings.
 - M22 should consult the dedicated character/prop art specifications before replacing prototype visuals.
+
+### C0 art pipeline (verified 2026-10-01)
+
+- Blender **5.2.2 LTS** and Unity **6000.3.25f1** verified. `Tools/Invoke-Blender.ps1`
+  discovers Blender via explicit path, `BLENDER_EXE`, PATH or the standard 5.2 install;
+  runs background Python with factory settings, argument forwarding and exit propagation.
+- `ArtSource/` separates editable sources from Unity exports, with reserved character,
+  prop and environment directories. `Tools/Blender/` contains reusable static-mesh
+  helpers and the rerunnable C0 generator; invocation is in its README.
+- Only a test mesh was produced: `ArtSource/Tests/C0/TEST_C0_MetreMesh.blend` and
+  `Assets/EscapeViggo/Art/Tests/C0/` (FBX, URP material, prefab, preview scene).
+  Blender +Y forward / Z up becomes Unity +Z forward / Y up, with metre units,
+  ground pivot and applied transforms. Existing gameplay assets were not replaced.
+- Tier 2 scoped asset integration passed: Blender CLI, argument/error checks,
+  repeated generation, saved-source reopen, FBX checks, Unity compilation/import,
+  scale/orientation/mesh/material/reference validation, **2 targeted Edit Mode tests**,
+  and Windows preview build with the FBX confirmed in packed build contents.
+- Validation reused unchanged `Tools/Invoke-Unity.ps1` in `Builds/C0Validation`
+  to preserve the open editor. C0 scripts/assets/metas match source byte-for-byte;
+  original source GUIDs were preserved. Logs/tests are under that copy's `Logs/`;
+  player: `Builds/C0Validation/Builds/C0Preview/C0Preview.exe`.
+- Human Blender/Unity visual review remains: open the source and preview scene,
+  inspect the blue 2 m test mesh, ground origin and raised +Z nose. Rigging,
+  skinning, animations and production art are not validated or started. No core
+  gameplay/network changes; no full-week/Relay regression was needed.
+- `ArtReferences/` and supplied art/design documents remain untouched.
 
 ### M21 presentation architecture
 

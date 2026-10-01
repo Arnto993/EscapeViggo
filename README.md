@@ -1,5 +1,8 @@
 # Escape Viggo
 
+Blender 5.2 LTS pipeline setup and C0 validation commands are documented in
+[Tools/Blender/README.md](Tools/Blender/README.md). Production art has not started.
+
 Unity 6.3 LTS (**6000.3.25f1**), URP, Windows PC. M0–M16 provide the playable workday;
 M17 adds private online Sessions/Relay, with separate-network acceptance pending.
 M18–M20 add a five-day week, four electrical task types and two Viggo distractions;
