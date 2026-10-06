@@ -91,7 +91,7 @@ motion. These are minimum pipeline-validation locomotion, not the final library.
 
 `ElectricianPresentation` reads the existing player transform, role, ownership,
 crouch state and movement settings. Owner sees shadows only; remote players see
-the mesh. Viggo retains the existing placeholder. Teleport-sized deltas do not
+the mesh. C5 adds a separate Viggo visual to this same component. Teleport-sized deltas do not
 produce animation speed spikes. Minimal crouch scales the visual height; dedicated
 crouch/jump/task animation and stride/foot-placement polish are later work.
 
@@ -104,6 +104,41 @@ role visibility, Humanoid validity and owner/remote shadow modes.
 `Logs/C4Blender.json` reports geometry/material/weight/rig semantic checksum.
 Repeated generation is semantically deterministic; FBX timestamps and Blender
 internal vertex ordering are not promised byte-identical. No C5 content is made.
+
+## C5 Viggo base model
+
+`create_viggo.py` rebuilds only `ArtSource/Characters/Viggo/SRC_Viggo.blend`, its
+FBX under `Assets/EscapeViggo/Art/Characters/Viggo/Models/`, and six review PNGs.
+It reuses the corrected BaseHuman hierarchy, authors distinct geometry/proportions,
+and adds one unmapped `Belly` bone parented to `Spine`. No actions are authored or
+saved: Blender review uses the existing electrician Idle action in memory, and
+Unity uses the existing electrician controller/Idle/Walk/Run clips for smoke tests.
+The source remains in T-pose. Unity's Avatar uses the C4 reference arm rotations
+(the electrician FBX was saved at Idle), retaining Viggo's own joint positions and
+leg bases. This calibration is import metadata, not runtime corrective animation.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Blender.ps1 -Script Tools/Blender/create_viggo.py
+powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Blender.ps1 -Script Tools/Blender/validate_viggo.py
+# Export manual source edits without regeneration:
+powershell -NoProfile -ExecutionPolicy Bypass -Command "& ./Tools/Invoke-Blender.ps1 -Script Tools/Blender/export_character.py -ScriptArguments @('--character','Viggo')"
+powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -Method EscapeViggo.Editor.ViggoArtPipeline.Prepare -LogName C5Prepare
+```
+
+Pass `--no-render` through `-ScriptArguments` to skip review rendering on repeat
+generation. `Logs/C5Blender.json` records source checks and the semantic checksum.
+Generation overwrites the named Viggo source; export-only preserves manual edits.
+Unity Prepare refreshes the reference pose and updates the added visual references
+on Player/NetworkPlayer using prefab APIs. It preserves existing material edits,
+including all electrician materials. It does not run the C1-C4 Prepare operation.
+
+Review: `ArtSource/Characters/Viggo/Review/{Front,Side,Back,ThreeQuarter,FaceCloseup,ViggoVsElectrician}.png`.
+Both characters in the comparison use their actual metre scale. Open the Viggo
+prefab to inspect the T-pose/Avatar; use two game windows to view the remote model
+at idle/walk/run, confirm owner shadows and no capsule, and review at 5-15 m.
+Human approval of proportions, belly, face, height, silhouette, low-poly style and
+reference similarity remains mandatory. Shared locomotion is intentionally only
+a retarget check. C6 and final Viggo animation are not included.
 
 Human review: compare the four renders to the canonical reference, then open the
 prefab/model in Unity. Host and join two players; observe the electrician idle,

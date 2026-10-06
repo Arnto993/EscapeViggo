@@ -2,17 +2,18 @@
 
 **Purpose:** fast orientation for coding agents. This file describes the current repository, not its full history.
 
-**Last consolidated checkpoint:** C1–C4 electrician engineering completed locally, 2026-10-01.
+**Last consolidated checkpoint:** C5 Viggo base model engineering completed locally, 2026-10-06.
 
 ## 1. Current Development Position
 
 - M0–M19: engineering/acceptance criteria completed.
 - M20: engineering implementation completed; human fun/balance judgement remains a playtest concern.
 - M21: engineering implementation and Tier 3 checkpoint completed. Human listening/feel acceptance remains.
-- M22 is partially authorized/implemented through **C1–C4 electrician production only**.
+- M22 is partially authorized/implemented through **C5 Viggo base model only**.
 - C0 Blender-to-Unity pipeline (`fd24a02`) is verified. C1–C4 electrician production
-  passed its engineering checkpoint; human visual review remains. C5/Viggo and the rest of M22 remain unstarted.
-- Stop before C5/Viggo, other M22 production and M23 unless explicitly requested.
+  passed its engineering checkpoint. C5 model/rig/presentation is implemented;
+  targeted tests and the final local host/client check pass. Human visual review remains.
+- Stop before C6 Viggo locomotion, other M22 production and M23 unless explicitly requested.
 
 Recent local milestone commits:
 
@@ -230,7 +231,7 @@ Do not “solve” M23 balance theoretically before multiplayer playtest evidenc
   and `PF_Electrician.prefab`. All locomotion is in place; root motion is disabled.
 - `ElectricianArtPipeline.Prepare` uses Unity prefab APIs to wire presentation into
   Player/NetworkPlayer. `ElectricianPresentation` reads existing movement/role/owner
-  state: owner shadows only, remote visible, Viggo keeps its capsule. Existing
+  state: owner shadows only, remote visible; C5 adds Viggo to the same component. Existing
   colliders, Body references, movement and network authority remain unchanged.
 - Front/side/back/three-quarter renders: `ArtSource/Characters/Electrician/Review/`.
   C3/C4 leg-twist fix: anatomical sides were reversed for the chosen forward axis,
@@ -243,7 +244,7 @@ Do not “solve” M23 balance theoretically before multiplayer playtest evidenc
   the defect missed by earlier checks. See `Review/RigValidation.md`, `BlenderRig/`
   and `UnityRig/` below the electrician source directory for axes and pose evidence.
   The earlier torso-cap adjustment did not solve the animation-driven issue.
-  Existing Windows player predates these fixes; review using the Unity project.
+  The current C5 validation rebuild includes these fixes.
   Human visual identity/readability/deformation/animation-feel acceptance remains.
   Crouch currently scales visual height; full crouch/jump/task animation and final
   stride/foot-placement polish are outside the minimum C3 locomotion scope.
@@ -257,7 +258,40 @@ Do not “solve” M23 balance theoretically before multiplayer playtest evidenc
   settings outside that directory were not copied back. Current player is at
   `Builds/Windows/EscapeViggo.exe`; detailed evidence paths are in the history.
   Full Relay/five-day regression was not rerun: gameplay/network authority is unchanged.
-  No C5 assets, electrician variants, environment or prop production was started.
+  This C1–C4 checkpoint did not include C5 assets; see the current C5 state below.
+
+### C5 Viggo base model (checkpoint completed 2026-10-06)
+
+- Source: `ArtSource/Characters/Viggo/SRC_Viggo.blend`; Unity exports/materials/prefab:
+  `Assets/EscapeViggo/Art/Characters/Viggo/` (`Models/Viggo.fbx`, `PF_Viggo.prefab`).
+- 1.66 m, 5,474 triangles, one faceted skinned mesh. Independently shaped jacket/belly,
+  short legs, broad hips/arms, geometric grey hair/beard, orange/charcoal workwear.
+  BaseHuman supplies the logical rig, not a uniformly scaled body mesh.
+- 22 bones: corrected 21-bone Humanoid hierarchy plus `Belly` under `Spine`.
+  Left=-X / Right=+X; matching sagittal knee hinges, forward toes, no negative scale.
+  Source is T-pose. `ViggoArtPipeline.Prepare` refreshes the Avatar reference and
+  matches C4's relaxed reference arm rotations; Viggo joint positions/leg bases remain
+  its own. This prevents the shared Idle clip from incorrectly raising Viggo's arms.
+- `create_viggo.py` generates the source/FBX/reviews; `validate_viggo.py` checks saved
+  topology, normalized weights, hierarchy, scale/pivot/transforms and deterministic
+  semantics. `export_character.py --character Viggo` preserves manual source edits.
+- Valid Unity Humanoid, URP material remaps and shared electrician controller. No
+  Viggo clips, root motion, physics, gameplay tuning or authority changes. Existing
+  presentation selects the role mesh, hides the capsule and retains owner shadows.
+- Targeted Tier 2: source reopen, repeat-generation checksum, export-only, Unity
+  import/references, 10 Edit Mode and 6 graphics-enabled Play Mode tests pass.
+  Knee/foot axial twist, lowered idle arms, all shared clips and zero root displacement
+  are covered. No Humanoid/animation import warnings. Windows development build and
+  rendered host/client, late observer, reconnect and host restart passed with both
+  role meshes/owner shadows checked. Player: `Builds/Windows/EscapeViggo.exe`.
+  Full five-day/Relay regression was not rerun; gameplay/network authority is unchanged.
+- Review: `ArtSource/Characters/Viggo/Review/` contains front/side/back/three-quarter,
+  face closeup, true-scale electrician comparison, `UnityRig/` playback images and
+  `SourceValidation.json`. Detailed checkpoint evidence is in `Review/Validation.md`.
+- Human approval is still required for proportions, belly size/shape, face, height,
+  silhouette, low-poly style and reference similarity. Face/hair/beard and sleeve
+  joins are deliberately geometric; shared stride/arm swing is not final Viggo style.
+  C6 is unstarted; no final locomotion, Javell, discovery, Rage or capture animation.
 
 ### M21 presentation architecture
 

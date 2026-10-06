@@ -139,6 +139,7 @@ Transform:
   - {fileID: 2331541078631996493}
   - {fileID: 1382795116285190910}
   - {fileID: 3433420710403249530}
+  - {fileID: 6243620019326928745}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!143 &7909318458376483325
@@ -440,6 +441,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: EscapeViggo.Runtime::EscapeViggo.Presentation.ElectricianPresentation
   _animator: {fileID: 8738629406889856768}
+  _viggoAnimator: {fileID: 19676341758729491}
   _placeholder: {fileID: 4762032952581487238}
 --- !u!1 &8215181289536905387
 GameObject:
@@ -533,6 +535,77 @@ AudioListener:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8215181289536905387}
   m_Enabled: 0
+--- !u!1001 &1036339848741530707
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 329006899981028992}
+    m_Modifications:
+    - target: {fileID: 6021253763168055680, guid: 9814ceca590869c47b1e58d183192c9e, type: 3}
+      propertyPath: m_Name
+      value: ViggoVisual
+      objectReference: {fileID: 0}
+    - target: {fileID: 6021253763168055680, guid: 9814ceca590869c47b1e58d183192c9e, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6396266824898308922, guid: 9814ceca590869c47b1e58d183192c9e, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6396266824898308922, guid: 9814ceca590869c47b1e58d183192c9e, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6396266824898308922, guid: 9814ceca590869c47b1e58d183192c9e, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6396266824898308922, guid: 9814ceca590869c47b1e58d183192c9e, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6396266824898308922, guid: 9814ceca590869c47b1e58d183192c9e, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6396266824898308922, guid: 9814ceca590869c47b1e58d183192c9e, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6396266824898308922, guid: 9814ceca590869c47b1e58d183192c9e, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6396266824898308922, guid: 9814ceca590869c47b1e58d183192c9e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6396266824898308922, guid: 9814ceca590869c47b1e58d183192c9e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6396266824898308922, guid: 9814ceca590869c47b1e58d183192c9e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 9814ceca590869c47b1e58d183192c9e, type: 3}
+--- !u!95 &19676341758729491 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 1018998915347788096, guid: 9814ceca590869c47b1e58d183192c9e, type: 3}
+  m_PrefabInstance: {fileID: 1036339848741530707}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &6243620019326928745 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6396266824898308922, guid: 9814ceca590869c47b1e58d183192c9e, type: 3}
+  m_PrefabInstance: {fileID: 1036339848741530707}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1370739436130085199
 PrefabInstance:
   m_ObjectHideFlags: 0

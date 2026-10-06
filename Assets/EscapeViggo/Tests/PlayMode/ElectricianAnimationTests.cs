@@ -50,8 +50,15 @@ namespace EscapeViggo.Tests
 
         [UnityTest]
         public IEnumerator HumanoidRetargetsThreeClipsWithoutMovingThePresentationRoot()
+            => CheckPlayback("Electrician");
+
+        [UnityTest]
+        public IEnumerator ViggoRetargetsSharedClipsWithoutMovingThePresentationRoot()
+            => CheckPlayback("Viggo");
+
+        private static IEnumerator CheckPlayback(string character)
         {
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/EscapeViggo/Art/Characters/Electrician/PF_Electrician.prefab");
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>($"Assets/EscapeViggo/Art/Characters/{character}/PF_{character}.prefab");
             var instance = Object.Instantiate(prefab);
             try
             {
@@ -63,6 +70,18 @@ namespace EscapeViggo.Tests
                 foreach (var speed in new[] { 0f, 1f, 2f })
                 {
                     animator.SetFloat("Speed", speed); animator.Update(.15f);
+                    if (speed == 0)
+                    {
+                        foreach (var left in new[] { true, false })
+                        {
+                            var upper = animator.GetBoneTransform(left ? HumanBodyBones.LeftUpperArm : HumanBodyBones.RightUpperArm);
+                            var elbow = animator.GetBoneTransform(left ? HumanBodyBones.LeftLowerArm : HumanBodyBones.RightLowerArm);
+                            var hand = animator.GetBoneTransform(left ? HumanBodyBones.LeftHand : HumanBodyBones.RightHand);
+                            Assert.That(Vector3.Dot((elbow.position - upper.position).normalized, Vector3.down), Is.GreaterThan(.8f),
+                                character + " idle upper arm must share the relaxed C4 reference pose.");
+                            Assert.That(hand.position.y, Is.LessThan(elbow.position.y), character + " idle forearm points upward.");
+                        }
+                    }
                     var first = speed == 0 ? animator.GetBoneTransform(HumanBodyBones.Chest).rotation : leg.rotation;
                     animator.Update(.20f);
                     var second = speed == 0 ? animator.GetBoneTransform(HumanBodyBones.Chest).rotation : leg.rotation;

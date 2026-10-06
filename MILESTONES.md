@@ -115,8 +115,13 @@ Stop after M21 unless the user explicitly requests M22.
 **Scoped progress (2026-10-01):** C0 verified at `fd24a02`; C1–C4 now implement
 the reusable base, Humanoid rig, minimum in-place locomotion and first electrician.
 Tier 3 engineering passed (102 Edit Mode, 18 Play Mode, build and baseline multiplayer).
-Human visual acceptance remains. This does not complete M22: C5/Viggo, variants,
-props, environment and UI art remain unstarted. Stop before C5.
+Human visual acceptance remains. C5 now adds the Viggo base mesh, compatible
+Humanoid Avatar and role presentation; targeted source/import/retarget tests pass.
+C5 engineering passed on 2026-10-06: Windows build, local host/client, late observer,
+reconnect and host restart, including role mesh/ownership checks. C5 uses shared
+clips only; human visual approval remains required.
+This does not complete M22: C6/final Viggo animations, variants, props, environment
+and UI art remain unstarted. Stop before C6.
 
 ## Goal
 

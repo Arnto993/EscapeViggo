@@ -320,6 +320,14 @@ namespace EscapeViggo.Networking
                 foreach (var renderer in animator.GetComponentsInChildren<Renderer>(true))
                     Check(renderer.shadowCastingMode == (local ? UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly : UnityEngine.Rendering.ShadowCastingMode.On),
                         "Electrician local/remote visibility mismatch.");
+                var viggoAnimator = presentation.ViggoAnimator;
+                Check(viggoAnimator != null && viggoAnimator.avatar.isValid && viggoAnimator.avatar.isHuman && !viggoAnimator.applyRootMotion,
+                    "Viggo Humanoid/root-motion mismatch.");
+                Check(viggoAnimator.gameObject.activeSelf == (player.Role == PlayerRole.Viggo), "Viggo role visibility mismatch.");
+                foreach (var renderer in viggoAnimator.GetComponentsInChildren<Renderer>(true))
+                    Check(renderer.shadowCastingMode == (local ? UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly : UnityEngine.Rendering.ShadowCastingMode.On),
+                        "Viggo local/remote visibility mismatch.");
+                Check(!player.transform.Find("Body").GetComponent<Renderer>().enabled, "Character placeholder remains visible.");
                 Debug.Log($"EV_CHARACTER PASSED owner={player.OwnerClientId} local={local} role={player.Role}");
             }
             Check(owned == 1, "Expected exactly one owned player.");

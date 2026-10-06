@@ -10,14 +10,17 @@ namespace EscapeViggo.Presentation
     public sealed class ElectricianPresentation : MonoBehaviour
     {
         [SerializeField] private Animator _animator;
+        [SerializeField] private Animator _viggoAnimator;
         [SerializeField] private Renderer _placeholder;
         private NetworkPlayer _network;
         private PlayerMovement _movement;
         private Renderer[] _renderers;
+        private Renderer[] _viggoRenderers;
         private Vector3 _previousPosition;
         private bool _seeded;
         private static readonly int Speed = Animator.StringToHash("Speed");
         public Animator Animator => _animator;
+        public Animator ViggoAnimator => _viggoAnimator;
 
         private void Awake()
         {
@@ -25,6 +28,8 @@ namespace EscapeViggo.Presentation
             _movement = GetComponent<PlayerMovement>();
             _renderers = _animator.GetComponentsInChildren<Renderer>(true);
             _animator.applyRootMotion = false;
+            _viggoRenderers = _viggoAnimator ? _viggoAnimator.GetComponentsInChildren<Renderer>(true) : System.Array.Empty<Renderer>();
+            if (_viggoAnimator) _viggoAnimator.applyRootMotion = false;
         }
 
         private void OnEnable() { _seeded = false; }
@@ -33,9 +38,13 @@ namespace EscapeViggo.Presentation
         {
             var active = _network == null || (_network.IsSpawned && _network.Role == PlayerRole.Electrician);
             var local = _network == null || _network.IsOwner;
+            var viggoActive = _viggoAnimator && _network != null && _network.IsSpawned && _network.Role == PlayerRole.Viggo;
             _animator.gameObject.SetActive(active);
-            _placeholder.enabled = !active;
+            if (_viggoAnimator) _viggoAnimator.gameObject.SetActive(viggoActive);
+            _placeholder.enabled = !active && !viggoActive;
             foreach (var renderer in _renderers)
+                renderer.shadowCastingMode = local ? ShadowCastingMode.ShadowsOnly : ShadowCastingMode.On;
+            foreach (var renderer in _viggoRenderers)
                 renderer.shadowCastingMode = local ? ShadowCastingMode.ShadowsOnly : ShadowCastingMode.On;
             var delta = transform.position - _previousPosition;
             delta.y = 0;
@@ -43,16 +52,17 @@ namespace EscapeViggo.Presentation
                 ? delta.magnitude / Time.deltaTime : 0;
             _previousPosition = transform.position;
             _seeded = true;
-            if (!active) return;
+            if (!active && !viggoActive) return;
+            var visibleAnimator = viggoActive ? _viggoAnimator : _animator;
             // Blend thresholds are normalized against the existing movement configuration.
             var normalized = speed <= _movement.Settings.WalkSpeed
                 ? speed / _movement.Settings.WalkSpeed
                 : 1 + (speed - _movement.Settings.WalkSpeed) /
                     Mathf.Max(.01f, _movement.Settings.SprintSpeed - _movement.Settings.WalkSpeed);
-            _animator.SetFloat(Speed, Mathf.Clamp(normalized, 0, 2), .10f, Time.deltaTime);
+            visibleAnimator.SetFloat(Speed, Mathf.Clamp(normalized, 0, 2), .10f, Time.deltaTime);
             // Minimal crouch accommodation until the later contextual animation pass.
             var crouch = _network != null ? _network.IsCrouching : _movement.IsCrouching;
-            _animator.transform.localScale = new Vector3(1,
+            visibleAnimator.transform.localScale = new Vector3(1,
                 crouch ? _movement.Settings.CrouchingHeight / _movement.Settings.StandingHeight : 1, 1);
         }
 
@@ -60,6 +70,7 @@ namespace EscapeViggo.Presentation
         {
             if (_placeholder) _placeholder.enabled = true;
             if (_animator) _animator.gameObject.SetActive(false);
+            if (_viggoAnimator) _viggoAnimator.gameObject.SetActive(false);
         }
     }
 }

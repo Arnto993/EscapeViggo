@@ -8,10 +8,11 @@ namespace EscapeViggo.Tests
     public sealed class ElectricianArtTests
     {
         private const string Root = "Assets/EscapeViggo/Art/Characters/Electrician/";
-        [Test]
-        public void LegBindBasisUsesCorrectAnatomicalSidesAndMatchingRoll()
+        [TestCase("Electrician")]
+        [TestCase("Viggo")]
+        public void LegBindBasisUsesCorrectAnatomicalSidesAndMatchingRoll(string character)
         {
-            var model = AssetDatabase.LoadAssetAtPath<GameObject>(Root + "Models/Electrician.fbx");
+            var model = AssetDatabase.LoadAssetAtPath<GameObject>($"Assets/EscapeViggo/Art/Characters/{character}/Models/{character}.fbx");
             var bones = model.GetComponentsInChildren<Transform>();
             foreach (var part in new[] { "UpperLeg", "LowerLeg", "Foot" })
             {
@@ -24,10 +25,11 @@ namespace EscapeViggo.Tests
             }
         }
 
-        [Test]
-        public void HumanoidHasRequiredBonesMetreScaleForwardFeetAndGroundPivot()
+        [TestCase("Electrician", 1.70f, 1.90f)]
+        [TestCase("Viggo", 1.60f, 1.68f)]
+        public void HumanoidHasRequiredBonesMetreScaleForwardFeetAndGroundPivot(string character, float minHeight, float maxHeight)
         {
-            var instance = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(Root + "PF_Electrician.prefab"));
+            var instance = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>($"Assets/EscapeViggo/Art/Characters/{character}/PF_{character}.prefab"));
             try
             {
                 var animator = instance.GetComponent<Animator>();
@@ -42,7 +44,7 @@ namespace EscapeViggo.Tests
                 var mesh = new Mesh(); renderer.BakeMesh(mesh);
                 var points = mesh.vertices.Select(renderer.transform.TransformPoint).ToArray();
                 Object.DestroyImmediate(mesh);
-                Assert.That(points.Max(p => p.y), Is.InRange(1.70f,1.90f));
+                Assert.That(points.Max(p => p.y), Is.InRange(minHeight,maxHeight));
                 Assert.That(points.Min(p => p.y), Is.EqualTo(0).Within(.012f));
                 Assert.That(animator.GetBoneTransform(HumanBodyBones.LeftToes).position.z,
                     Is.GreaterThan(animator.GetBoneTransform(HumanBodyBones.LeftFoot).position.z));

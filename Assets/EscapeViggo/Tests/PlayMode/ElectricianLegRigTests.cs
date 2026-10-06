@@ -16,9 +16,17 @@ namespace EscapeViggo.Tests
     {
         [UnityTest]
         public IEnumerator HumanoidKeepsKneesAndFeetInTheForwardBendPlane()
+            => CheckBendPlane("Electrician");
+
+        [UnityTest]
+        public IEnumerator ViggoSharedClipsKeepKneesAndFeetInTheForwardBendPlane()
+            => CheckBendPlane("Viggo");
+
+        private static IEnumerator CheckBendPlane(string character)
         {
             var obj = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(
-                "Assets/EscapeViggo/Art/Characters/Electrician/PF_Electrician.prefab"));
+                $"Assets/EscapeViggo/Art/Characters/{character}/PF_{character}.prefab"));
+            obj.name = character;
             try
             {
                 var animator = obj.GetComponent<Animator>();
@@ -100,7 +108,8 @@ namespace EscapeViggo.Tests
                 var camera = cameraObject.AddComponent<Camera>(); camera.orthographic = true; camera.orthographicSize = 1.06f;
                 camera.clearFlags = CameraClearFlags.SolidColor; camera.backgroundColor = new Color(.17f,.20f,.24f);
                 camera.targetTexture = target;
-                var directory = "Logs/C4RigRuntime"; Directory.CreateDirectory(directory);
+                var directory = obj.name == "Viggo" ? "Logs/C5RigRuntime" : "Logs/C4RigRuntime";
+                Directory.CreateDirectory(directory);
                 foreach (var view in new[] { "Front", "ThreeQuarter" })
                 {
                     camera.transform.position = obj.transform.position + (view == "Front" ? new Vector3(0,1,4) : new Vector3(2.8f,1.7f,4));
