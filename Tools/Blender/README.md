@@ -54,6 +54,23 @@ raised nose pointing +Z. This is pipeline review, not final art acceptance.
 The C0 commands above produce only the static fixture. Character commands follow.
 # C1-C4 electrician production
 
+## C4/C5 workwear color adjustment
+
+Viggo now wears yellow with charcoal braces; the electrician vest is orange and
+the helmet remains yellow. Braces use existing torso faces, preserving geometry,
+weights and rig. Legacy material identifiers (`MAT_Viggo_Orange` and
+`MAT_Electrician_Yellow`) intentionally retain existing Unity GUIDs and remaps.
+The character generators include these changes. To apply them to saved sources
+without rebuilding the characters, and refresh all ten studio review renders:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Blender.ps1 -Script Tools/Blender/update_workwear.py
+powershell -NoProfile -ExecutionPolicy Bypass -File Tools/Invoke-Unity.ps1 -Method EscapeViggo.Editor.WorkwearArtUpdate.Apply -LogName WorkwearApply
+```
+
+The Unity operation changes only the two existing clothing materials and validates
+both characters; it preserves prefab, Avatar and model importer configuration.
+
 The C0 static profile remains unchanged. Character work uses its metre scene/reset,
 transform and CLI helpers with a separate skinned FBX profile: **no baked space
 transforms**, no leaf bones, explicit baked actions at 30 fps. Unity bakes axis

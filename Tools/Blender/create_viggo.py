@@ -50,7 +50,8 @@ def build():
     belly.parent = rig.data.edit_bones['Spine']
     bpy.ops.object.mode_set(mode='OBJECT')
     materials = {}
-    for name, rgb in {'Orange':(.95,.205,.012), 'Charcoal':(.038,.042,.048),
+    # Keep legacy material identifiers so existing Unity remaps/GUIDs stay intact.
+    for name, rgb in {'Orange':(.85,.92,.025), 'Charcoal':(.038,.042,.048),
                       'Rubber':(.016,.019,.024), 'Reflector':(.66,.70,.70),
                       'Skin':(.66,.335,.215), 'Flush':(.70,.225,.145),
                       'GreyHair':(.28,.29,.285), 'Beard':(.42,.43,.405),
@@ -111,7 +112,11 @@ def build():
     torso.data.materials.append(materials['Charcoal'])
     for p in torso.data.polygons:
         if .80 < p.center.z < .855: p.material_index = 1
-        elif p.center.z > 1.1 and p.center.y > .14 and abs(p.center.x) < .13: p.material_index = 2
+    # Broad charcoal braces follow existing front/back jacket faces, over the
+    # reflective waist band. No added geometry, skin weights or rig changes.
+    for p in torso.data.polygons:
+        if p.index < 8 * 16 and p.index % 16 in (2, 5, 10, 13):
+            p.material_index = 2
     hips = ell('Trouser seat', (0,-.005,.62), (.325,.255,.18), 'Charcoal', 'Hips',16,6)
     belt = tube('Belt', [(0,.045,.618,.294,.239),(0,.064,.66,.32,.263)],'Rubber','Hips')
     box('Belt buckle', (0,.335,.65), (.082,.026,.049),'Reflector','Hips',.006)

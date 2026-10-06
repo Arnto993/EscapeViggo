@@ -12,7 +12,8 @@ ROOT = Path(__file__).resolve().parents[2]
 SIDES = [('Left', -1), ('Right', 1)]
 reset_scene()
 M = {}
-for name, rgb in {'Blue':(.035,.10,.26),'Yellow':(.85,.92,.025),'Helmet':(1,.58,.012),
+# Legacy Yellow identifier preserves Unity material remaps; the vest is orange.
+for name, rgb in {'Blue':(.035,.10,.26),'Yellow':(.95,.205,.012),'Helmet':(1,.58,.012),
                   'Skin':(.65,.30,.15),'Hair':(.085,.032,.014),'Dark':(.022,.026,.032),
                   'Silver':(.57,.62,.64),'Leather':(.34,.14,.036),'White':(.92,.89,.78)}.items():
     m = bpy.data.materials.new('MAT_Electrician_'+name)

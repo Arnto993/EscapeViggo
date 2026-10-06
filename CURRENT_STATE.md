@@ -221,7 +221,7 @@ Do not “solve” M23 balance theoretically before multiplayer playtest evidenc
   currently have `.png.png` suffixes; the technical spec is `CHARACTER_ARTS_SPECS.md`.
 - One 1.8355 m faceted electrician: 4,380 triangles, 21-bone Humanoid rig, all 17
   required bones plus shoulders/toes; blended torso/elbow/knee weights. No finger
-  or facial rig. Yellow helmet/vest, blue workwear, glasses/hair, gloves, boots/belt.
+  or facial rig. Yellow helmet, orange vest, blue workwear, glasses/hair, gloves, boots/belt.
 - `Tools/Blender/create_electrician.py` regenerates the named sources and four review
   renders. `export_character.py` preserves manual source edits; `validate_character.py`
   checks saved sources/rig/weights/transforms/loops. The C0 static export is unchanged;
@@ -265,7 +265,8 @@ Do not “solve” M23 balance theoretically before multiplayer playtest evidenc
 - Source: `ArtSource/Characters/Viggo/SRC_Viggo.blend`; Unity exports/materials/prefab:
   `Assets/EscapeViggo/Art/Characters/Viggo/` (`Models/Viggo.fbx`, `PF_Viggo.prefab`).
 - 1.66 m, 5,474 triangles, one faceted skinned mesh. Independently shaped jacket/belly,
-  short legs, broad hips/arms, geometric grey hair/beard, orange/charcoal workwear.
+  short legs, broad hips/arms, geometric grey hair/beard, yellow/charcoal workwear
+  with charcoal braces assigned to existing jacket faces (no added geometry).
   BaseHuman supplies the logical rig, not a uniformly scaled body mesh.
 - 22 bones: corrected 21-bone Humanoid hierarchy plus `Belly` under `Spine`.
   Left=-X / Right=+X; matching sagittal knee hinges, forward toes, no negative scale.
