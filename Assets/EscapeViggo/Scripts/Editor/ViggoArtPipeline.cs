@@ -3,19 +3,21 @@ using System.IO;
 using System.Linq;
 using EscapeViggo.Presentation;
 using UnityEditor;
+using UnityEditor.Animations;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace EscapeViggo.Editor
 {
-    // C5 owns only Viggo assets and the added visual reference on existing players.
+    // Owns Viggo art assets and visual references, never gameplay configuration.
     public static class ViggoArtPipeline
     {
         public const string Root = "Assets/EscapeViggo/Art/Characters/Viggo";
         public const string Model = Root + "/Models/Viggo.fbx";
         public const string Prefab = Root + "/PF_Viggo.prefab";
+        public const string Controller = Root + "/Viggo.controller";
 
-        [MenuItem("Escape Viggo/Art/C5/Prepare and validate Viggo base")]
+        [MenuItem("Escape Viggo/Art/C6-C7/Prepare and validate Viggo animations")]
         public static void Prepare()
         {
             Directory.CreateDirectory(Root + "/Materials");
@@ -24,7 +26,7 @@ namespace EscapeViggo.Editor
             importer.globalScale = 1; importer.useFileScale = true; importer.bakeAxisConversion = true;
             importer.animationType = ModelImporterAnimationType.Human;
             importer.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
-            importer.importAnimation = false; importer.importCameras = false; importer.importLights = false;
+            importer.importAnimation = true; importer.importCameras = false; importer.importLights = false;
             importer.optimizeBones = false;
             importer.materialImportMode = ModelImporterMaterialImportMode.ImportStandard;
             importer.SaveAndReimport();
@@ -36,17 +38,6 @@ namespace EscapeViggo.Editor
             // Always refresh the source reference pose, including the corrected leg axes.
             description.skeleton = transforms.Where(t => !t.GetComponent<Renderer>()).Select(t => new SkeletonBone
             { name = t.name, position = t.localPosition, rotation = t.localRotation, scale = t.localScale }).ToArray();
-            // C4's FBX reference contains the shared Idle arm pose. Its Humanoid clips
-            // are calibrated against that pose, not BaseHuman's unposed T-pose.
-            // Match only arm reference rotations; keep Viggo joint positions and leg axes.
-            var sharedReference = ((ModelImporter)AssetImporter.GetAtPath(ElectricianArtPipeline.Model)).humanDescription.skeleton;
-            for (var i = 0; i < description.skeleton.Length; i++)
-            {
-                var name = description.skeleton[i].name;
-                if (name.EndsWith("Shoulder", StringComparison.Ordinal) || name.EndsWith("UpperArm", StringComparison.Ordinal) ||
-                    name.EndsWith("LowerArm", StringComparison.Ordinal) || name.EndsWith("Hand", StringComparison.Ordinal))
-                    description.skeleton[i].rotation = sharedReference.Single(b => b.name == name).rotation;
-            }
             importer.humanDescription = description;
             foreach (var material in AssetDatabase.LoadAllAssetsAtPath(Model).OfType<Material>())
             {
@@ -60,14 +51,23 @@ namespace EscapeViggo.Editor
                 }
                 importer.AddRemap(new AssetImporter.SourceAssetIdentifier(typeof(Material), material.name), target);
             }
+            var clips = importer.defaultClipAnimations;
+            foreach (var clip in clips)
+            {
+                clip.name = new[] { "Idle", "Walk", "Run", "Javell" }.Single(n => clip.name.EndsWith(n, StringComparison.Ordinal));
+                clip.loopTime = true; clip.loopPose = true;
+                clip.lockRootRotation = true; clip.lockRootHeightY = true; clip.lockRootPositionXZ = true;
+                clip.keepOriginalOrientation = true; clip.keepOriginalPositionXZ = true;
+            }
+            importer.clipAnimations = clips;
             importer.SaveAndReimport();
+            var controller = CreateController();
             var instance = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(Model));
             try
             {
                 instance.name = "ViggoVisual";
                 var animator = instance.GetComponent<Animator>();
-                // Existing electrician clips are a retargeting smoke test, not final Viggo locomotion.
-                animator.runtimeAnimatorController = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(ElectricianArtPipeline.Controller);
+                animator.runtimeAnimatorController = controller;
                 animator.applyRootMotion = false;
                 PrefabUtility.SaveAsPrefabAsset(instance, Prefab);
             }
@@ -77,9 +77,10 @@ namespace EscapeViggo.Editor
                 var player = PrefabUtility.LoadPrefabContents(path);
                 try
                 {
-                    var old = player.transform.Find("ViggoVisual");
-                    if (old) Object.DestroyImmediate(old.gameObject);
-                    var visual = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(Prefab), player.transform);
+                    // Existing nested prefabs inherit the new controller; preserve their file IDs.
+                    var existing = player.transform.Find("ViggoVisual");
+                    var visual = existing ? existing.gameObject :
+                        (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(Prefab), player.transform);
                     visual.name = "ViggoVisual";
                     var presentation = player.GetComponent<ElectricianPresentation>();
                     if (!presentation) throw new InvalidOperationException("C1-C4 presentation must already exist.");
@@ -99,19 +100,54 @@ namespace EscapeViggo.Editor
             var animator = prefab.GetComponent<Animator>();
             Require(animator && animator.avatar && animator.avatar.isValid && animator.avatar.isHuman, "Invalid Viggo Humanoid");
             Require(!animator.applyRootMotion && animator.runtimeAnimatorController ==
-                AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(ElectricianArtPipeline.Controller), "Shared controller/root motion mismatch");
+                AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(Controller), "Viggo controller/root motion mismatch");
             var meshes = prefab.GetComponentsInChildren<SkinnedMeshRenderer>();
             Require(meshes.Length == 1 && meshes[0].sharedMesh, "Expected one combined Viggo mesh");
             Require(meshes[0].bones.All(b => b) && meshes[0].sharedMaterials.All(m => m && m.shader.name == "Universal Render Pipeline/Lit"), "Broken Viggo references");
             Require(prefab.GetComponentsInChildren<Collider>().Length == 0, "Presentation must not own colliders");
             var importer = (ModelImporter)AssetImporter.GetAtPath(Model);
-            Require(!importer.importAnimation && importer.humanDescription.human.All(b => b.boneName != "Belly"), "C5 secondary bone/animation scope");
+            Require(importer.importAnimation && importer.humanDescription.human.All(b => b.boneName != "Belly"), "Secondary bone/animation configuration");
+            foreach (var name in new[] { "Idle", "Walk", "Run", "Javell" })
+            {
+                var clip = AssetDatabase.LoadAllAssetsAtPath(Model).OfType<AnimationClip>().Single(c => c.name == name);
+                Require(clip.isHumanMotion && clip.isLooping && clip.length > .5f, "Invalid Viggo clip " + name);
+            }
             foreach (var path in new[] { "Assets/EscapeViggo/Prefabs/Player.prefab", "Assets/EscapeViggo/Prefabs/NetworkPlayer.prefab" })
             {
                 var player = AssetDatabase.LoadAssetAtPath<GameObject>(path);
                 Require(player.GetComponent<ElectricianPresentation>().ViggoAnimator == player.transform.Find("ViggoVisual").GetComponent<Animator>(), "Missing role visual reference");
             }
-            Debug.Log("C5 VIGGO HUMANOID ASSET VALIDATION PASSED");
+            Debug.Log("C6-C7 VIGGO HUMANOID ASSET VALIDATION PASSED");
+        }
+
+        private static AnimatorController CreateController()
+        {
+            var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(Controller);
+            if (!controller) controller = AnimatorController.CreateAnimatorControllerAtPath(Controller);
+            foreach (var parameter in controller.parameters) controller.RemoveParameter(parameter);
+            controller.AddParameter("Speed", AnimatorControllerParameterType.Float);
+            controller.AddParameter("Resting", AnimatorControllerParameterType.Bool);
+            var machine = controller.layers[0].stateMachine;
+            foreach (var state in machine.states) machine.RemoveState(state.state);
+            foreach (var old in AssetDatabase.LoadAllAssetsAtPath(Controller).OfType<BlendTree>()) Object.DestroyImmediate(old, true);
+            var blend = new BlendTree { name = "HeavyLocomotion", blendType = BlendTreeType.Simple1D,
+                blendParameter = "Speed", useAutomaticThresholds = false };
+            AssetDatabase.AddObjectToAsset(blend, controller);
+            var clips = AssetDatabase.LoadAllAssetsAtPath(Model).OfType<AnimationClip>().Where(c => !c.name.StartsWith("__")).ToArray();
+            for (var i = 0; i < 3; i++) blend.AddChild(clips.Single(c => c.name == new[] { "Idle", "Walk", "Run" }[i]), i);
+            var locomotion = machine.AddState("Locomotion"); locomotion.motion = blend;
+            var rest = machine.AddState("Javell"); rest.motion = clips.Single(c => c.name == "Javell");
+            machine.defaultState = locomotion;
+            var enter = locomotion.AddTransition(rest);
+            enter.hasExitTime = false; enter.hasFixedDuration = true; enter.duration = .28f;
+            enter.interruptionSource = TransitionInterruptionSource.Destination;
+            enter.AddCondition(AnimatorConditionMode.If, 0, "Resting");
+            var exit = rest.AddTransition(locomotion);
+            exit.hasExitTime = false; exit.hasFixedDuration = true; exit.duration = .22f;
+            exit.interruptionSource = TransitionInterruptionSource.Destination;
+            exit.AddCondition(AnimatorConditionMode.IfNot, 0, "Resting");
+            EditorUtility.SetDirty(controller);
+            return controller;
         }
 
         private static void Require(bool condition, string message)

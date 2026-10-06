@@ -53,8 +53,54 @@ namespace EscapeViggo.Tests
             => CheckPlayback("Electrician");
 
         [UnityTest]
-        public IEnumerator ViggoRetargetsSharedClipsWithoutMovingThePresentationRoot()
+        public IEnumerator ViggoPlaysDedicatedClipsWithoutMovingThePresentationRoot()
             => CheckPlayback("Viggo");
+
+        [UnityTest]
+        public IEnumerator ViggoRestPlacesBothHandsOnBellyAndReturnsToLocomotion()
+        {
+            var instance = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Assets/EscapeViggo/Art/Characters/Viggo/PF_Viggo.prefab"));
+            try
+            {
+                var animator = instance.GetComponent<Animator>();
+                animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+                yield return null;
+                var root = instance.transform.position;
+                // Rest must override even a moving blend tree; transitions also handle interruption.
+                animator.SetFloat("Speed", 2);
+                animator.SetBool("Resting", true);
+                for (var i = 0; i < 20; i++) animator.Update(1f / 30);
+                Assert.That(animator.GetCurrentAnimatorStateInfo(0).IsName("Javell"), Is.True);
+                var chest = animator.GetBoneTransform(HumanBodyBones.Chest);
+                var initialChest = chest.rotation;
+                for (var frame = 0; frame < 96; frame++)
+                {
+                    animator.Update(1f / 30);
+                    foreach (var bone in new[] { HumanBodyBones.LeftHand, HumanBodyBones.RightHand })
+                    {
+                        var hand = instance.transform.InverseTransformPoint(animator.GetBoneTransform(bone).position);
+                        Assert.That(hand.y, Is.InRange(.90f, 1.15f), "Rest hand height must be belly level.");
+                        Assert.That(hand.z, Is.InRange(.27f, .48f), "Rest hands must reach the front of the belly.");
+                        Assert.That(Mathf.Abs(hand.x), Is.InRange(.12f, .34f));
+                    }
+                    if (frame == 15) Assert.That(Quaternion.Angle(initialChest, chest.rotation), Is.GreaterThan(.1f), "Rest must breathe.");
+                }
+                animator.speed = 0;
+                yield return null;
+                ElectricianLegRigTests.Render(instance, "Javell");
+                animator.speed = 1;
+                animator.SetBool("Resting", false);
+                for (var i = 0; i < 15; i++) animator.Update(1f / 30);
+                Assert.That(animator.GetCurrentAnimatorStateInfo(0).IsName("Locomotion"), Is.True);
+                animator.SetBool("Resting", true); animator.Update(.05f);
+                animator.SetBool("Resting", false);
+                for (var i = 0; i < 20; i++) animator.Update(1f / 30);
+                Assert.That(animator.GetCurrentAnimatorStateInfo(0).IsName("Locomotion"), Is.True);
+                Assert.That(Vector3.Distance(root, instance.transform.position), Is.LessThan(.0001f));
+            }
+            finally { Object.Destroy(instance); }
+        }
 
         private static IEnumerator CheckPlayback(string character)
         {

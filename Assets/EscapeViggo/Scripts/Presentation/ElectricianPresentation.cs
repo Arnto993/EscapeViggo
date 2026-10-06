@@ -1,5 +1,6 @@
 using EscapeViggo.Networking;
 using EscapeViggo.Player;
+using EscapeViggo.Viggo;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -14,11 +15,13 @@ namespace EscapeViggo.Presentation
         [SerializeField] private Renderer _placeholder;
         private NetworkPlayer _network;
         private PlayerMovement _movement;
+        private ViggoStamina _stamina;
         private Renderer[] _renderers;
         private Renderer[] _viggoRenderers;
         private Vector3 _previousPosition;
         private bool _seeded;
         private static readonly int Speed = Animator.StringToHash("Speed");
+        private static readonly int Resting = Animator.StringToHash("Resting");
         public Animator Animator => _animator;
         public Animator ViggoAnimator => _viggoAnimator;
 
@@ -26,6 +29,7 @@ namespace EscapeViggo.Presentation
         {
             _network = GetComponent<NetworkPlayer>();
             _movement = GetComponent<PlayerMovement>();
+            _stamina = GetComponent<ViggoStamina>();
             _renderers = _animator.GetComponentsInChildren<Renderer>(true);
             _animator.applyRootMotion = false;
             _viggoRenderers = _viggoAnimator ? _viggoAnimator.GetComponentsInChildren<Renderer>(true) : System.Array.Empty<Renderer>();
@@ -55,10 +59,13 @@ namespace EscapeViggo.Presentation
             if (!active && !viggoActive) return;
             var visibleAnimator = viggoActive ? _viggoAnimator : _animator;
             // Blend thresholds are normalized against the existing movement configuration.
-            var normalized = speed <= _movement.Settings.WalkSpeed
-                ? speed / _movement.Settings.WalkSpeed
-                : 1 + (speed - _movement.Settings.WalkSpeed) /
-                    Mathf.Max(.01f, _movement.Settings.SprintSpeed - _movement.Settings.WalkSpeed);
+            var walkSpeed = viggoActive && _stamina ? _stamina.Settings.WalkSpeed : _movement.Settings.WalkSpeed;
+            var runSpeed = viggoActive && _stamina ? _stamina.Settings.ChaseSpeed : _movement.Settings.SprintSpeed;
+            var resting = viggoActive && _stamina && _stamina.IsResting;
+            if (viggoActive) visibleAnimator.SetBool(Resting, resting);
+            var normalized = resting ? 0 : speed <= walkSpeed
+                ? speed / walkSpeed
+                : 1 + (speed - walkSpeed) / Mathf.Max(.01f, runSpeed - walkSpeed);
             visibleAnimator.SetFloat(Speed, Mathf.Clamp(normalized, 0, 2), .10f, Time.deltaTime);
             // Minimal crouch accommodation until the later contextual animation pass.
             var crouch = _network != null ? _network.IsCrouching : _movement.IsCrouching;

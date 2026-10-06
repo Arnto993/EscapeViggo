@@ -9,11 +9,11 @@ namespace EscapeViggo.Tests
     public sealed class ViggoArtTests
     {
         [Test]
-        public void ViggoUsesSharedClipsAndHasOnlyOneUnmappedSecondaryBone()
+        public void ViggoUsesDedicatedClipsAndHasOnlyOneUnmappedSecondaryBone()
         {
             var root = "Assets/EscapeViggo/Art/Characters/";
             var importer = (ModelImporter)AssetImporter.GetAtPath(root + "Viggo/Models/Viggo.fbx");
-            Assert.That(importer.importAnimation, Is.False);
+            Assert.That(importer.importAnimation, Is.True);
             Assert.That(importer.humanDescription.human.Any(b => b.boneName == "Belly"), Is.False);
             var model = AssetDatabase.LoadAssetAtPath<GameObject>(root + "Viggo/PF_Viggo.prefab");
             var transforms = model.GetComponentsInChildren<Transform>();
@@ -22,7 +22,12 @@ namespace EscapeViggo.Tests
             Assert.That(importer.humanDescription.human.Select(b => b.boneName),
                 Is.EquivalentTo(worker.humanDescription.human.Select(b => b.boneName)));
             Assert.That(model.GetComponent<Animator>().runtimeAnimatorController,
-                Is.SameAs(AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(root + "Electrician/Electrician.controller")));
+                Is.SameAs(AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(root + "Viggo/Viggo.controller")));
+            var clips = AssetDatabase.LoadAllAssetsAtPath(root + "Viggo/Models/Viggo.fbx")
+                .OfType<AnimationClip>().Where(c => !c.name.StartsWith("__")).ToArray();
+            Assert.That(clips.Select(c => c.name), Is.EquivalentTo(new[] { "Idle", "Walk", "Run", "Javell" }));
+            Assert.That(clips.All(c => c.isHumanMotion && c.isLooping), Is.True);
+            Assert.That(importer.clipAnimations.All(c => c.lockRootRotation && c.lockRootHeightY && c.lockRootPositionXZ), Is.True);
         }
 
         [TestCase("Player")]

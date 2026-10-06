@@ -2,18 +2,19 @@
 
 **Purpose:** fast orientation for coding agents. This file describes the current repository, not its full history.
 
-**Last consolidated checkpoint:** C5 Viggo base model engineering completed locally, 2026-10-06.
+**Current art scope:** C6/C7 Viggo locomotion and Javell implemented locally, 2026-10-06.
 
 ## 1. Current Development Position
 
 - M0–M19: engineering/acceptance criteria completed.
 - M20: engineering implementation completed; human fun/balance judgement remains a playtest concern.
 - M21: engineering implementation and Tier 3 checkpoint completed. Human listening/feel acceptance remains.
-- M22 is partially authorized/implemented through **C5 Viggo base model only**.
+- M22 is partially authorized/implemented through **C7 Javell animation only**.
 - C0 Blender-to-Unity pipeline (`fd24a02`) is verified. C1–C4 electrician production
   passed its engineering checkpoint. C5 model/rig/presentation is implemented;
   targeted tests and the final local host/client check pass. Human visual review remains.
-- Stop before C6 Viggo locomotion, other M22 production and M23 unless explicitly requested.
+- C6/C7 adds dedicated Viggo Idle/Walk/Run and both-hands-on-belly Javell presentation.
+- Stop before C8 battery discovery, other M22 production and M23 unless explicitly requested.
 
 Recent local milestone commits:
 
@@ -292,7 +293,25 @@ Do not “solve” M23 balance theoretically before multiplayer playtest evidenc
 - Human approval is still required for proportions, belly size/shape, face, height,
   silhouette, low-poly style and reference similarity. Face/hair/beard and sleeve
   joins are deliberately geometric; shared stride/arm swing is not final Viggo style.
-  C6 is unstarted; no final locomotion, Javell, discovery, Rage or capture animation.
+  C6/C7 now replaces the shared clips as described below; discovery, Rage and capture animation remain unstarted.
+
+### C6/C7 Viggo locomotion and Javell (2026-10-06)
+
+- `Tools/Blender/animate_viggo.py` authors four looping actions on the saved Viggo
+  source, preserving C5 geometry/weights/rig. Run it after rebuilding the C5 model.
+  Idle/Walk/Run use short strides, restrained arm swing and low weight transfer;
+  Javell holds both hands on the belly with visible chest/belly breathing.
+- `ViggoArtPipeline.Prepare` imports the dedicated Humanoid clips and creates
+  `Viggo.controller`: locomotion blends into/out of Javell from the existing replicated
+  `ViggoStamina.IsResting` snapshot, including late observers. Root motion is disabled.
+  Presentation thresholds read Viggo's existing speeds; gameplay/rest/authority are unchanged.
+- Targeted Tier 2: saved Blender source/loop/hand-placement checks and unchanged C5
+  semantic checksum; Humanoid import, 3 Edit Mode and 3 graphics-enabled Play Mode
+  checks. Runtime renders inspected for locomotion and both-hands-on-belly rest.
+  Evidence: `Logs/C6C7Blender.json`, `Logs/C6C7Import.log`, `Logs/C6C7EditMode.xml`,
+  `Logs/C6C7PlayMode.xml`, `Logs/C6C7RigRuntime/`. No build/full-suite/Relay regression.
+- Human animation-feel acceptance remains: observe Viggo idle/walk/run, exhaust
+  stamina, check both hands settle on his belly during Javell, then resume movement.
 
 ### M21 presentation architecture
 

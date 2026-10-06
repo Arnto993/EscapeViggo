@@ -19,7 +19,7 @@ namespace EscapeViggo.Tests
             => CheckBendPlane("Electrician");
 
         [UnityTest]
-        public IEnumerator ViggoSharedClipsKeepKneesAndFeetInTheForwardBendPlane()
+        public IEnumerator ViggoClipsKeepKneesAndFeetInTheForwardBendPlane()
             => CheckBendPlane("Viggo");
 
         private static IEnumerator CheckBendPlane(string character)
@@ -93,7 +93,7 @@ namespace EscapeViggo.Tests
             finally { Object.Destroy(obj); }
         }
 
-        private static void Render(GameObject obj, string pose)
+        internal static void Render(GameObject obj, string pose)
         {
             if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null) return;
             var cameraObject = new GameObject("C4 Review Camera");
@@ -108,11 +108,11 @@ namespace EscapeViggo.Tests
                 var camera = cameraObject.AddComponent<Camera>(); camera.orthographic = true; camera.orthographicSize = 1.06f;
                 camera.clearFlags = CameraClearFlags.SolidColor; camera.backgroundColor = new Color(.17f,.20f,.24f);
                 camera.targetTexture = target;
-                var directory = obj.name == "Viggo" ? "Logs/C5RigRuntime" : "Logs/C4RigRuntime";
+                var directory = obj.name.Contains("Viggo") ? "Logs/C6C7RigRuntime" : "Logs/C4RigRuntime";
                 Directory.CreateDirectory(directory);
-                foreach (var view in new[] { "Front", "ThreeQuarter" })
+                foreach (var view in new[] { "Front", "ThreeQuarter", "Side" })
                 {
-                    camera.transform.position = obj.transform.position + (view == "Front" ? new Vector3(0,1,4) : new Vector3(2.8f,1.7f,4));
+                    camera.transform.position = obj.transform.position + (view == "Front" ? new Vector3(0,1,4) : view == "Side" ? new Vector3(4,1,0) : new Vector3(2.8f,1.7f,4));
                     camera.transform.LookAt(obj.transform.position + Vector3.up * .94f);
                     camera.Render(); RenderTexture.active = target;
                     image.ReadPixels(new Rect(0,0,720,900),0,0); image.Apply();
