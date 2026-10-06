@@ -3,6 +3,38 @@
 This file contains persistent instructions for coding agents working in this repository.
 Keep this file short, stable, and operational. Do not turn it into milestone history.
 
+## Work Scope / Token Discipline
+
+Choose the smallest appropriate execution mode.
+
+### FAST PATCH
+Use for small visual, material, text, parameter, prefab or isolated asset changes.
+
+Rules:
+- Do NOT reread GAME_SPEC.md or large project documentation.
+- Read only the directly affected files and any immediately relevant rule.
+- Do NOT run full EditMode/PlayMode suites.
+- Do NOT run Windows builds.
+- Do NOT run multiplayer, Relay or full-week regression.
+- Do NOT regenerate unrelated review artifacts.
+- Do NOT update documentation unless project state materially changes.
+- Make the smallest source-of-truth change.
+- Run one or a few targeted sanity checks.
+- Commit and stop.
+
+Target: minimal tool calls and minimal context.
+
+### NORMAL IMPLEMENTATION
+Use for contained feature/art/animation work.
+Read AGENTS.md, CURRENT_STATE.md and only relevant specification sections.
+Use targeted validation while iterating.
+Do not run broad regression unless affected systems justify it.
+
+### CHECKPOINT
+Use only for milestone completion, core gameplay changes, networking/authority
+changes, or when explicitly requested.
+Broader validation/builds are allowed here.
+
 ## 1. Project
 
 - Project: **Escape Viggo**
